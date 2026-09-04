@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+#
+# Shape follows the Foundry hosted-agent samples (agent-framework / responses). Two
+# deliberate departures:
+#   * no `deployments:` block — tokens come through the APIM gateway, which already has
+#     the capacity; declaring a model here competes for regional quota and fails preflight.
+#   * `project:` is the service directory and it carries EVERYTHING the container needs
+#     (code, charters, data). azd uploads only that directory.
+
+requiredVersions:
+  azd: '>=1.27.1'
+  extensions:
+    azure.ai.agents: '>=1.0.0-beta.9'
+
+name: strong-loop
+
+services:
+  ai-project:
+    host: azure.ai.project
+
+  strong-loop:
+    host: azure.ai.agent
+    kind: hosted
+    name: strong-loop
+    displayName: Strong Loop
+    description: >
+      A role charter and a dataset in; evidence-backed findings out. The agent proposes
+      hypotheses, a fixed statistical gate decides, and a ledger on disk is the only
+      memory between fresh-context iterations.
+    project: src/strong-loop
+    language: python
+    startupCommand: python main.py
+    codeConfiguration:
+      runtime: python_3_13
+      entryPoint: main.py
+      dependencyResolution: remote_build
+    uses:
+      - ai-project
+    protocols:
+      - protocol: responses
+        version: 2.0.0
+    environmentVariables:
+      - name: APIM_GATEWAY_URL
+        value: ${APIM_GATEWAY_URL}
+      - name: APIM_SUBSCRIPTION_KEY
+        value: ${APIM_SUBSCRIPTION_KEY}
+      - name: LOOP_MODEL
+        value: ${LOOP_MODEL}
+      - name: LOOP_CHARTER
+        value: ${LOOP_CHARTER}
+      - name: LOOP_DATA
+        value: ${LOOP_DATA}
+      - name: LOOP_MAX_ITERATIONS
+        value: ${LOOP_MAX_ITERATIONS}
+    container:
+      resources:
+        cpu: '1'
+        memory: 2Gi
+
+infra:
+  provider: microsoft.foundry

@@ -1,0 +1,10 @@
+# Floors are the versions this was built and verified against (2026-09-04).
+agent-framework-core>=1.15.0
+agent-framework-openai>=1.14.0
+agent-framework-anthropic>=1.0.0b260821
+agent-framework-foundry-hosting>=1.0.0b260821
+pandas>=2.0
+numpy>=1.26
+pydantic>=2.0
+pyyaml>=6.0
+python-dotenv>=1.0

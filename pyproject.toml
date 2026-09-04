@@ -1,0 +1,15 @@
+# Developer tooling only. Runtime dependencies live in src/strong-loop/requirements.txt,
+# which is what the hosted container installs.
+[project]
+name = "strong-loop"
+version = "0.1.0"
+description = "An agent proposes hypotheses; a statistical gate mints the evidence; a ledger on disk is the memory between fresh-context iterations."
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src/strong-loop"]

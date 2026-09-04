@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Local credentials. The container gets these from azure.yaml; the laptop from
+# ~/.config/azure-apim (never copied here).
+.env
+.env.local
+# azd environment: holds the APIM subscription key
+.azure/
+
+# Run artefacts: ledgers and reports are per-run state, not source.
+runs/
