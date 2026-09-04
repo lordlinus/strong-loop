@@ -4,6 +4,7 @@
     check      charter + data are a valid pairing; the gate and the screens work; no model
     questions  the question set a run would inherit, numbered
     sign       ratify a charter's current content
+    run        the loop. Needs a model.
 """
 
 from __future__ import annotations
@@ -126,6 +127,23 @@ def _default_probe(data: pd.DataFrame, charter) -> str | None:
     return None
 
 
+def cmd_run(args: argparse.Namespace) -> int:
+    from .runner import run_once
+
+    charter = load_charter(args.charter)
+    data = load_data(args.data)
+    if missing := missing_metrics(charter, data):
+        raise SystemExit(f"accountability metric(s) not in this data: {missing}")
+    report = asyncio.run(
+        run_once(
+            charter, data, max_iterations=args.iterations,
+            runs_dir=pathlib.Path(args.run_dir), model=args.model, steer=args.steer,
+        )
+    )
+    print(json.dumps(report, indent=2, default=str))
+    return 0
+
+
 def cmd_questions(args: argparse.Namespace) -> int:
     charter = load_charter(args.charter)
     for i, q in enumerate(questions_from(charter), start=1):
@@ -160,6 +178,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--probe", default=None, help="a where-expression for the smoke test")
     p.add_argument("--run-dir", default="runs")
     p.set_defaults(func=cmd_check)
+
+    p = sub.add_parser("run", help="run the loop against a charter and a dataset")
+    p.add_argument("--charter", required=True)
+    p.add_argument("--data", required=True)
+    p.add_argument("--iterations", type=int, default=6)
+    p.add_argument("--model", default=None, help="override LOOP_MODEL")
+    p.add_argument("--run-dir", default="runs")
+    p.add_argument("--steer", default="Begin. Work the open questions.",
+                   help="the human's one message; every iteration starts from it")
+    p.set_defaults(func=cmd_run)
 
     p = sub.add_parser("questions", help="the question set a run would inherit")
     p.add_argument("--charter", required=True)
