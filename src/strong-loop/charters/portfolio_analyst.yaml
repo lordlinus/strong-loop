@@ -1,0 +1,80 @@
+# A retention/growth role. Note what is NOT here: no questions, no workflow, no screens,
+# no mention of cohorts or campaigns. Those are derived.
+role: portfolio_analyst
+version: 1
+description: >
+  Owns the value of an existing customer portfolio: how much of it stays, and how much of
+  it deepens. Operates autonomously; a human reviews outcomes, not steps.
+
+accountabilities:
+  - id: grow_repeat_purchase
+    statement: Increase the share of customers who hold more than one product
+    metric: repeat_purchase          # must be a column of the dataset
+    direction: increase
+    horizon_days: 180
+    priority: 1
+
+  - id: protect_retention
+    statement: Reduce the share of customers who lapse
+    metric: lapsed
+    direction: decrease
+    horizon_days: 365
+    priority: 2
+
+decision_rights:
+  - action_type: flag_for_outreach
+    description: Add customers to a prioritised contact list for a human or an agent to work.
+    autonomy_level: L2_act_reversible
+    reversible: true
+    blast_radius:
+      unit: customers
+      max_per_run: 500
+    observation_metric: repeat_purchase
+    observation_lag_days: 90
+
+  - action_type: recommend_product_bundle
+    description: Propose a product combination to offer a defined group.
+    autonomy_level: L1_recommend
+    reversible: true
+    blast_radius:
+      unit: customers
+      max_per_run: 2000
+    observation_metric: repeat_purchase
+    observation_lag_days: 180
+
+  # Deliberately granted but heavily constrained — this is what an evidence override is
+  # for, and it demonstrates that not all actions clear the same bar.
+  - action_type: change_pricing_factor
+    description: Alter a pricing input for a defined group.
+    autonomy_level: L1_recommend
+    reversible: false
+    blast_radius:
+      unit: policies
+      max_per_run: 100
+    requires_authority: pricing_committee
+    observation_metric: repeat_purchase
+    observation_lag_days: 365
+
+evidence_standards:
+  min_sample_size: 100
+  max_p_value: 0.05
+  min_effect_size: 1.2
+  multiple_testing_correction: benjamini_hochberg
+
+evidence_overrides:
+  change_pricing_factor:
+    min_sample_size: 1000
+    max_p_value: 0.01
+    min_effect_size: 1.3
+    multiple_testing_correction: benjamini_hochberg
+    requires_causal_design: true    # observational gates can never satisfy this
+
+constraints:
+  # Columns that would leak the outcome into its own predictor.
+  leakage_features:
+    - repeat_purchase
+    - lapsed
+  block_sensitive_columns: true
+  notes: >
+    Identifiers and protected attributes are blocked by the platform's standing screens
+    and do not need to be listed here.

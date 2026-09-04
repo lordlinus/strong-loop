@@ -7,6 +7,13 @@ Step 1: a plain agent with no tools, to prove the hosting path and the APIM rout
 from __future__ import annotations
 
 import logging
+import os
+
+# The agentserver's OpenTelemetry distro probes the Azure instance-metadata endpoint at
+# start-up. In a hosted container that is right; on a laptop it is a wall of
+# ConnectTimeout tracebacks. The platform sets this variable, so its absence means local.
+if not os.environ.get("FOUNDRY_HOSTING_ENVIRONMENT"):
+    os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 
 from agent_framework import Agent
 from agent_framework_foundry_hosting import ResponsesHostServer
