@@ -50,8 +50,16 @@ fresh-context iteration starts from. Conversation history is deliberately not fe
 agent (`history_source="agent"` in `main.py`): the ledger is its memory, and replaying a
 prior run's transcript into a fresh-context loop is both wasteful and, as testing showed,
 rejected by the model. Iterations, charter and dataset come from
-`LOOP_MAX_ITERATIONS`, `LOOP_CHARTER`, `LOOP_DATA`. Reports land under `~/runs/`, which
-Foundry persists per session.
+`LOOP_MAX_ITERATIONS`, `LOOP_CHARTER`, `LOOP_DATA`.
+
+**Where a run's ledger lives.** Under `~/runs/` on the hosted session's filesystem, which
+Foundry keeps across idle periods, laid out as
+`runs/<user>/<hosted session>/<role>-<timestamp>-<conversation>/` with `ledger.jsonl`,
+`trace.log`, `iterations/N.md` and `report.json` inside. The user and session come from
+the platform's request headers (`x-agent-user-id` and the session id; `azd ai agent
+invoke --user-identity <id>` sets the first), so one user's ledgers never sit beside
+another's. Locally both are absent and the layout is just `runs/<role>-<timestamp>-…`.
+The report carries the same three ids. A second turn on a conversation is a new run.
 
 ## Watch a run live
 

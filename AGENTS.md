@@ -65,6 +65,12 @@ cap fires *before* the predicate, so on the last permitted run the predicate nev
 Convergence reads the ledger, never the model's text. `Ledger.summary()` is loaded into
 every fresh context; keep it small.
 
+## Where runs live
+
+`RunScope._new_run` → `runs/<user_id>/<session_id>/<role>-<stamp>-<conversation>`, ids from
+`azure.ai.agentserver.core.get_request_context()` (all-None locally → flat layout). Path parts
+go through `_safe()`. A finished run is never resumed by a later turn (`state_for(new_turn=True)`).
+
 ## The stream is the UI contract
 
 `LoopEventStream` (outermost agent middleware) interleaves `loop.*` items into the Responses

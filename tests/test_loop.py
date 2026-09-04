@@ -137,3 +137,50 @@ def test_toolbox_is_optional(monkeypatch):
     assert build_toolbox() is None
     monkeypatch.setenv("TOOLBOX_ENDPOINT", "")
     assert build_toolbox() is None, "azd injects unset variables as empty strings"
+
+
+def test_runs_are_partitioned_by_user_and_session(scope, monkeypatch):
+    """Hosted: runs/<user>/<session>/<role>-…; locally the two outer levels are absent."""
+    from azure.ai.agentserver.core import FoundryAgentRequestContext, set_request_context
+
+    token = set_request_context(FoundryAgentRequestContext(user_id="alice@contoso.com", session_id="sess-42"))
+    from azure.ai.agentserver.core._request_context import _request_context_var
+    try:
+        run = scope.state_for(FakeSession("conv-1"))
+    finally:
+        _request_context_var.reset(token)
+    rel = run.run_dir.relative_to(scope.runs_dir)
+    assert rel.parts[:2] == ("alice@contoso.com", "sess-42")
+    assert rel.parts[2].startswith("claims_analyst-")
+    assert (run.user_id, run.session_id, run.conversation_id) == ("alice@contoso.com", "sess-42", "conv-1")
+
+    local = scope.state_for(FakeSession("conv-2"))
+    assert local.run_dir.relative_to(scope.runs_dir).parts[0].startswith("claims_analyst-"), "no headers: flat layout"
+    assert local.user_id is None
+
+
+def test_unsafe_ids_cannot_escape_the_runs_dir(scope):
+    from azure.ai.agentserver.core import FoundryAgentRequestContext, set_request_context
+    from azure.ai.agentserver.core._request_context import _request_context_var
+
+    token = set_request_context(FoundryAgentRequestContext(user_id="../../etc", session_id="a/b"))
+    try:
+        run = scope.state_for(FakeSession("c"))
+    finally:
+        _request_context_var.reset(token)
+    assert scope.runs_dir in run.run_dir.parents
+    assert run.run_dir.relative_to(scope.runs_dir).parts[:2] == ("..-..-etc", "a-b")
+
+
+def test_second_turn_on_a_conversation_is_a_new_run(scope):
+    """With history_source='agent' every turn is one run: a finished run is not resumed."""
+    session, ctx = FakeSession("conv"), FakeContext()
+    asyncio.run(scope.before_run(agent=None, session=session, context=ctx, state={}))
+    first = scope.state_for(session)
+    asyncio.run(scope.after_run(agent=None, session=session, context=ctx, state={}))
+    assert first.finished
+    asyncio.run(scope.before_run(agent=None, session=session, context=ctx, state={}))
+    second = scope.state_for(session)
+    assert second is not first and second.run_dir != first.run_dir
+    assert second.iteration == 1
+    assert (first.run_dir / "report.json").exists()

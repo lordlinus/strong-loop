@@ -36,10 +36,12 @@ import datetime as _dt
 import json
 import os
 import pathlib
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
+from azure.ai.agentserver.core import get_request_context
 from agent_framework import (
     Agent,
     AgentLoopMiddleware,
@@ -118,6 +120,10 @@ class RunState:
     run_dir: pathlib.Path
     ledger: Ledger
     max_iterations: int
+    # Whose run this is, from the hosting platform's request headers. `None` locally.
+    user_id: str | None = None
+    session_id: str | None = None
+    conversation_id: str | None = None
     iteration: int = 0
     tested: int = 0
     supported: int = 0
@@ -172,18 +178,43 @@ class RunScope(ContextProvider):
         # time (the CLI); best-effort under concurrent hosted conversations.
         self.current: RunState | None = None
 
-    def state_for(self, session: Any) -> RunState:
+    def state_for(self, session: Any, *, new_turn: bool = False) -> RunState:
+        """The run for this conversation, creating it on first sight.
+
+        `new_turn=True` (only `before_run` passes it) starts a fresh run when the previous
+        one on this conversation has already finalised: with `history_source="agent"` a
+        second turn in the same conversation is a second run, not a continuation.
+        """
         key = str(getattr(session, "session_id", None) or "cli")
         state = self._runs.get(key)
-        if state is None:
-            stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
-            run_dir = self.runs_dir / f"{self.charter.role}-{stamp}-{key[:8]}"
-            ledger = Ledger(run_dir)
-            if not ledger.all("question"):
-                for question in questions_from(self.charter):
-                    ledger.append(question)
-            state = self._runs[key] = RunState(run_dir, ledger, self.max_iterations)
-            self._say(f"--- run: {run_dir}")
+        if state is None or (new_turn and state.finished):
+            state = self._runs[key] = self._new_run(key)
+        return state
+
+    def _new_run(self, conversation: str) -> RunState:
+        """Lay out the run directory: runs/<user>/<hosted session>/<role>-<stamp>-<conv>.
+
+        The two outer levels come from the platform's request headers (`x-agent-user-id`,
+        the hosted session id), so one user's ledgers never sit beside another's and a
+        session's runs can be listed in one place. Locally both are absent and the layout
+        collapses to `runs/<role>-<stamp>-<conv>`, exactly as before.
+        """
+        ctx = get_request_context()
+        user_id, session_id = ctx.user_id or None, ctx.session_id or None
+        stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
+        parts = [_safe(x) for x in (user_id, session_id) if x]
+        base = self.runs_dir.joinpath(*parts) / f"{self.charter.role}-{stamp}-{_safe(conversation)[:8]}"
+        run_dir, n = base, 1
+        while run_dir.exists():  # two turns on one conversation within a second
+            n += 1
+            run_dir = base.with_name(f"{base.name}-{n}")
+        ledger = Ledger(run_dir)
+        if not ledger.all("question"):
+            for question in questions_from(self.charter):
+                ledger.append(question)
+        state = RunState(run_dir, ledger, self.max_iterations,
+                         user_id=user_id, session_id=session_id, conversation_id=conversation)
+        self._say(f"--- run: {run_dir}" + (f" (user {user_id})" if user_id else ""))
         return state
 
     def _say(self, line: str) -> None:
@@ -208,7 +239,7 @@ class RunScope(ContextProvider):
 
     # ---- ContextProvider hooks ------------------------------------------------------
     async def before_run(self, *, agent, session, context, state) -> None:
-        run = self.state_for(session)
+        run = self.state_for(session, new_turn=True)
         run.iteration += 1
         self.current = run
         self._say(f"\n=== iteration {run.iteration}/{run.max_iterations} ===")
@@ -217,7 +248,8 @@ class RunScope(ContextProvider):
         (run.run_dir / "iterations").mkdir(exist_ok=True)
         (run.run_dir / "iterations" / f"{run.iteration}.md").write_text(header)
         self.trace(run, "iteration_start", max_iterations=run.max_iterations,
-                   summary=run.ledger.summary())
+                   summary=run.ledger.summary(), user_id=run.user_id,
+                   session_id=run.session_id, conversation_id=run.conversation_id)
         context.extend_instructions(self.source_id, header)
         context.extend_tools(self.source_id, Toolbelt(self.charter, self.data, run.ledger).tools())
 
@@ -416,6 +448,9 @@ def finalise(charter: RoleCharter, run: RunState) -> dict[str, Any]:
     report = {
         "role": charter.role,
         "run_dir": str(run.run_dir),
+        "user_id": run.user_id,
+        "session_id": run.session_id,
+        "conversation_id": run.conversation_id,
         "status": "complete",
         "iterations_run": run.iteration,
         "hypotheses_tested": len(evidence),
@@ -458,6 +493,11 @@ def build_toolbox():
         # The toolbox MCP endpoint is behind a preview feature flag.
         header_provider=lambda _: {"Foundry-Features": "Toolboxes=V1Preview"},
     )
+
+
+def _safe(value: str) -> str:
+    """A path component that cannot escape the runs directory or collide with a sibling."""
+    return re.sub(r"[^A-Za-z0-9_.@-]", "-", str(value))[:96] or "unknown"
 
 
 def default_runs_dir() -> pathlib.Path:
