@@ -149,10 +149,14 @@ class RunScope(ContextProvider):
         super().__init__(source_id="strong_loop_run")
         self.charter = charter
         self.data = data
-        self.runs_dir = pathlib.Path(runs_dir)
+        self.runs_dir = pathlib.Path(runs_dir).resolve()
         self.max_iterations = max_iterations
         self.echo = echo
         self._runs: dict[str, RunState] = {}
+        # The run most recently entered by `before_run`. The tool-call logger has no
+        # session in hand, so it attributes calls to this run. Exact for one run at a
+        # time (the CLI); best-effort under concurrent hosted conversations.
+        self.current: RunState | None = None
 
     def state_for(self, session: Any) -> RunState:
         key = str(getattr(session, "session_id", None) or "cli")
@@ -172,12 +176,32 @@ class RunScope(ContextProvider):
         if self.echo:
             print(line, flush=True)
 
+    @staticmethod
+    def trace(run: RunState, event: str, **fields: Any) -> None:
+        """Append one JSON line to the run's `trace.log`.
+
+        The ledger records what the platform BELIEVES; the trace records what HAPPENED —
+        which tool was called, in which iteration, with what outcome. Kept apart so the
+        ledger stays a typed record and the trace can carry anything. `docs/` is built
+        from both.
+        """
+        entry = {"t": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+                 "iteration": run.iteration, "event": event, **fields}
+        with (run.run_dir / "trace.log").open("a") as fh:
+            fh.write(json.dumps(entry, default=str) + "\n")
+
     # ---- ContextProvider hooks ------------------------------------------------------
     async def before_run(self, *, agent, session, context, state) -> None:
         run = self.state_for(session)
         run.iteration += 1
+        self.current = run
         self._say(f"\n=== iteration {run.iteration}/{run.max_iterations} ===")
-        context.extend_instructions(self.source_id, iteration_header(run))
+        header = iteration_header(run)
+        # The exact text this iteration was given, kept for the record and for `docs/`.
+        (run.run_dir / "iterations").mkdir(exist_ok=True)
+        (run.run_dir / "iterations" / f"{run.iteration}.md").write_text(header)
+        self.trace(run, "iteration_start", max_iterations=run.max_iterations)
+        context.extend_instructions(self.source_id, header)
         context.extend_tools(self.source_id, Toolbelt(self.charter, self.data, run.ledger).tools())
 
     async def after_run(self, *, agent, session, context, state) -> None:
@@ -188,6 +212,9 @@ class RunScope(ContextProvider):
             run.finished = True
             self._tally(run, run.iteration)   # the cap-stopped last iteration
             report = finalise(self.charter, run)
+            self.trace(run, "report", hypotheses_tested=report["hypotheses_tested"],
+                       findings=len(report["findings"]), actions=len(report["actions"]),
+                       demoted=report["demoted_by_multiple_testing"])
             self._say(f"--- report: {run.run_dir / 'report.json'} "
                       f"({report['hypotheses_tested']} tested, {len(report['findings'])} findings)")
 
@@ -218,6 +245,8 @@ class RunScope(ContextProvider):
         run.stagnant = 0 if gained else run.stagnant + 1
         run.idle = 0 if tested else run.idle + 1
         run.log.append(f"iteration {iteration}: tested {tested}, newly supported {gained}")
+        self.trace(run, "iteration_end", tested=tested, newly_supported=gained,
+                   stagnant=run.stagnant, idle=run.idle)
         return tested, gained
 
     def next_message(self, *, iteration: int, **_) -> str:
@@ -229,18 +258,61 @@ class RunScope(ContextProvider):
         return feedback
 
 
-@function_middleware
-async def echo_tool_calls(context, call_next) -> None:
-    """One line per tool call on stdout. Observability for the CLI; the ledger is the record."""
-    name = getattr(context.function, "name", "?")
-    args = context.arguments
-    brief = ""
-    if isinstance(args, dict):
-        brief = str(args.get("kind") or args.get("skill_name") or args.get("query") or args.get("action_type") or "")[:60]
-    elif args is not None:
-        brief = str(getattr(args, "kind", "") or getattr(args, "skill_name", "") or getattr(args, "query", ""))[:60]
-    print(f"    tool: {name} {brief}".rstrip(), flush=True)
-    await call_next()
+def _brief(value: Any, limit: int = 160) -> Any:
+    """A tool argument or result, cut down to what a reader needs."""
+    if isinstance(value, dict):
+        keep = {k: v for k, v in value.items()
+                if k in ("kind", "spec", "statement", "skill_name", "query", "action_type",
+                         "evidence_id", "finding_ids", "status", "verdict", "effect_size",
+                         "p_value", "sample_size", "refusal_reason", "hypothesis_id",
+                         "finding_id", "action_id", "confidence", "message", "required_gate",
+                         "authorisation", "autonomy_level", "guidance", "note")}
+        return {k: (v if not isinstance(v, str) or len(v) <= limit else v[:limit] + "…")
+                for k, v in keep.items()}
+    text = str(value)
+    return text if len(text) <= limit else text[:limit] + "…"
+
+
+def _unwrap(result: Any) -> Any:
+    """The framework hands middleware the tool's return value wrapped as `Content`
+    items whose text is the serialised result. Recover the dict where there is one."""
+    if isinstance(result, list) and result:
+        result = result[0]
+    for attr in ("result", "text"):
+        inner = getattr(result, attr, None)
+        if inner is not None:
+            result = inner
+            break
+    if isinstance(result, str):
+        try:
+            return json.loads(result)
+        except ValueError:
+            return result
+    if hasattr(result, "model_dump"):
+        return result.model_dump()
+    return result
+
+
+def tool_logger(scope: RunScope):
+    """Function middleware: one stdout line per tool call, and one trace line per call
+    with the argument summary and the outcome. Observability only; the ledger is the
+    record and this never influences a verdict."""
+
+    @function_middleware
+    async def log_tool_call(context, call_next) -> None:
+        name = getattr(context.function, "name", "?")
+        args = context.arguments
+        if not isinstance(args, dict):
+            args = getattr(args, "model_dump", lambda: {})() or {}
+        head = str(args.get("kind") or args.get("skill_name") or args.get("query")
+                   or args.get("action_type") or "")[:60]
+        scope._say(f"    tool: {name} {head}".rstrip())
+        await call_next()
+        run = scope.current
+        if run is not None:
+            scope.trace(run, "tool", tool=name, args=_brief(args), result=_brief(_unwrap(context.result)))
+
+    return log_tool_call
 
 
 def finalise(charter: RoleCharter, run: RunState) -> dict[str, Any]:
@@ -336,7 +408,7 @@ def build_agent(
         tools=[toolbox] if toolbox is not None else None,
         context_providers=providers,
         middleware=[
-            *([echo_tool_calls] if echo else []),
+            tool_logger(scope),
             AgentLoopMiddleware(
                 scope.should_continue,
                 max_iterations=max_iterations,

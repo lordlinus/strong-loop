@@ -17,8 +17,12 @@ python -m loop sign charters/<c>.yaml --by <you>            # ratify a charter's
 
 cd ../..
 azd ai agent run --no-client                                # the hosted agent, locally, on :8088
-azd ai agent invoke --local --new-session "Focus on ..."   # one NEW conversation = one run
-azd up && azd ai agent invoke --new-session "go"            # deploy, then invoke the deployed agent
+azd ai agent invoke --local "Focus on ..."                 # every turn is one run; history is not replayed
+azd up && azd ai agent invoke "go"                          # deploy, then invoke the deployed agent
+
+# the explainer page, regenerated from a recorded run (every number on it comes from the run)
+python -m loop run --charter charters/claims_analyst.yaml --data data/claims.csv --iterations 2 --run-dir ../../docs/runs
+python ../../tools/make_loop_doc.py ../../docs/runs/<run>        # -> docs/loop.html
 ```
 
 ## The two rules that must never be broken

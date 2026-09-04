@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>strong-loop — the agent proposes, code disposes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EFF2F4; --paper-2:#F7F9FA; --ink:#15181D; --graphite:#59626E; --rule:#C7CED6;
+  --code:#1F3A93; --model:#5B4B9E; --human:#8A5A00;
+  --supported:#0B7A55; --rejected:#B42318; --inconclusive:#B26A00; --refused:#475467; --recorded:#0B7A55; --approved:#0B7A55; --proposed:#1F3A93;
+  --display:"Bricolage Grotesque", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
+  --body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono:"IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --measure:70ch; --wide:1120px;
+}
+*{box-sizing:border-box} html{background:var(--paper);color:var(--ink);font:17px/1.55 var(--body);-webkit-text-size-adjust:100%}
+body{margin:0;padding:0 24px 96px}
+h1,h2,h3{font-family:var(--display);letter-spacing:-0.01em;line-height:1.1;margin:0 0 .6em}
+h1{font-size:clamp(2.4rem,6vw,4.6rem);font-weight:800;letter-spacing:-0.03em}
+h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:700}
+h3{font-size:1.05rem;font-weight:700;text-transform:none;margin-top:2.2rem;color:var(--graphite)}
+p{margin:0 0 1em} code{font-family:var(--mono);font-size:.88em;background:var(--paper-2);padding:.05em .3em;border-radius:3px}
+.mono{font-family:var(--mono);font-size:.86em} .muted{color:var(--graphite)}
+.code-ink{color:var(--code)}
+section, header.hero{max-width:var(--measure);margin:0 auto;padding:3.5rem 0 1rem;border-top:1px solid var(--rule)}
+header.hero{border-top:0;padding-top:4.5rem}
+section.wide{max-width:var(--wide)} section.wide > p, section.wide > h2, section.wide > .eyebrow{max-width:var(--measure)}
+section.wide > pre.diagram{max-width:var(--wide)}
+.kicker{font-family:var(--mono);font-size:.8rem;color:var(--graphite);letter-spacing:.02em}
+.lede{font-size:1.15rem;max-width:62ch}
+.eyebrow{display:flex;gap:.6rem;align-items:baseline;font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--graphite);margin-bottom:.9rem}
+.who{padding:.1em .5em;border-radius:2px;color:#fff;font-weight:600}
+.who-code{background:var(--code)} .who-model{background:var(--model)} .who-human{background:var(--human)}
+.lanes,.timeline li.rec{display:grid;grid-template-columns:1fr 28px 1fr;gap:0 1.2rem;align-items:start}
+.lane{min-width:0} .lane .lane-label{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);margin-bottom:.35rem}
+.lane.model .lane-label{color:var(--model)} .lane.code .lane-label{color:var(--code)}
+.rail{position:relative;height:100%;min-height:2.2rem}
+.rail::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--code);transform:translateX(-50%)}
+.stamp{position:absolute;left:50%;top:.55rem;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--code);transform:translateX(-50%)}
+.hero-lanes{margin:2.2rem 0 1.6rem;padding:1.4rem 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.statement{font-size:1.02rem;margin:0 0 .35rem} .spec{color:var(--graphite);margin:0 0 .25rem;word-break:break-word}
+.tool{font-family:var(--mono);font-size:.78rem;color:var(--model);margin:0 0 .3rem;letter-spacing:.02em}
+.verdict{display:inline-block;font-family:var(--mono);font-size:.78rem;font-weight:700;letter-spacing:.06em;padding:.15em .55em;border-radius:2px;color:#fff;background:var(--refused)}
+.v-supported,.v-recorded,.v-approved{background:var(--supported)} .v-rejected{background:var(--rejected)} .v-inconclusive{background:var(--inconclusive)} .v-refused{background:var(--refused)} .v-proposed{background:var(--proposed)}
+.verdict-line{margin:.15rem 0 .35rem} .stats{margin:0 0 .2rem;color:var(--ink)} .reason{font-size:.92rem;margin:.2rem 0;color:var(--ink)}
+.run-facts{display:flex;flex-wrap:wrap;gap:1.4rem 2.2rem;margin:0;padding:0}
+.run-facts div{display:flex;flex-direction:column} .run-facts dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)} .run-facts dd{margin:0;font-size:1.6rem;font-family:var(--display);font-weight:700}
+.timeline{list-style:none;padding:0;margin:1.5rem 0 0}
+.timeline li.rec{padding:.9rem 0} .timeline li.rec .rail{align-self:stretch}
+.timeline li.read{padding:.35rem 0;opacity:.72} .timeline li.read .tool{margin:0}
+.timeline li.iter-start,.timeline li.iter-end{padding:.9rem 0 .9rem;margin:.6rem 0;border-top:2px solid var(--code);color:var(--graphite);font-size:.92rem}
+.timeline li.iter-end{border-top:1px dashed var(--rule)}
+.timeline li.iter-start .mono{color:var(--code);font-weight:700}
+pre.code,pre.diagram{background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:1rem 1.1rem;overflow:auto;font-family:var(--mono);font-size:.8rem;line-height:1.5;margin:0 0 1.2rem}
+pre.code{white-space:pre-wrap;word-break:break-word}
+pre.diagram{font-size:.74rem;color:var(--ink)}
+details{margin:0 0 1.2rem} summary{cursor:pointer;font-family:var(--mono);font-size:.82rem;color:var(--code);padding:.4rem 0}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:0 0 1.4rem} th{text-align:left;font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);padding:.4rem .5rem .4rem 0;border-bottom:1px solid var(--rule)}
+td{padding:.5rem .5rem .5rem 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.aside{font-size:.95rem;color:var(--graphite);border-left:3px solid var(--rule);padding-left:1rem}
+ol.questions{padding-left:1.2rem} ol.questions li{margin:0 0 1.2rem} ol.questions .qid{color:var(--graphite)} ol.questions p{margin:.2rem 0} ol.questions .why{color:var(--graphite);font-size:.92rem}
+ul.log{list-style:none;padding:0} ul.log li{padding:.25rem 0;border-bottom:1px dashed var(--rule)}
+nav.toc{max-width:var(--measure);margin:0 auto;padding:1rem 0 0;font-family:var(--mono);font-size:.8rem;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem}
+nav.toc a{color:var(--code);text-decoration:none} nav.toc a:hover,nav.toc a:focus{text-decoration:underline}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--code);outline-offset:2px}
+footer{max-width:var(--measure);margin:3rem auto 0;font-family:var(--mono);font-size:.78rem;color:var(--graphite)}
+@media (max-width:720px){ .lanes,.timeline li.rec{grid-template-columns:1fr} .rail{display:none} .lane.code{padding-left:.9rem;border-left:2px solid var(--code)} html{font-size:16px} }
+</style></head>
+<body>
+<nav class="toc" aria-label="sections"><a href="#shape">the loop</a><a href="#charter">charter</a><a href="#data">data</a><a href="#questions">questions</a><a href="#context">an iteration's context</a><a href="#ledger">the run</a><a href="#gate">the gate</a><a href="#challenge">the challenge</a><a href="#authority">authority</a><a href="#finalise">finalise</a></nav>
+
+<header class="hero">
+  <p class="kicker">strong-loop · a recorded run · claims_analyst over claims.csv (7,000 rows)</p>
+  <h1>The agent proposes.<br><span class="code-ink">Code disposes.</span></h1>
+  <p class="lede">An autonomous analyst that can say anything it likes on the left of this line, and
+  nothing at all on the right. Every claim below is a real record from one run: the model wrote the
+  hypothesis, a fixed statistical gate wrote the verdict, and an append-only ledger on disk is the
+  only memory carried from one iteration to the next.</p>
+  <div class="lanes hero-lanes">
+    <div class="lane model">
+      <p class="lane-label">the model wrote</p>
+      <p class="statement">“Claims with prior_claims &gt;= 3 have a higher leakage_flag rate than claims with fewer than 3 prior claims.”</p>
+      <p class="spec mono">proportion_lift · where <code>(prior_claims &gt;= 3)</code></p>
+    </div>
+    <div class="rail"><span class="stamp"></span></div>
+    <div class="lane code">
+      <p class="lane-label">code decided</p>
+      <p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p>
+      <p class="stats mono">effect 1.64× · p 4.98e-07 · n 321</p>
+    </div>
+  </div>
+  <dl class="run-facts mono">
+    <div><dt>iterations</dt><dd>2</dd></div>
+    <div><dt>hypotheses tested</dt><dd>14</dd></div>
+    <div><dt>findings recorded</dt><dd>5</dd></div>
+    <div><dt>actions authorised</dt><dd>1</dd></div>
+    <div><dt>demoted at finalise</dt><dd>0</dd></div>
+  </dl>
+</header>
+<section id="shape" class="wide">
+  <p class="eyebrow"><span class="who who-code">code</span><span class="artefact">the loop, in one diagram</span></p>
+  <h2>One turn is one run. One run is N fresh contexts over one ledger.</h2>
+  <pre class="diagram mono" aria-label="loop diagram">
+ charter (human)  ─┐                      ┌──────────────── iteration i of N ───────────────┐
+                   ├─▶ questions ─▶ ledger │  empty context                                  │
+ dataset (human)  ─┘                  ▲   │  + system prompt + header (ledger summary)       │
+                                      │   │  model: read progress · pick a question ·        │
+                                      │   │         propose hypotheses ─────────────▶ GATE   │
+                                      │   │  code:  screen · test · verdict ─▶ Evidence ─────┼──▶ ledger
+                                      │   │  model: challenge · record_finding · propose     │
+                                      │   │  code:  authorise_action ─▶ Action ──────────────┼──▶ ledger
+                                      │   └─────────────────────────────────────────────────┘
+                                      │        should_continue? reads the LEDGER, never the text
+                                      └── finalise: BH correction across the whole run ─▶ report.json
+  </pre>
+  <p>Three things carry the whole design. The <strong>charter</strong> is a contract a human signed, and
+  the only source of authority. The <strong>gate</strong> is fixed code, the only thing that can turn a
+  claim into evidence. The <strong>ledger</strong> is the only memory: each iteration starts with an
+  empty context and is handed a summary of the ledger, which is what stops a long run degrading into
+  a long conversation. The pattern is the Ralph loop from autonomous coding, with a statistical gate
+  in place of a test suite, and the difference matters: a test can be rewritten to pass, a gate cannot.</p>
+</section>
+<section id="charter">
+  <p class="eyebrow"><span class="who who-human">human</span><span class="artefact">input 1 · the role charter</span></p>
+  <h2>A role, written as a contract rather than a prompt</h2>
+  <p>The charter says what the role is <em>accountable</em> for, what it <em>may do</em>, what counts
+  as <em>proof</em>, and what it <em>must not touch</em>. It deliberately cannot say which questions to
+  ask or which analyses to run. This is <code>claims_analyst.yaml</code> exactly as the run loaded it.</p>
+  <details open><summary>charters/claims_analyst.yaml</summary><pre class="code yaml"><code># The acceptance test for the whole platform.
+#
+#   &quot;If I give you claims data and an underwriting analyst role, can the system figure out
+#    by itself what it should analyse?&quot;
+#
+# This charter shares NO vocabulary with portfolio_analyst.yaml — different domain,
+# different metrics, different actions, different burden of proof. If running both
+# requires touching any code in loop/, the engine has a leak and the missing abstraction
+# has just identified itself.
+role: claims_analyst
+version: 1
+description: &gt;
+  Owns the cost and integrity of claims settlement: what is paid, how fast, and how much
+  of it should not have been paid at all.
+
+accountabilities:
+  - id: reduce_leakage
+    statement: Reduce payments that should not have been made at the amount they were made
+    metric: leakage_flag
+    direction: decrease
+    horizon_days: 180
+    priority: 1
+
+  - id: control_severity
+    statement: Reduce average settled claim cost without harming legitimate claimants
+    metric: settled_amount
+    direction: decrease
+    horizon_days: 365
+    priority: 2
+
+  - id: speed_settlement
+    statement: Reduce the time taken to settle a claim
+    metric: days_to_settle
+    direction: decrease
+    horizon_days: 90
+    priority: 3
+
+decision_rights:
+  - action_type: route_to_investigation
+    description: Send a defined group of claims to the special investigations queue.
+    autonomy_level: L2_act_reversible
+    reversible: true
+    blast_radius:
+      unit: claims
+      max_per_run: 200
+    observation_metric: leakage_flag
+    observation_lag_days: 60
+
+  - action_type: fast_track_settlement
+    description: Approve straight-through settlement for a defined low-risk group.
+    autonomy_level: L1_recommend
+    reversible: true
+    blast_radius:
+      unit: claims
+      max_per_run: 1000
+    observation_metric: days_to_settle
+    observation_lag_days: 30
+
+  - action_type: revise_reserve_guidance
+    description: Change the reserving guidance applied to a class of claims.
+    autonomy_level: L1_recommend
+    reversible: false
+    blast_radius:
+      unit: claims
+      max_per_run: 50
+    requires_authority: chief_actuary
+    observation_metric: settled_amount
+    observation_lag_days: 365
+
+# A stricter default than the portfolio role: acting wrongly on a claim harms a specific
+# identifiable person, so the standing burden of proof is higher.
+evidence_standards:
+  min_sample_size: 150
+  max_p_value: 0.01
+  min_effect_size: 1.25
+  multiple_testing_correction: benjamini_hochberg
+
+evidence_overrides:
+  revise_reserve_guidance:
+    min_sample_size: 500
+    max_p_value: 0.005
+    min_effect_size: 1.3
+    multiple_testing_correction: benjamini_hochberg
+    requires_causal_design: true
+
+constraints:
+  leakage_features:
+    - leakage_flag
+  forbidden_features:
+    # Routing on the assessor rather than the claim would optimise the measurement, not
+    # the outcome.
+    - assessor_name
+  block_sensitive_columns: true
+</code></pre></details>
+  <h3>Which code reads which key</h3>
+  <table class="reads"><thead><tr><th>key</th><th>read by</th></tr></thead><tbody><tr><td class="mono">accountabilities</td><td>questions.py → one question per accountability; tools.py → the gate&#x27;s target column is the accountability&#x27;s metric</td></tr><tr><td class="mono">decision_rights</td><td>charter.authorise_action → the only action types a role may propose, their blast-radius caps and autonomy levels</td></tr><tr><td class="mono">evidence_standards</td><td>gates.decide → min_sample_size, max_p_value, min_effect_size; gates.apply_multiple_testing → the correction; tools.record_finding → requires_confound_control</td></tr><tr><td class="mono">evidence_overrides</td><td>charter.standard_for(action_type) → a stricter bar for a costlier action</td></tr><tr><td class="mono">constraints</td><td>gates.screen → forbidden, leakage and sensitive columns are refused before any test runs</td></tr><tr><td class="mono">status / content_hash</td><td>charter.load_charter → a signed charter that was edited afterwards refuses to load</td></tr></tbody></table>
+  <p class="aside">Nothing in the engine mentions claims, customers or any other domain. The same code
+  ran a portfolio charter over a customer file with zero changes; that is the test of whether the
+  loop is generic.</p>
+</section>
+<section id="data">
+  <p class="eyebrow"><span class="who who-human">human</span><span class="artefact">input 2 · the dataset</span></p>
+  <h2>claims.csv: 7,000 rows, 10 columns</h2>
+  <p>The agent never opens this file. It sees the profile below through <code>get_data_profile</code>,
+  and the gate scores the rows on its behalf. The charter's metrics must name real columns, exactly,
+  or the run refuses to start.</p>
+  <h3>Today's level of each accountability metric</h3>
+  <table><thead><tr><th>metric</th><th>kind</th><th>level</th></tr></thead><tbody><tr><td class="mono">leakage_flag</td><td>rate</td><td>base rate 15.600% · 1,092 of 7,000</td></tr><tr><td class="mono">settled_amount</td><td>numeric</td><td>mean 4,111.5122 · median 2,206.265 · n 7,000</td></tr><tr><td class="mono">days_to_settle</td><td>numeric</td><td>mean 28.4449 · median 26.6 · n 7,000</td></tr></tbody></table>
+  <h3>Columns the agent may reason with</h3>
+  <table class="cols"><thead><tr><th>column</th><th>dtype</th><th>distinct</th><th>shape</th></tr></thead><tbody><tr><td class="mono">claim_type</td><td class="mono">str</td><td>4</td><td>values health, motor, property, travel</td></tr><tr><td class="mono">notification_channel</td><td class="mono">str</td><td>3</td><td>values online, phone, broker</td></tr><tr><td class="mono">complexity_score</td><td class="mono">int64</td><td>5</td><td>range 1.0–5.0 · median 3.0</td></tr><tr><td class="mono">prior_claims</td><td class="mono">int64</td><td>7</td><td>range 0.0–6.0 · median 1.0</td></tr><tr><td class="mono">days_to_report</td><td class="mono">float64</td><td>388</td><td>range 0.0–61.1 · median 7.1</td></tr><tr><td class="mono">settled_amount</td><td class="mono">float64</td><td>6960</td><td>range 54.03–304400.25 · median 2206.265</td></tr><tr><td class="mono">days_to_settle</td><td class="mono">float64</td><td>526</td><td>range 9.6–81.1 · median 26.6</td></tr><tr><td class="mono">leakage_flag</td><td class="mono">int64</td><td>2</td><td>values 0, 1</td></tr></tbody></table>
+  <p class="aside">Excluded by the standing screens as identifiers or protected attributes: <span class="mono">claim_id, assessor_name</span>.
+  Named by the charter as leaking the outcome, so refused in any test: <span class="mono">leakage_flag</span>.</p>
+</section>
+<section id="questions">
+  <p class="eyebrow"><span class="who who-code">code</span><span class="artefact">the ledger&#x27;s first records · questions</span></p>
+  <h2>The agent inherits its questions; it does not choose them</h2>
+  <p>Before any model call, one question per accountability is compiled from the charter and appended
+  to the ledger. The agent may pick which open question to work, and may not invent a new one.</p>
+  <ol class="questions"><li><span class="mono qid">q_89a6ce30d6</span><p>Which segments or drivers most lower `leakage_flag`, and by how much? (Reduce payments that should not have been made at the amount they were made)</p><p class="why">claims_analyst is accountable for this over 180 days; a finding here is one the role can act on.</p></li><li><span class="mono qid">q_91936387f9</span><p>Which segments or drivers most lower `settled_amount`, and by how much? (Reduce average settled claim cost without harming legitimate claimants)</p><p class="why">claims_analyst is accountable for this over 365 days; a finding here is one the role can act on.</p></li><li><span class="mono qid">q_d3923553f9</span><p>Which segments or drivers most lower `days_to_settle`, and by how much? (Reduce the time taken to settle a claim)</p><p class="why">claims_analyst is accountable for this over 90 days; a finding here is one the role can act on.</p></li></ol>
+</section>
+<section id="context">
+  <p class="eyebrow"><span class="who who-code">code</span><span class="artefact">what an iteration sees</span></p>
+  <h2>Every iteration starts from nothing, plus the ledger</h2>
+  <p>Each iteration is a new context: the system prompt, the human's steer, and a header that
+  carries the ledger's summary. Nothing else. Iteration 2 does not remember iteration 1; it reads
+  what iteration 1 wrote. That is why the summary is capped at eight recent tests, and why the agent's
+  first instruction is to call <code>get_progress</code>.</p>
+  <details><summary>runner.SYSTEM — the system prompt, verbatim</summary><pre class="code md"><code>You are an autonomous analyst operating a role, not assisting a human. Nobody will read
+a chart you make or answer a question you ask. Your output is evidence-backed findings
+and authorised actions.
+
+HOW THIS WORKS
+- Your role&#x27;s accountabilities, permitted actions and constraints come from `get_charter`.
+- What the data looks like, and today&#x27;s level of each metric, comes from `get_data_profile`.
+- The shapes of claim you can test, and each one&#x27;s spec, come from `list_gates`.
+- Your open questions come from `list_questions`.
+- If a toolbox is attached you also have method skills (load one with `load_skill` when
+  its description fits what you are about to do) and a `web` search for reference.
+- You test claims with `test_hypothesis`. A fixed statistical gate returns the verdict.
+  You cannot influence it, argue with it, or skip it.
+- Only SUPPORTED evidence may become a finding. Only findings may justify an action.
+
+RULES THAT MATTER
+1. Call `get_progress` FIRST. You have no memory of previous iterations; the ledger is
+   your memory. Never re-test something already tried.
+2. Commit to a hypothesis before you see its result. No retro-fitting the claim.
+3. INCONCLUSIVE means underpowered, NOT false. Broaden the rule or coarsen the grain.
+   REFUSED means you broke a constraint — read the reason and do not repeat the shape.
+4. When something is SUPPORTED, your next move is to challenge it, not to record it: run
+   `driver_effect` on the same subgroup naming a plausible confound as `control`.
+   `record_finding` refuses an unchallenged subgroup.
+5. Prefer a small number of load-bearing findings over many weak ones.
+6. Say when the data cannot answer a question. That is a real result, not a failure.
+7. A REFUSED or INCONCLUSIVE result ends that hypothesis, NOT your iteration. Reformulate
+   and keep testing. Constraints rule out shapes of question, never whole questions.
+8. Anything you compute in your head is a hunch until a gate has scored it. The same
+   goes for anything the toolbox returns — a skill, a web result — it is context, never
+   evidence.
+
+THROUGHPUT
+Test SEVERAL hypotheses per iteration — aim for three to six `test_hypothesis` calls
+before you summarise. You have a fixed number of iterations and each one starts from an
+empty context, so an iteration spent on a single refused test is an iteration wasted.
+
+Keep your closing summary to a few lines. Nobody reads it; the ledger is the record.
+</code></pre></details>
+  <details ><summary>iterations/1.md — the header iteration 1 was given</summary><pre class="code md"><code>ITERATION 1 of 2.
+
+You have no memory of earlier iterations. This is the run state:
+
+{
+  &quot;questions_open&quot;: 3,
+  &quot;hypotheses_tested&quot;: 0,
+  &quot;verdict_counts&quot;: {},
+  &quot;findings&quot;: [],
+  &quot;actions_proposed&quot;: 0,
+  &quot;recent_tests&quot;: []
+}
+
+Choose the highest-value open question that is not yet exhausted, and make real progress on it. Do not repeat any test listed above.</code></pre></details><details open><summary>iterations/2.md — the header iteration 2 was given</summary><pre class="code md"><code>ITERATION 2 of 2.
+
+You have no memory of earlier iterations. This is the run state:
+
+{
+  &quot;questions_open&quot;: 3,
+  &quot;hypotheses_tested&quot;: 8,
+  &quot;verdict_counts&quot;: {
+    &quot;SUPPORTED&quot;: 6,
+    &quot;REJECTED&quot;: 2
+  },
+  &quot;findings&quot;: [
+    {
+      &quot;headline&quot;: &quot;Broker-notified claims have materially higher leakage&quot;,
+      &quot;confidence&quot;: 0.864
+    },
+    {
+      &quot;headline&quot;: &quot;High-complexity claims have materially higher leakage&quot;,
+      &quot;confidence&quot;: 0.893
+    },
+    {
+      &quot;headline&quot;: &quot;Claims with three or more prior claims have materially higher leakage&quot;,
+      &quot;confidence&quot;: 0.766
+    }
+  ],
+  &quot;actions_proposed&quot;: 0,
+  &quot;recent_tests&quot;: [
+    {
+      &quot;statement&quot;: &quot;Claims with prior_claims &gt;= 3 have a higher leakage_flag rate than claims with fewer than 3 prior claims.&quot;,
+      &quot;gate&quot;: &quot;proportion_lift&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(prior_claims &gt;= 3)&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;SUPPORTED&quot;,
+      &quot;effect&quot;: 1.6375,
+      &quot;n&quot;: 321,
+      &quot;p&quot;: 0.0,
+      &quot;why_refused&quot;: null
+    },
+    {
+      &quot;statement&quot;: &quot;Claims reported more than 14 days after the event have a higher leakage_flag rate than claims reported within 14 days.&quot;,
+      &quot;gate&quot;: &quot;proportion_lift&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(days_to_report &gt; 14)&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;REJECTED&quot;,
+      &quot;effect&quot;: 1.1738,
+      &quot;n&quot;: 1409,
+      &quot;p&quot;: 0.0017,
+      &quot;why_refused&quot;: null
+    },
+    {
+      &quot;statement&quot;: &quot;Claims reported through the broker notification channel have a higher leakage_flag rate than claims reported online or by phone.&quot;,
+      &quot;gate&quot;: &quot;proportion_lift&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(notification_channel == &#x27;broker&#x27;)&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;SUPPORTED&quot;,
+      &quot;effect&quot;: 1.5055,
+      &quot;n&quot;: 1337,
+      &quot;p&quot;: 0.0,
+      &quot;why_refused&quot;: null
+    },
+    {
+      &quot;statement&quot;: &quot;Claims with claim_type == &#x27;motor&#x27; have a higher leakage_flag rate than all other claims.&quot;,
+      &quot;gate&quot;: &quot;proportion_lift&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(claim_type == &#x27;motor&#x27;)&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;REJECTED&quot;,
+      &quot;effect&quot;: 0.9867,
+      &quot;n&quot;: 2826,
+      &quot;p&quot;: 0.69421,
+      &quot;why_refused&quot;: null
+    },
+    {
+      &quot;statement&quot;: &quot;Claims with complexity_score &gt;= 4 have a higher leakage_flag rate than claims with complexity_score &lt; 4.&quot;,
+      &quot;gate&quot;: &quot;proportion_lift&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(complexity_score &gt;= 4)&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;SUPPORTED&quot;,
+      &quot;effect&quot;: 1.371,
+      &quot;n&quot;: 2824,
+      &quot;p&quot;: 0.0,
+      &quot;why_refused&quot;: null
+    },
+    {
+      &quot;statement&quot;: &quot;The higher leakage rate for broker-notified claims persists after stratifying by claim_type.&quot;,
+      &quot;gate&quot;: &quot;driver_effect&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(notification_channel == &#x27;broker&#x27;)&quot;,
+        &quot;control&quot;: &quot;claim_type&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;SUPPORTED&quot;,
+      &quot;effect&quot;: 1.9322,
+      &quot;n&quot;: 1337,
+      &quot;p&quot;: 0.0,
+      &quot;why_refused&quot;: null
+    },
+    {
+      &quot;statement&quot;: &quot;The higher leakage rate for claims with complexity_score &gt;= 4 persists after stratifying by claim_type.&quot;,
+      &quot;gate&quot;: &quot;driver_effect&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(complexity_score &gt;= 4)&quot;,
+        &quot;control&quot;: &quot;claim_type&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;SUPPORTED&quot;,
+      &quot;effect&quot;: 2.0529,
+      &quot;n&quot;: 2824,
+      &quot;p&quot;: 0.0,
+      &quot;why_refused&quot;: null
+    },
+    {
+      &quot;statement&quot;: &quot;The higher leakage rate for claims with prior_claims &gt;= 3 persists after stratifying by complexity_score.&quot;,
+      &quot;gate&quot;: &quot;driver_effect&quot;,
+      &quot;spec&quot;: {
+        &quot;where&quot;: &quot;(prior_claims &gt;= 3)&quot;,
+        &quot;control&quot;: &quot;complexity_score&quot;,
+        &quot;target&quot;: &quot;leakage_flag&quot;
+      },
+      &quot;verdict&quot;: &quot;SUPPORTED&quot;,
+      &quot;effect&quot;: 2.0019,
+      &quot;n&quot;: 321,
+      &quot;p&quot;: 0.0,
+      &quot;why_refused&quot;: null
+    }
+  ]
+}
+
+Choose the highest-value open question that is not yet exhausted, and make real progress on it. Do not repeat any test listed above.</code></pre></details>
+  <p class="aside">The middleware doing this is agent-framework's <code>AgentLoopMiddleware(fresh_context=True)</code>.
+  The header is injected by a context provider before every run, and the run's eight tools are bound
+  to the ledger the same way.</p>
+</section>
+<section id="ledger" class="wide">
+  <p class="eyebrow"><span class="who who-model">model</span><span class="artefact">the run, as it happened</span></p>
+  <h2>Left of the rail, the model. Right of the rail, code.</h2>
+  <p>Every tool call from <code>trace.log</code>, in order, joined to the record it left in
+  <code>ledger.jsonl</code>. The rail is the boundary: a hypothesis is written before its result is
+  known, and nothing the model says can move a stamp.</p>
+  <ol class="timeline"><li class="iter-start"><span class="mono">iteration 1 of 2</span> — empty context, ledger summary injected</li><li class="rec read"><div class="lane model"><p class="tool">get_progress</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">list_questions</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">get_charter</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">list_gates</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">get_data_profile</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">load_skill · profiling-a-dataset</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">method guidance from the toolbox — context, never evidence</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims with prior_claims &gt;= 3 have a higher leakage_flag rate than claims with fewer than 3 prior claims.”</p><p class="spec mono">where=&#x27;(prior_claims &gt;= 3)&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 1.64× · p 4.98e-07 · n 321</p><p class="stats mono muted">min_detectable_lift 1.364</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims reported more than 14 days after the event have a higher leakage_flag rate than claims reported within 14 days.”</p><p class="spec mono">where=&#x27;(days_to_report &gt; 14)&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-rejected">REJECTED</span></p><p class="stats mono">effect 1.17× · p 0.0017 · n 1,409</p><p class="stats mono muted">min_detectable_lift 1.174</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims reported through the broker notification channel have a higher leakage_flag rate than claims reported online or by phone.”</p><p class="spec mono">where=&quot;(notification_channel == &#x27;broker&#x27;)&quot;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 1.51× · p 1.01e-18 · n 1,337</p><p class="stats mono muted">min_detectable_lift 1.178</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims with claim_type == &#x27;motor&#x27; have a higher leakage_flag rate than all other claims.”</p><p class="spec mono">where=&quot;(claim_type == &#x27;motor&#x27;)&quot;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-rejected">REJECTED</span></p><p class="stats mono">effect 0.99× · p 0.6942 · n 2,826</p><p class="stats mono muted">min_detectable_lift 1.123</p><p class="reason muted">lift 0.99 is below the minimum detectable lift 1.12 at n=2826 — underpowered, not disproven</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims with complexity_score &gt;= 4 have a higher leakage_flag rate than claims with complexity_score &lt; 4.”</p><p class="spec mono">where=&#x27;(complexity_score &gt;= 4)&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 1.37× · p 5.04e-28 · n 2,824</p><p class="stats mono muted">min_detectable_lift 1.123</p></div></li><li class="rec read"><div class="lane model"><p class="tool">load_skill · challenging-a-finding</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">method guidance from the toolbox — context, never evidence</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · driver_effect</p><p class="statement">“The higher leakage rate for broker-notified claims persists after stratifying by claim_type.”</p><p class="spec mono">where=&quot;(notification_channel == &#x27;broker&#x27;)&quot;, control=&#x27;claim_type&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 1.93× · p 1.26e-18 · n 1,337</p><p class="stats mono muted">control claim_type, adjusted_odds_ratio 1.932, confound_explains_fraction 0.0</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · driver_effect</p><p class="statement">“The higher leakage rate for claims with complexity_score &gt;= 4 persists after stratifying by claim_type.”</p><p class="spec mono">where=&#x27;(complexity_score &gt;= 4)&#x27;, control=&#x27;claim_type&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 2.05× · p 9.42e-28 · n 2,824</p><p class="stats mono muted">control claim_type, adjusted_odds_ratio 2.053, confound_explains_fraction 0.003</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · driver_effect</p><p class="statement">“The higher leakage rate for claims with prior_claims &gt;= 3 persists after stratifying by complexity_score.”</p><p class="spec mono">where=&#x27;(prior_claims &gt;= 3)&#x27;, control=&#x27;complexity_score&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 2.00× · p 2.67e-07 · n 321</p><p class="stats mono muted">control complexity_score, adjusted_odds_ratio 2.002, confound_explains_fraction 0.0</p></div></li><li class="rec"><div class="lane model"><p class="tool">record_finding</p><p class="statement">evidence <span class="mono">e_0f30748089</span></p><p class="statement">“Broker-notified claims have materially higher leakage”</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-recorded">RECORDED</span></p><p class="stats mono">confidence 0.864 — derived from the evidence, not self-assessed</p></div></li><li class="rec"><div class="lane model"><p class="tool">record_finding</p><p class="statement">evidence <span class="mono">e_efdbd5e43d</span></p><p class="statement">“High-complexity claims have materially higher leakage”</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-recorded">RECORDED</span></p><p class="stats mono">confidence 0.893 — derived from the evidence, not self-assessed</p></div></li><li class="rec"><div class="lane model"><p class="tool">record_finding</p><p class="statement">evidence <span class="mono">e_6a4868a47e</span></p><p class="statement">“Claims with three or more prior claims have materially higher leakage”</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-recorded">RECORDED</span></p><p class="stats mono">confidence 0.766 — derived from the evidence, not self-assessed</p></div></li><li class="rec read"><div class="lane model"><p class="tool">load_skill · proposing-an-action</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">method guidance from the toolbox — context, never evidence</p></div></li><li class="iter-end"><span class="mono">tested 8, newly supported 6</span> — read from the ledger by <code>should_continue</code>; stagnant 0, idle 0</li><li class="iter-start"><span class="mono">iteration 2 of 2</span> — empty context, ledger summary injected</li><li class="rec read"><div class="lane model"><p class="tool">get_progress</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">get_charter</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">list_questions</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">list_gates</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec read"><div class="lane model"><p class="tool">get_data_profile</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">read-only</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims with both prior_claims &gt;= 3 and complexity_score &gt;= 4 have a higher leakage_flag rate than all other claims.”</p><p class="spec mono">where=&#x27;(prior_claims &gt;= 3) &amp; (complexity_score &gt;= 4)&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-inconclusive">INCONCLUSIVE</span></p><p class="stats mono">effect 2.26× · p 2.35e-09 · n 119</p><p class="stats mono muted">min_detectable_lift 1.597</p><p class="reason muted">sample 119 below the charter minimum 150</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims that are both broker-notified and high-complexity (complexity_score &gt;= 4) have a higher leakage_flag rate than all other claims.”</p><p class="spec mono">where=&quot;(notification_channel == &#x27;broker&#x27;) &amp; (complexity_score &gt;= 4)&quot;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 2.09× · p 2.42e-29 · n 530</p><p class="stats mono muted">min_detectable_lift 1.283</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims that are broker-notified and have at least three prior claims have a higher leakage_flag rate than all other claims.”</p><p class="spec mono">where=&quot;(notification_channel == &#x27;broker&#x27;) &amp; (prior_claims &gt;= 3)&quot;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-inconclusive">INCONCLUSIVE</span></p><p class="stats mono">effect 2.41× · p 8.10e-08 · n 77</p><p class="stats mono muted">min_detectable_lift 1.743</p><p class="reason muted">sample 77 below the charter minimum 150</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · proportion_lift</p><p class="statement">“Claims with complexity_score &gt;= 4 and days_to_report &lt;= 14 have a higher leakage_flag rate than all other claims.”</p><p class="spec mono">where=&#x27;(complexity_score &gt;= 4) &amp; (days_to_report &lt;= 14)&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 1.33× · p 3.06e-16 · n 2,245</p><p class="stats mono muted">min_detectable_lift 1.137</p></div></li><li class="rec read"><div class="lane model"><p class="tool">load_skill · challenging-a-finding</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">method guidance from the toolbox — context, never evidence</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · driver_effect</p><p class="statement">“The higher leakage rate for broker-notified, high-complexity claims persists after stratifying by claim_type.”</p><p class="spec mono">where=&quot;(notification_channel == &#x27;broker&#x27;) &amp; (complexity_score &gt;= 4)&quot;, control=&#x27;claim_type&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 2.93× · p 4.32e-29 · n 530</p><p class="stats mono muted">control claim_type, adjusted_odds_ratio 2.928, confound_explains_fraction 0.0</p></div></li><li class="rec gate-rec"><div class="lane model"><p class="tool">test_hypothesis · driver_effect</p><p class="statement">“The higher leakage rate for high-complexity claims reported within 14 days persists after stratifying by claim_type.”</p><p class="spec mono">where=&#x27;(complexity_score &gt;= 4) &amp; (days_to_report &lt;= 14)&#x27;, control=&#x27;claim_type&#x27;, target=&#x27;leakage_flag&#x27;</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-supported">SUPPORTED</span></p><p class="stats mono">effect 1.72× · p 5.43e-16 · n 2,245</p><p class="stats mono muted">control claim_type, adjusted_odds_ratio 1.724, confound_explains_fraction 0.005</p></div></li><li class="rec"><div class="lane model"><p class="tool">record_finding</p><p class="statement">evidence <span class="mono">e_5a39b22041</span></p><p class="statement">“High-complexity claims remain elevated even when reported promptly”</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-recorded">RECORDED</span></p><p class="stats mono">confidence 0.719 — derived from the evidence, not self-assessed</p></div></li><li class="rec"><div class="lane model"><p class="tool">record_finding</p><p class="statement">evidence <span class="mono">e_582bd85c0e</span></p><p class="statement">“Broker-notified high-complexity claims are a concentrated leakage segment”</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-recorded">RECORDED</span></p><p class="stats mono">confidence 0.844 — derived from the evidence, not self-assessed</p></div></li><li class="rec read"><div class="lane model"><p class="tool">load_skill · proposing-an-action</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">method guidance from the toolbox — context, never evidence</p></div></li><li class="rec"><div class="lane model"><p class="tool">propose_action · route_to_investigation</p><p class="statement">“Route up to 200 claims matching (notification_channel == &#x27;broker&#x27;) &amp; (complexity_score &gt;= 4) to the special investigations queue before settlement, prioritising newly received claims within this segment.”</p><p class="spec mono">blast radius {&quot;unit&quot;: &quot;claims&quot;, &quot;count&quot;: 200, &quot;max_per_run&quot;: 200} · observe {&quot;metric&quot;: &quot;leakage_flag&quot;, &quot;lag_days&quot;: 180}</p></div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="verdict-line"><span class="verdict v-approved">APPROVED</span> <span class="mono muted">L2_act_reversible</span></p><p class="reason muted">all charter conditions satisfied</p></div></li><li class="iter-end"><span class="mono">tested 6, newly supported 4</span> — read from the ledger by <code>should_continue</code>; stagnant 0, idle 0</li><li class="iter-end"><span class="mono">finalise</span> — 14 hypotheses corrected across the run, 0 demoted, report.json written</li></ol>
+</section>
+<section id="gate">
+  <p class="eyebrow"><span class="who who-code">code</span><span class="artefact">inside the gate</span></p>
+  <h2>Screen, test, decide. Three steps, none of them negotiable.</h2>
+  <h3>1 · Screen the expression before anything runs</h3>
+  <p>The <code>where</code> clause is parsed as a Python AST. Calls, attribute access, subscripts and
+  comprehensions are refused outright, which is what keeps <code>df.eval</code> from becoming a way to
+  run code. Then every column named is checked against the dataset, the standing identifier and
+  protected-attribute screens, and the charter's forbidden and leakage lists.</p>
+  <pre class="code py"><code>def screen(expr: str, df: pd.DataFrame, charter: RoleCharter) -&gt; set[str]:
+    &quot;&quot;&quot;Parse and vet a boolean expression. Returns referenced columns or raises.
+
+    Blocking Call/Attribute/Subscript is what stops `df.eval` from becoming an arbitrary
+    code execution path — this is a sandbox, not a linter.
+    &quot;&quot;&quot;
+    if not expr or not expr.strip():
+        raise ScreenError(&quot;empty expression&quot;)
+    if _looks_like_sql(expr):
+        raise ScreenError(
+            &quot;SQL boolean operators are not accepted. Use pandas syntax: `&amp;` for and, &quot;
+            &quot;`|` for or, `~` for not, with each comparison in its own parentheses — &quot;
+            &quot;e.g. `(premium &gt; 1000) &amp; (status == &#x27;active&#x27;)`. &quot;
+            f&quot;You wrote: {expr[:120]}&quot;
+        )
+    try:
+        tree = ast.parse(expr, mode=&quot;eval&quot;)
+    except SyntaxError as exc:
+        raise ScreenError(
+            f&quot;invalid expression syntax ({exc.msg}). Use pandas operators over column &quot;
+            &quot;names: `&amp;` `|` `~` `==` `!=` `&gt;=` with parenthesised comparisons, &quot;
+            &quot;e.g. `(premium &gt; 1000) &amp; (status == &#x27;active&#x27;)`. Function calls and &quot;
+            &quot;attribute access are not permitted.&quot;
+        ) from exc
+
+    forbidden = (
+        ast.Call, ast.Attribute, ast.Subscript, ast.Lambda, ast.ListComp,
+        ast.SetComp, ast.DictComp, ast.GeneratorExp, ast.Await, ast.NamedExpr,
+    )
+    if bad := next((n for n in ast.walk(tree) if isinstance(n, forbidden)), None):
+        raise ScreenError(f&quot;forbidden expression syntax: {type(bad).__name__}&quot;)
+
+    names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+    c = charter.constraints
+
+    if unknown := sorted(names - set(df.columns)):
+        raise ScreenError(f&quot;references unknown columns: {unknown}&quot;)
+    if c.block_sensitive_columns and (hit := sorted(n for n in names if is_sensitive_column(n))):
+        raise ScreenError(f&quot;references sensitive/identifier columns: {hit}&quot;)
+    if c.forbidden_features and (hit := sorted(names &amp; set(c.forbidden_features))):
+        raise ScreenError(f&quot;references charter-forbidden columns: {hit}&quot;)
+    if c.leakage_features and (hit := sorted(names &amp; set(c.leakage_features))):
+        raise ScreenError(f&quot;references target-leaking columns: {hit}&quot;)
+    if c.allowed_features is not None and (out := sorted(names - set(c.allowed_features))):
+        raise ScreenError(f&quot;references columns outside the charter&#x27;s scope: {out}&quot;)
+    return names
+</code></pre>
+  <h3>2 · Route to a gate</h3>
+  <p>A gate is a shape of question, not a topic. These are the gates registered in this build:</p>
+  <table><thead><tr><th>gate</th><th>question shape</th><th>spec</th></tr></thead><tbody><tr><td class="mono">proportion_lift</td><td>Does subgroup `where` show a higher rate of binary `target`?</td><td class="mono">where: REQUIRED. pandas boolean expression, parenthesised comparisons joined by &amp; | ~ — e.g. &quot;(premium &gt; 1000) &amp; (status == &#x27;active&#x27;)&quot;. NOT SQL: AND/OR/&amp;&amp;/= are refused., target: OPTIONAL. Binary column. Defaults to the accountability&#x27;s measure.</td></tr><tr><td class="mono">mean_shift</td><td>Is the mean of `measure` different inside subgroup `where`?</td><td class="mono">where: REQUIRED. pandas boolean expression, parenthesised comparisons joined by &amp; | ~ — e.g. &quot;(premium &gt; 1000) &amp; (status == &#x27;active&#x27;)&quot;. NOT SQL: AND/OR/&amp;&amp;/= are refused., measure: REQUIRED. Numeric column to compare inside vs outside.</td></tr><tr><td class="mono">driver_effect</td><td>Does subgroup `where` still shift binary `target` after stratifying on `control`?</td><td class="mono">where: REQUIRED. pandas boolean expression selecting the candidate driver, parenthesised comparisons joined by &amp; | ~. NOT SQL., control: REQUIRED. Column to hold constant — the suspected confound., target: OPTIONAL. Binary column. Defaults to the accountability&#x27;s measure., bins: OPTIONAL. Number of quantile strata for a numeric control. Default 4.</td></tr></tbody></table>
+  <h3>3 · Decide against the charter's standard</h3>
+  <p>This role's standard: at least <strong>150</strong> rows, <strong>p &lt; 0.01</strong>,
+  effect at least <strong>1.25×</strong>, corrected by <strong>benjamini_hochberg</strong>
+  across the whole run. INCONCLUSIVE is a first-class verdict: an underpowered test is not a false one.</p>
+  <pre class="code py"><code>def decide(
+    *, n: int, p: float | None, effect: float | None,
+    standard: EvidenceStandard, warnings: list[str],
+) -&gt; Verdict:
+    &quot;&quot;&quot;Apply the charter&#x27;s evidence standard.
+
+    INCONCLUSIVE is first-class and matters more than it looks: without it an underpowered
+    test reads as REJECTED, and the agent learns the wrong lesson — it abandons a
+    direction that was never actually tested.
+    &quot;&quot;&quot;
+    if n &lt; standard.min_sample_size:
+        warnings.append(f&quot;sample {n} below the charter minimum {standard.min_sample_size}&quot;)
+        return Verdict.INCONCLUSIVE
+    if p is None or math.isnan(p) or effect is None or math.isnan(effect):
+        return Verdict.INCONCLUSIVE
+    if p &lt; standard.max_p_value and abs(effect) &gt;= standard.min_effect_size:
+        return Verdict.SUPPORTED
+    return Verdict.REJECTED
+</code></pre>
+  <p class="aside">Every failure becomes an Evidence record with a REFUSED verdict and a reason, never an
+  exception. A refused idea is still a fact on record, so the next iteration does not re-derive it.</p>
+</section>
+<section id="challenge">
+  <p class="eyebrow"><span class="who who-code">code</span><span class="artefact">the challenge · record_finding refuses an unchallenged subgroup</span></p>
+  <h2>A supported verdict is not yet a finding</h2>
+  <p>SUPPORTED means the effect is unlikely to be noise. It does not mean the attribute the model named
+  is the reason. So <code>record_finding</code> refuses any subgroup claim until the same subgroup has
+  been re-tested with the <code>driver_effect</code> gate holding a plausible confound constant. The
+  instruction to challenge is in the prompt too, but a prompt is not a mechanism; this is.</p>
+  <pre class="code py"><code>def _unchallenged(self, evidence: Evidence) -&gt; dict[str, Any] | None:
+    &quot;&quot;&quot;Refuse a subgroup finding nobody has tried to break. Returns None if it is fine.
+
+    Instructions are not a mechanism — a model that forgets, or reasons its way past
+    them, produces a confident finding either way. This makes the adversarial step a
+    precondition. The bar is that a confound was named and tested, not that the
+    finding survived: a challenge that fails is as informative as one that succeeds.
+    &quot;&quot;&quot;
+    if not self.charter.evidence_standards.requires_confound_control:
+        return None
+    hypothesis = self.ledger.by_id(evidence.hypothesis_id)
+    where = (getattr(hypothesis, &quot;spec&quot;, {}) or {}).get(&quot;where&quot;)
+    if not where or evidence.gate == &quot;driver_effect&quot;:
+        return None
+
+    challenges = [
+        e for e in self.ledger.all(&quot;evidence&quot;)
+        if e.gate == &quot;driver_effect&quot;
+        and (getattr(self.ledger.by_id(e.hypothesis_id), &quot;spec&quot;, {}) or {}).get(&quot;where&quot;) == where
+    ]
+    if not challenges:
+        return {
+            &quot;status&quot;: &quot;refused&quot;,
+            &quot;message&quot;: (
+                f&quot;this subgroup has not been challenged. Before {evidence.id} can become a &quot;
+                f&quot;finding, run the driver_effect gate on the SAME where={where!r}, naming a &quot;
+                f&quot;plausible confound as `control` — an attribute that travels with this &quot;
+                f&quot;subgroup and could produce the result on its own (exposure, volume, tenure, &quot;
+                f&quot;mix, channel, size). An unchallenged subgroup difference is a correlation &quot;
+                f&quot;with a p-value.&quot;
+            ),
+            &quot;required_gate&quot;: &quot;driver_effect&quot;,
+            &quot;required_where&quot;: where,
+        }
+    worst = max((c.statistics.get(&quot;confound_explains_fraction&quot;) or 0.0) for c in challenges)
+    if worst &gt;= 0.5:
+        controls = [c.statistics.get(&quot;control&quot;) for c in challenges]
+        return {
+            &quot;status&quot;: &quot;refused&quot;,
+            &quot;message&quot;: (
+                f&quot;the challenge succeeded: {controls} explains ~{worst:.0%} of this &quot;
+                f&quot;association. The subgroup is substantially a proxy, so acting on it would &quot;
+                f&quot;spend the intervention on the wrong thing. Record a finding about the &quot;
+                f&quot;confound instead.&quot;
+            ),
+        }
+    return None
+</code></pre>
+  <h3>Challenges this run actually ran</h3>
+  <table><thead><tr><th>subgroup</th><th>control</th><th>verdict</th><th>adjusted OR</th><th>explained by confound</th></tr></thead><tbody><tr><td>(notification_channel == &#x27;broker&#x27;)</td><td class="mono">claim_type</td><td><span class="verdict v-supported">SUPPORTED</span></td><td class="mono">1.9322</td><td class="mono">0%</td></tr><tr><td>(complexity_score &gt;= 4)</td><td class="mono">claim_type</td><td><span class="verdict v-supported">SUPPORTED</span></td><td class="mono">2.0529</td><td class="mono">0%</td></tr><tr><td>(prior_claims &gt;= 3)</td><td class="mono">complexity_score</td><td><span class="verdict v-supported">SUPPORTED</span></td><td class="mono">2.0019</td><td class="mono">0%</td></tr><tr><td>(notification_channel == &#x27;broker&#x27;) &amp; (complexity_score &gt;= 4)</td><td class="mono">claim_type</td><td><span class="verdict v-supported">SUPPORTED</span></td><td class="mono">2.9283</td><td class="mono">0%</td></tr><tr><td>(complexity_score &gt;= 4) &amp; (days_to_report &lt;= 14)</td><td class="mono">claim_type</td><td><span class="verdict v-supported">SUPPORTED</span></td><td class="mono">1.7238</td><td class="mono">0%</td></tr></tbody></table>
+  
+</section>
+<section id="authority">
+  <p class="eyebrow"><span class="who who-code">code</span><span class="artefact">authority · authorise_action</span></p>
+  <h2>No action without a right, evidence for that right, a cap, and a way to observe it</h2>
+  <p>The counterpart to the gate. The gate decides whether something is <em>true</em>; this decides
+  whether the role may <em>act</em> on it. Four checks, all in fixed code: the charter names the action
+  type; every cited finding clears the standard <em>for that type</em>; the blast radius is within cap;
+  and there is a plan to measure the result. An action nobody measures can never be learned from, so
+  it is not permitted.</p>
+  <h3>What this charter grants</h3>
+  <table><thead><tr><th>action type</th><th></th><th>autonomy</th><th>cap</th><th>observed by</th><th>needs</th></tr></thead><tbody><tr><td class="mono">route_to_investigation</td><td>Send a defined group of claims to the special investigations queue.</td><td class="mono">L2_act_reversible</td><td class="mono">200 claims</td><td class="mono">leakage_flag</td><td>—</td></tr><tr><td class="mono">fast_track_settlement</td><td>Approve straight-through settlement for a defined low-risk group.</td><td class="mono">L1_recommend</td><td class="mono">1000 claims</td><td class="mono">days_to_settle</td><td>—</td></tr><tr><td class="mono">revise_reserve_guidance</td><td>Change the reserving guidance applied to a class of claims.</td><td class="mono">L1_recommend</td><td class="mono">50 claims</td><td class="mono">settled_amount</td><td>chief_actuary</td></tr></tbody></table>
+  <h3>Actions this run produced</h3>
+  <table><thead><tr><th>type</th><th>status</th><th>autonomy</th><th>blast radius</th><th>observation plan</th></tr></thead><tbody><tr><td class="mono">route_to_investigation</td><td><span class="verdict v-approved">APPROVED</span></td><td class="mono">L2_act_reversible</td><td class="mono">{&quot;unit&quot;: &quot;claims&quot;, &quot;count&quot;: 200, &quot;max_per_run&quot;: 200}</td><td class="mono">{&quot;metric&quot;: &quot;leakage_flag&quot;, &quot;lag_days&quot;: 180}</td></tr></tbody></table>
+  <p class="aside">Autonomy is granted by the charter per action type and capped at L1 (recommend) for any
+  type with no observation metric, whatever the charter says. The model does not choose it.</p>
+</section>
+<section id="finalise">
+  <p class="eyebrow"><span class="who who-code">code</span><span class="artefact">finalise · the whole run, corrected</span></p>
+  <h2>The loop stops on the ledger, and the run is corrected as a whole</h2>
+  <p>The middleware caps iterations at the budget. Before that, <code>should_continue</code> reads the
+  ledger, never the model's text: <strong>2</strong> consecutive iterations that test
+  nothing, or <strong>4</strong> that add no supported evidence, end the run after a minimum
+  of <strong>3</strong>. Then every p-value from the whole run is corrected together
+  (Benjamini–Hochberg), and a result that was only lucky is demoted
+  before anyone reads it. <strong>0</strong> were demoted in this run.</p>
+  <ul class="log"><li class='mono'>iteration 1: tested 8, newly supported 6</li><li class='mono'>iteration 2: tested 6, newly supported 4</li></ul>
+  <details open><summary>report.json</summary><pre class="code json"><code>{
+  &quot;role&quot;: &quot;claims_analyst&quot;,
+  &quot;run_dir&quot;: &quot;../../docs/runs/claims_analyst-20260904-115117-553c60f2&quot;,
+  &quot;status&quot;: &quot;complete&quot;,
+  &quot;iterations_run&quot;: 2,
+  &quot;hypotheses_tested&quot;: 14,
+  &quot;verdicts&quot;: {
+    &quot;SUPPORTED&quot;: 10,
+    &quot;REJECTED&quot;: 2,
+    &quot;INCONCLUSIVE&quot;: 2
+  },
+  &quot;findings&quot;: [
+    {
+      &quot;headline&quot;: &quot;Broker-notified claims have materially higher leakage&quot;,
+      &quot;confidence&quot;: 0.864
+    },
+    {
+      &quot;headline&quot;: &quot;High-complexity claims have materially higher leakage&quot;,
+      &quot;confidence&quot;: 0.893
+    },
+    {
+      &quot;headline&quot;: &quot;Claims with three or more prior claims have materially higher leakage&quot;,
+      &quot;confidence&quot;: 0.766
+    },
+    {
+      &quot;headline&quot;: &quot;High-complexity claims remain elevated even when reported promptly&quot;,
+      &quot;confidence&quot;: 0.719
+    },
+    {
+      &quot;headline&quot;: &quot;Broker-notified high-complexity claims are a concentrated leakage segment&quot;,
+      &quot;confidence&quot;: 0.844
+    }
+  ],
+  &quot;actions&quot;: [
+    {
+      &quot;type&quot;: &quot;route_to_investigation&quot;,
+      &quot;status&quot;: &quot;approved&quot;,
+      &quot;autonomy&quot;: &quot;L2_act_reversible&quot;
+    }
+  ],
+  &quot;demoted_by_multiple_testing&quot;: 0,
+  &quot;iteration_log&quot;: [
+    &quot;iteration 1: tested 8, newly supported 6&quot;,
+    &quot;iteration 2: tested 6, newly supported 4&quot;
+  ]
+}</code></pre></details>
+</section>
+<section id="absent">
+  <p class="eyebrow"><span class="artefact">what is deliberately not here</span></p>
+  <h2>Every mechanism above is one of three files</h2>
+  <p>No shell, no sandbox, no filesystem policy, no workflow graph, no run registry, no fuzzy column
+  matching. The certifying operations are three methods; only <code>gates.py</code> may construct an
+  Evidence and a test fails the build otherwise. What the loop needs next is added when a run proves
+  it is needed, and not before.</p>
+</section>
+<footer>Generated 2026-09-04 11:54 UTC from <span class="mono">docs/runs/claims_analyst-20260904-115117-553c60f2</span> by tools/make_loop_doc.py. Regenerate after any change to the engine; the page has no hand-written numbers.</footer>
+</body></html>

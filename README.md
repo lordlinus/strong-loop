@@ -53,6 +53,15 @@ rejected by the model. Iterations, charter and dataset come from
 `LOOP_MAX_ITERATIONS`, `LOOP_CHARTER`, `LOOP_DATA`. Reports land under `~/runs/`, which
 Foundry persists per session.
 
+## Read the loop in detail
+
+`docs/loop.html` walks the whole mechanism on one page, built from a recorded run in
+`docs/runs/`: the charter as loaded, the data profile, the compiled questions, the exact
+context each iteration received, every tool call joined to the ledger record it left, the
+gate and screen source, the confound challenge, the authorisation checks and the corrected
+report. Regenerate it with `tools/make_loop_doc.py` after any engine change; it has no
+hand-written numbers.
+
 ## The toolbox
 
 A Foundry toolbox is attached to the agent over MCP. It is declared in `toolbox.yaml` and

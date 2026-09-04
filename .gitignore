@@ -11,5 +11,7 @@ __pycache__/
 # azd environment: holds the APIM subscription key
 .azure/
 
-# Run artefacts: ledgers and reports are per-run state, not source.
+# Run artefacts: ledgers and reports are per-run state, not source — except the one
+# recorded run docs/loop.html is generated from, which is kept as evidence.
 runs/
+!docs/runs/

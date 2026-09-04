@@ -1,0 +1,46 @@
+{
+  "role": "claims_analyst",
+  "run_dir": "../../docs/runs/claims_analyst-20260904-115117-553c60f2",
+  "status": "complete",
+  "iterations_run": 2,
+  "hypotheses_tested": 14,
+  "verdicts": {
+    "SUPPORTED": 10,
+    "REJECTED": 2,
+    "INCONCLUSIVE": 2
+  },
+  "findings": [
+    {
+      "headline": "Broker-notified claims have materially higher leakage",
+      "confidence": 0.864
+    },
+    {
+      "headline": "High-complexity claims have materially higher leakage",
+      "confidence": 0.893
+    },
+    {
+      "headline": "Claims with three or more prior claims have materially higher leakage",
+      "confidence": 0.766
+    },
+    {
+      "headline": "High-complexity claims remain elevated even when reported promptly",
+      "confidence": 0.719
+    },
+    {
+      "headline": "Broker-notified high-complexity claims are a concentrated leakage segment",
+      "confidence": 0.844
+    }
+  ],
+  "actions": [
+    {
+      "type": "route_to_investigation",
+      "status": "approved",
+      "autonomy": "L2_act_reversible"
+    }
+  ],
+  "demoted_by_multiple_testing": 0,
+  "iteration_log": [
+    "iteration 1: tested 8, newly supported 6",
+    "iteration 2: tested 6, newly supported 4"
+  ]
+}
