@@ -40,7 +40,17 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
-from agent_framework import Agent, AgentLoopMiddleware, ContextProvider, function_middleware
+from agent_framework import (
+    Agent,
+    AgentLoopMiddleware,
+    AgentMiddleware,
+    AgentResponse,
+    AgentResponseUpdate,
+    Content,
+    ContextProvider,
+    ResponseStream,
+    function_middleware,
+)
 
 from . import gates
 from .charter import RoleCharter
@@ -115,6 +125,10 @@ class RunState:
     idle: int = 0
     finished: bool = False
     log: list[str] = field(default_factory=list)
+    # Loop-level events not yet surfaced in the response stream. `LoopEventStream` drains
+    # this between model updates so a client sees iteration boundaries and the report as
+    # first-class items, not as a stray line of text.
+    pending: list[dict] = field(default_factory=list)
 
 
 def iteration_header(state: RunState) -> str:
@@ -189,6 +203,8 @@ class RunScope(ContextProvider):
                  "iteration": run.iteration, "event": event, **fields}
         with (run.run_dir / "trace.log").open("a") as fh:
             fh.write(json.dumps(entry, default=str) + "\n")
+        if event != "tool":  # tool calls and outputs are already native items in the stream
+            run.pending.append(entry)
 
     # ---- ContextProvider hooks ------------------------------------------------------
     async def before_run(self, *, agent, session, context, state) -> None:
@@ -200,7 +216,8 @@ class RunScope(ContextProvider):
         # The exact text this iteration was given, kept for the record and for `docs/`.
         (run.run_dir / "iterations").mkdir(exist_ok=True)
         (run.run_dir / "iterations" / f"{run.iteration}.md").write_text(header)
-        self.trace(run, "iteration_start", max_iterations=run.max_iterations)
+        self.trace(run, "iteration_start", max_iterations=run.max_iterations,
+                   summary=run.ledger.summary())
         context.extend_instructions(self.source_id, header)
         context.extend_tools(self.source_id, Toolbelt(self.charter, self.data, run.ledger).tools())
 
@@ -214,7 +231,7 @@ class RunScope(ContextProvider):
             report = finalise(self.charter, run)
             self.trace(run, "report", hypotheses_tested=report["hypotheses_tested"],
                        findings=len(report["findings"]), actions=len(report["actions"]),
-                       demoted=report["demoted_by_multiple_testing"])
+                       demoted=report["demoted_by_multiple_testing"], report=report)
             self._say(f"--- report: {run.run_dir / 'report.json'} "
                       f"({report['hypotheses_tested']} tested, {len(report['findings'])} findings)")
 
@@ -246,7 +263,7 @@ class RunScope(ContextProvider):
         run.idle = 0 if tested else run.idle + 1
         run.log.append(f"iteration {iteration}: tested {tested}, newly supported {gained}")
         self.trace(run, "iteration_end", tested=tested, newly_supported=gained,
-                   stagnant=run.stagnant, idle=run.idle)
+                   stagnant=run.stagnant, idle=run.idle, line=run.log[-1])
         return tested, gained
 
     def next_message(self, *, iteration: int, **_) -> str:
@@ -256,6 +273,77 @@ class RunScope(ContextProvider):
 
     def record_feedback(self, *, feedback: str | None = None, **_) -> str | None:
         return feedback
+
+
+def loop_event_updates(run: RunState) -> list[AgentResponseUpdate]:
+    """Turn the run's pending loop events into stream updates, and clear them.
+
+    Each event becomes a function call + result pair named `loop.<event>`. That is the one
+    shape every Responses client already renders (as `function_call` /
+    `function_call_output` items), so iteration boundaries, the ledger summary each
+    iteration was given, and the final report arrive on the same channel as the tool
+    calls — no side endpoint, no parsing of prose.
+    """
+    updates: list[AgentResponseUpdate] = []
+    while run.pending:
+        entry = run.pending.pop(0)
+        event = entry["event"]
+        call_id = f"loop_{event}_{entry['iteration']}_{len(run.log)}_{id(entry) & 0xffff:x}"
+        args = {"iteration": entry["iteration"]}
+        if event == "iteration_start":
+            args["max_iterations"] = entry["max_iterations"]
+            result: Any = {"ledger_summary": entry.get("summary", {})}
+        elif event == "iteration_end":
+            result = {k: entry[k] for k in ("tested", "newly_supported", "stagnant", "idle", "line") if k in entry}
+        elif event == "report":
+            result = entry.get("report", {})
+        else:
+            result = {k: v for k, v in entry.items() if k not in ("t", "iteration", "event")}
+        updates.append(AgentResponseUpdate(
+            contents=[Content.from_function_call(call_id=call_id, name=f"loop.{event}", arguments=args)],
+            role="assistant", author_name="loop",
+        ))
+        updates.append(AgentResponseUpdate(
+            contents=[Content.from_function_result(call_id=call_id, result=json.dumps(result, default=str))],
+            role="tool", author_name="loop",
+        ))
+    return updates
+
+
+class LoopEventStream(AgentMiddleware):
+    """Outermost agent middleware: interleaves loop events into a streaming response.
+
+    Sits OUTSIDE `AgentLoopMiddleware`, so it sees the whole run's stream. Before every
+    model update it drains the run's pending events — `iteration_start` is queued by
+    `before_run` before the iteration's first update exists, `iteration_end` by
+    `should_continue` before the next nudge, and `report` by `after_run` after the last
+    update — so each lands exactly at its boundary. Non-streaming runs are left alone:
+    the ledger and `trace.log` already hold everything.
+    """
+
+    def __init__(self, scope: RunScope):
+        self.scope = scope
+
+    async def process(self, context, call_next) -> None:
+        await call_next()
+        if not getattr(context, "stream", False) or context.result is None:
+            return
+        inner = context.result
+        scope = self.scope
+
+        def pending() -> list[AgentResponseUpdate]:
+            run = scope.current
+            return loop_event_updates(run) if run is not None else []
+
+        async def tapped():
+            async for update in inner:
+                for extra in pending():
+                    yield extra
+                yield update
+            for extra in pending():
+                yield extra
+
+        context.result = ResponseStream(tapped(), finalizer=AgentResponse.from_updates)
 
 
 def _brief(value: Any, limit: int = 160) -> Any:
@@ -409,6 +497,7 @@ def build_agent(
         context_providers=providers,
         middleware=[
             tool_logger(scope),
+            LoopEventStream(scope),      # outermost: sees the whole run's stream
             AgentLoopMiddleware(
                 scope.should_continue,
                 max_iterations=max_iterations,

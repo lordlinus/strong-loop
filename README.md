@@ -53,6 +53,23 @@ rejected by the model. Iterations, charter and dataset come from
 `LOOP_MAX_ITERATIONS`, `LOOP_CHARTER`, `LOOP_DATA`. Reports land under `~/runs/`, which
 Foundry persists per session.
 
+## Watch a run live
+
+Everything a run does goes out on the Responses stream, so any client can render it:
+every tool call and its full output as `function_call` / `function_call_output` items,
+the model's reasoning summaries and text, and the loop's own events as items named
+`loop.iteration_start` (with the ledger summary that iteration was given),
+`loop.iteration_end` (the tally `should_continue` read) and `loop.report` (the corrected
+report). No side channel, no parsing of prose.
+
+`docs/live.html` is a viewer for that stream. Start the agent locally, open the page,
+and press Start:
+
+```bash
+azd ai agent run --no-client          # or: cd src/strong-loop && python main.py
+open docs/live.html                   # endpoint defaults to http://localhost:8088/responses
+```
+
 ## Read the loop in detail
 
 `docs/loop.html` walks the whole mechanism on one page, built from a recorded run in

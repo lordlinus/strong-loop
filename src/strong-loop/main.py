@@ -58,5 +58,12 @@ agent, _scope = build_agent(charter, data, max_iterations=max_iterations, echo=T
 # Only the current request reaches the agent; no transcript replay (see module docstring).
 app = ResponsesHostServer(agent, history_source="agent")
 
+if not os.environ.get("FOUNDRY_HOSTING_ENVIRONMENT"):
+    # Locally, let a browser page (docs/live.html, any origin) read the stream. Hosted
+    # traffic comes through the platform gateway with its own auth, so this stays local.
+    from starlette.middleware.cors import CORSMiddleware
+
+    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
 if __name__ == "__main__":
     app.run()

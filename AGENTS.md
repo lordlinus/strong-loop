@@ -65,6 +65,13 @@ cap fires *before* the predicate, so on the last permitted run the predicate nev
 Convergence reads the ledger, never the model's text. `Ledger.summary()` is loaded into
 every fresh context; keep it small.
 
+## The stream is the UI contract
+
+`LoopEventStream` (outermost agent middleware) interleaves `loop.*` items into the Responses
+stream from `RunState.pending`, which `RunScope.trace()` fills. Add a loop-level event by
+calling `trace()`; it reaches `trace.log` and the stream in one step. Tool calls are NOT
+re-emitted — they are already native items. `docs/live.html` renders the stream.
+
 ## Conventions
 
 - No domain vocabulary in `loop/` logic. Docstring examples are fine; an `if role ==` is not.

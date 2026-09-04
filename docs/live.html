@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>strong-loop — live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#EFF2F4;--paper-2:#F7F9FA;--ink:#15181D;--graphite:#59626E;--rule:#C7CED6;--code:#1F3A93;--model:#5B4B9E;--human:#8A5A00;
+--supported:#0B7A55;--rejected:#B42318;--inconclusive:#B26A00;--refused:#475467;
+--display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",Consolas,monospace}
+*{box-sizing:border-box} html{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body)} body{margin:0;padding:0 24px 80px}
+h1{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:clamp(1.8rem,4vw,2.6rem);margin:0}
+.mono{font-family:var(--mono);font-size:.85em} .muted{color:var(--graphite)}
+header{max-width:1120px;margin:0 auto;padding:2rem 0 1rem;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:end;justify-content:space-between;border-bottom:1px solid var(--rule)}
+form{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center} input{font:inherit;font-family:var(--mono);font-size:.82rem;padding:.45rem .6rem;border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);color:var(--ink)}
+input.url{width:26rem} input.steer{width:24rem} button{font-family:var(--mono);font-size:.82rem;font-weight:600;padding:.5rem .9rem;border:0;border-radius:3px;background:var(--code);color:#fff;cursor:pointer} button[disabled]{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible{outline:2px solid var(--code);outline-offset:2px}
+.status{font-family:var(--mono);font-size:.78rem;color:var(--graphite);letter-spacing:.03em;text-transform:uppercase}
+main{max-width:1120px;margin:0 auto}
+.facts{display:flex;flex-wrap:wrap;gap:1rem 2.2rem;padding:1.2rem 0;border-bottom:1px solid var(--rule)} .facts div{display:flex;flex-direction:column}
+.facts dt{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)} .facts dd{margin:0;font-family:var(--display);font-weight:700;font-size:1.5rem}
+ol.timeline{list-style:none;padding:0;margin:0}
+li.rec{display:grid;grid-template-columns:1fr 28px 1fr;gap:0 1.2rem;padding:.8rem 0;align-items:start}
+li.read{padding:.3rem 0;opacity:.7} li.read .tool{margin:0}
+.rail{position:relative;align-self:stretch;min-height:2rem}.rail::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--code);transform:translateX(-50%)}
+.stamp{position:absolute;left:50%;top:.5rem;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--code);transform:translateX(-50%)}
+.stamp.live{animation:pulse 1.2s ease-in-out infinite} @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(31,58,147,.35)}50%{box-shadow:0 0 0 8px rgba(31,58,147,0)}}
+@media (prefers-reduced-motion:reduce){.stamp.live{animation:none}}
+.tool{font-family:var(--mono);font-size:.76rem;color:var(--model);margin:0 0 .3rem;letter-spacing:.02em}
+.statement{margin:0 0 .3rem} .spec{font-family:var(--mono);font-size:.78rem;color:var(--graphite);margin:0;word-break:break-word}
+.verdict{display:inline-block;font-family:var(--mono);font-size:.74rem;font-weight:700;letter-spacing:.06em;padding:.15em .55em;border-radius:2px;color:#fff;background:var(--refused)}
+.v-SUPPORTED,.v-recorded,.v-approved{background:var(--supported)} .v-REJECTED{background:var(--rejected)} .v-INCONCLUSIVE{background:var(--inconclusive)} .v-REFUSED,.v-refused{background:var(--refused)} .v-proposed{background:var(--code)}
+.stats{font-family:var(--mono);font-size:.8rem;margin:.3rem 0 0} .reason{font-size:.9rem;margin:.3rem 0 0}
+li.iter{padding:.9rem 0;margin-top:.6rem;border-top:2px solid var(--code);color:var(--graphite);font-size:.92rem} li.iter .mono{color:var(--code);font-weight:700}
+li.tally{padding:.6rem 0;border-top:1px dashed var(--rule);color:var(--graphite);font-size:.9rem}
+li.prose{padding:.8rem 0 .8rem;border-left:3px solid var(--model);margin:.6rem 0;padding-left:1rem;max-width:70ch;white-space:pre-wrap}
+li.think{padding:.2rem 0 .2rem 1rem;border-left:3px solid var(--rule);color:var(--graphite);font-size:.88rem;font-style:italic;max-width:70ch}
+li.report{margin-top:1rem;padding:1.2rem;background:var(--paper-2);border:1px solid var(--rule);border-radius:4px}
+li.report h2{font-family:var(--display);margin:0 0 .6rem;font-size:1.3rem} li.report ul{margin:.4rem 0 .8rem 1.2rem;padding:0}
+details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:var(--code)} pre{font-family:var(--mono);font-size:.76rem;white-space:pre-wrap;word-break:break-word;background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:.7rem;margin:.4rem 0 0}
+.empty{padding:3rem 0;color:var(--graphite);max-width:60ch}
+@media (max-width:720px){li.rec{grid-template-columns:1fr}.rail{display:none}.lane.code{border-left:2px solid var(--code);padding-left:.9rem}}
+</style></head>
+<body>
+<header>
+  <div><p class="status" id="status">idle</p><h1>The agent proposes. <span style="color:var(--code)">Code disposes.</span> Live.</h1></div>
+  <form id="form">
+    <input class="url" id="url" value="http://localhost:8088/responses" aria-label="responses endpoint">
+    <input class="steer" id="steer" value="Focus on the highest-priority accountability." aria-label="steer">
+    <button id="go" type="submit">Start a run</button>
+  </form>
+</header>
+<main>
+  <dl class="facts" id="facts">
+    <div><dt>iteration</dt><dd id="f-iter">—</dd></div>
+    <div><dt>hypotheses tested</dt><dd id="f-tested">0</dd></div>
+    <div><dt>supported</dt><dd id="f-sup">0</dd></div>
+    <div><dt>findings</dt><dd id="f-find">0</dd></div>
+    <div><dt>actions</dt><dd id="f-act">0</dd></div>
+    <div><dt>skills loaded</dt><dd id="f-skill">0</dd></div>
+  </dl>
+  <ol class="timeline" id="timeline"><li class="empty">Start the agent locally with <span class="mono">azd ai agent run --no-client</span> (or <span class="mono">python main.py</span>), then start a run. Every tool call, its output, the model's reasoning summary and the loop's own events arrive on one Responses stream.</li></ol>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const tl = $("timeline"); const facts = {tested:0, sup:0, find:0, act:0, skill:0};
+const calls = new Map();          // call_id -> {name, args, li, right}
+let liveStamp = null;
+
+function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function el(html){ const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+function add(node){ tl.appendChild(node); node.scrollIntoView({block:"end", behavior:"instant"}); }
+function setLive(stamp){ if (liveStamp) liveStamp.classList.remove("live"); liveStamp = stamp; if (stamp) stamp.classList.add("live"); }
+function refresh(){ $("f-tested").textContent = facts.tested; $("f-sup").textContent = facts.sup; $("f-find").textContent = facts.find; $("f-act").textContent = facts.act; $("f-skill").textContent = facts.skill; }
+function parseJSON(s){ try { return JSON.parse(s); } catch { return null; } }
+
+function onCall(item){
+  const args = parseJSON(item.arguments) || {};
+  const name = item.name || "?";
+  if (name.startsWith("loop.")) { calls.set(item.call_id, {name, args, li:null}); return; }
+  const read = !["test_hypothesis","record_finding","propose_action"].includes(name);
+  let left = `<p class="tool">${esc(name)}${args.kind ? " · " + esc(args.kind) : ""}${args.skill_name ? " · " + esc(args.skill_name) : ""}${args.action_type ? " · " + esc(args.action_type) : ""}</p>`;
+  if (args.statement) left += `<p class="statement">“${esc(args.statement)}”</p>`;
+  if (args.spec) left += `<p class="spec">${esc(Object.entries(args.spec).map(([k,v]) => `${k}=${JSON.stringify(v)}`).join(", "))}</p>`;
+  if (args.evidence_id) left += `<p class="spec">evidence ${esc(args.evidence_id)}</p>`;
+  if (args.recommendation) left += `<p class="statement">“${esc(args.recommendation)}”</p>`;
+  const li = el(`<li class="rec ${read ? "read" : ""}"><div class="lane model">${left}</div><div class="rail"><span class="stamp"></span></div><div class="lane code"><p class="muted">…</p></div></li>`);
+  add(li); setLive(li.querySelector(".stamp"));
+  if (name === "load_skill") { facts.skill++; refresh(); }
+  calls.set(item.call_id, {name, args, li, right: li.querySelector(".lane.code")});
+}
+
+function onOutput(item){
+  const c = calls.get(item.call_id); if (!c) return;
+  const out = parseJSON(item.output);
+  if (c.name.startsWith("loop.")) return onLoopEvent(c.name, c.args, out || {});
+  const r = c.right; if (!r) return;
+  if (c.name === "test_hypothesis" && out && out.status === "tested") {
+    facts.tested++; if (out.verdict === "SUPPORTED") facts.sup++;
+    let html = `<p><span class="verdict v-${esc(out.verdict)}">${esc(out.verdict)}</span></p>`;
+    if (out.verdict !== "REFUSED") html += `<p class="stats">effect ${out.effect_size?.toFixed?.(2) ?? "—"}× · p ${fmtP(out.p_value)} · n ${(out.sample_size ?? 0).toLocaleString()}</p>`;
+    if (out.refusal_reason) html += `<p class="reason">${esc(out.refusal_reason)}</p>`;
+    if (out.statistics && out.statistics.control) html += `<p class="stats muted">control ${esc(out.statistics.control)} · adjusted OR ${esc(round(out.statistics.adjusted_odds_ratio))}</p>`;
+    r.innerHTML = html;
+  } else if (c.name === "test_hypothesis") {
+    r.innerHTML = `<p><span class="verdict v-refused">${esc((out && out.status || "?").toUpperCase())}</span></p><p class="reason">${esc(out && out.message)}</p>`;
+  } else if (c.name === "record_finding") {
+    if (out && out.status === "recorded") { facts.find++; r.innerHTML = `<p><span class="verdict v-recorded">RECORDED</span></p><p class="stats">confidence ${esc(out.confidence)} — derived from the evidence</p>`; }
+    else r.innerHTML = `<p><span class="verdict v-refused">${esc((out && out.status || "?").toUpperCase())}</span></p><p class="reason">${esc(out && out.message)}</p>`;
+  } else if (c.name === "propose_action") {
+    const st = (out && out.status) || "?"; if (st === "approved" || st === "proposed") facts.act++;
+    const reasons = (out && out.authorisation && out.authorisation.reasons || []).map(x => `<p class="reason muted">${esc(x)}</p>`).join("");
+    r.innerHTML = `<p><span class="verdict v-${esc(st)}">${esc(st.toUpperCase())}</span> <span class="mono muted">${esc(out && out.autonomy_level || "")}</span></p>${reasons}`;
+  } else if (c.name === "load_skill") {
+    r.innerHTML = `<p class="muted">method guidance loaded from the toolbox — context, never evidence</p>`;
+  } else {
+    r.innerHTML = `<p class="muted">read-only · ${esc(String(item.output || "").length)} chars</p>`;
+  }
+  refresh();
+}
+
+function onLoopEvent(name, args, out){
+  if (name === "loop.iteration_start") {
+    $("f-iter").textContent = `${args.iteration} / ${args.max_iterations}`;
+    const s = out.ledger_summary || {};
+    add(el(`<li class="iter"><span class="mono">iteration ${args.iteration} of ${args.max_iterations}</span> — empty context; the ledger summary it was given: ${s.hypotheses_tested ?? 0} tested, ${Object.entries(s.verdict_counts || {}).map(([k,v]) => `${v} ${k}`).join(", ") || "nothing yet"}, ${(s.findings || []).length} findings <details><summary>ledger summary</summary><pre>${esc(JSON.stringify(s, null, 1))}</pre></details></li>`));
+  } else if (name === "loop.iteration_end") {
+    add(el(`<li class="tally"><span class="mono">${esc(out.line || "")}</span> — read from the ledger by should_continue; stagnant ${out.stagnant}, idle ${out.idle}</li>`));
+  } else if (name === "loop.report") {
+    setLive(null);
+    const f = (out.findings || []).map(x => `<li>${esc(x.headline)} <span class="mono muted">${esc(x.confidence)}</span></li>`).join("");
+    const a = (out.actions || []).map(x => `<li><span class="mono">${esc(x.type)}</span> <span class="verdict v-${esc(x.status)}">${esc(String(x.status).toUpperCase())}</span> <span class="mono muted">${esc(x.autonomy)}</span></li>`).join("");
+    add(el(`<li class="report"><h2>Report — ${esc(out.iterations_run)} iterations, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2><p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p><strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>Actions</strong><ul>${a || "<li>none</li>"}</ul><details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details></li>`));
+    $("status").textContent = "complete";
+  }
+}
+
+let proseLi = null, proseText = "";
+function onTextDelta(d){ if (!proseLi) { proseLi = el(`<li class="prose"></li>`); add(proseLi); } proseText += d; proseLi.textContent = proseText; }
+function endText(){
+  // The loop middleware surfaces the steer + nudge it feeds each fresh iteration as a text
+  // message. Show it as what it is — the iteration's input — not as the model's prose.
+  if (proseLi && /Next iteration\. Re-read the run state/.test(proseText)) {
+    proseLi.className = "think"; proseLi.textContent = "steer → " + proseText.replace(/Next iteration\. Re-read the run state in your instructions and continue\./, "").trim() + " (fresh context)";
+  }
+  proseLi = null; proseText = "";
+}
+function onReasoning(text){ if (text && text.trim()) add(el(`<li class="think">${esc(text)}</li>`)); }
+
+function fmtP(p){ if (p == null) return "—"; return p < 0.001 ? p.toExponential(2) : p.toFixed(4); }
+function round(x){ return typeof x === "number" ? x.toFixed(3) : (x ?? "—"); }
+
+async function run(ev){
+  ev.preventDefault();
+  tl.innerHTML = ""; calls.clear(); Object.keys(facts).forEach(k => facts[k] = 0); refresh(); $("f-iter").textContent = "—"; endText();
+  $("go").disabled = true; $("status").textContent = "connecting";
+  try {
+    const res = await fetch($("url").value, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({model:"strong-loop", input: $("steer").value, stream:true})});
+    if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+    $("status").textContent = "streaming";
+    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const {value, done} = await reader.read(); if (done) break;
+      buf += dec.decode(value, {stream:true});
+      let idx; while ((idx = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, idx)); buf = buf.slice(idx + 2); }
+    }
+    if ($("status").textContent !== "complete") $("status").textContent = "stream ended";
+  } catch (e) { $("status").textContent = "failed: " + e.message; add(el(`<li class="empty">${esc(e.message)}. Is the agent running at that URL, with CORS allowed (it is, locally)?</li>`)); }
+  finally { $("go").disabled = false; setLive(null); }
+}
+
+function handle(block){
+  let type = null, data = null;
+  for (const line of block.split("\n")) { if (line.startsWith("event: ")) type = line.slice(7); else if (line.startsWith("data: ")) data = parseJSON(line.slice(6)); }
+  if (!type || !data) return;
+  switch (type) {
+    case "response.output_item.added": if (data.item.type === "message") endText(); break;
+    case "response.output_item.done": {
+      const it = data.item;
+      if (it.type === "function_call") onCall(it);
+      else if (it.type === "function_call_output") onOutput(it);
+      else if (it.type === "message") endText();
+      break;
+    }
+    case "response.output_text.delta": onTextDelta(data.delta); break;
+    case "response.reasoning_summary_text.done": onReasoning(data.text); break;
+    case "response.completed": if ($("status").textContent !== "complete") $("status").textContent = "complete"; break;
+    case "error": $("status").textContent = "error"; add(el(`<li class="empty">${esc(JSON.stringify(data))}</li>`)); break;
+  }
+}
+$("form").addEventListener("submit", run);
+</script>
+</body></html>
