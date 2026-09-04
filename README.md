@@ -45,10 +45,11 @@ azd up                                                        # deploy; tokens v
 azd ai agent invoke --new-session "go"
 ```
 
-**One new conversation is one run.** The message you send is the human steer, and it is
-what every fresh-context iteration starts from. The hosting layer prepends a conversation's
-history to each request, so a second turn in the same conversation would replay the first
-run into every iteration — hence `--new-session`. Iterations, charter and dataset come from
+**Every turn is one run.** The message you send is the human steer, and it is what every
+fresh-context iteration starts from. Conversation history is deliberately not fed to the
+agent (`history_source="agent"` in `main.py`): the ledger is its memory, and replaying a
+prior run's transcript into a fresh-context loop is both wasteful and, as testing showed,
+rejected by the model. Iterations, charter and dataset come from
 `LOOP_MAX_ITERATIONS`, `LOOP_CHARTER`, `LOOP_DATA`. Reports land under `~/runs/`, which
 Foundry persists per session.
 

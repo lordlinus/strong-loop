@@ -6,9 +6,11 @@ and it is what every iteration starts from — Ralph's PROMPT.md. The charter an
 come from the environment (`LOOP_CHARTER`, `LOOP_DATA`, relative to this directory), the
 budget from `LOOP_MAX_ITERATIONS`.
 
-Why a new conversation per run: the hosting layer prepends the conversation's history to
-every request, so a second turn in the same conversation would replay the whole first run
-as the "original input" of every fresh-context iteration.
+History is switched off on purpose (`history_source="agent"`, below). By default the
+hosting layer prepends a conversation's transcript to every request, so a second turn in
+the same conversation would replay the whole first run — nudges, tool calls and all — as
+the "original input" of every fresh-context iteration; the model rejected exactly that
+with a 400 in testing. The ledger is this agent's memory, not the transcript.
 """
 
 from __future__ import annotations
@@ -53,7 +55,8 @@ log.info("role %s over %s (%d rows), %d iterations, runs under %s",
          charter.role, data_path.name, len(data), max_iterations, default_runs_dir())
 
 agent, _scope = build_agent(charter, data, max_iterations=max_iterations, echo=True)
-app = ResponsesHostServer(agent)
+# Only the current request reaches the agent; no transcript replay (see module docstring).
+app = ResponsesHostServer(agent, history_source="agent")
 
 if __name__ == "__main__":
     app.run()
