@@ -46,7 +46,8 @@ python -m loop check --charter charters/claims_analyst.yaml    --data data/claim
 | a new **role** | a YAML in `src/strong-loop/charters/` — never code |
 | a new **safety rule** | `screen()` in `loop/gates.py` |
 | a new **model** | nothing: set `LOOP_MODEL`. `claude-*` routes to the Anthropic API, else `/openai/v1` |
-| a new **tool** | a method on `Toolbelt` in `loop/tools.py`, added to `tools()` |
+| a new **tool** that certifies or touches the data | a method on `Toolbelt` in `loop/tools.py`, added to `tools()` |
+| a new **reference tool or skill** (safe for every role) | `toolbox.yaml` / `src/strong-loop/skills/`, then `azd ai toolbox create` — never `code_interpreter` |
 
 If a change requires editing `loop/` to support a new *use case*, an abstraction is missing.
 

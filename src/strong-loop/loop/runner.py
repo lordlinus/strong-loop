@@ -23,6 +23,11 @@ Three parts, each doing one job:
   should_continue reads durable ledger state — never the model's text — and stops on a
                   yield plateau. The cap is the middleware's job, not this function's.
   finalise        corrects for multiple testing across the WHOLE run, then writes report.json.
+
+The toolbox, when configured, is the one static tool on the agent: a Foundry toolbox
+reached over MCP, holding method skills and reference lookups. It is attached to the AGENT
+rather than the run, so it holds only what is safe for every charter — context reach; it
+can inform a hypothesis and can never settle one. See `toolbox.yaml` at the repo root.
 """
 
 from __future__ import annotations
@@ -35,7 +40,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
-from agent_framework import Agent, AgentLoopMiddleware, ContextProvider
+from agent_framework import Agent, AgentLoopMiddleware, ContextProvider, function_middleware
 
 from . import gates
 from .charter import RoleCharter
@@ -66,6 +71,8 @@ HOW THIS WORKS
 - What the data looks like, and today's level of each metric, comes from `get_data_profile`.
 - The shapes of claim you can test, and each one's spec, come from `list_gates`.
 - Your open questions come from `list_questions`.
+- If a toolbox is attached you also have method skills (load one with `load_skill` when
+  its description fits what you are about to do) and a `web` search for reference.
 - You test claims with `test_hypothesis`. A fixed statistical gate returns the verdict.
   You cannot influence it, argue with it, or skip it.
 - Only SUPPORTED evidence may become a finding. Only findings may justify an action.
@@ -83,7 +90,9 @@ RULES THAT MATTER
 6. Say when the data cannot answer a question. That is a real result, not a failure.
 7. A REFUSED or INCONCLUSIVE result ends that hypothesis, NOT your iteration. Reformulate
    and keep testing. Constraints rule out shapes of question, never whole questions.
-8. Anything you compute in your head is a hunch until a gate has scored it.
+8. Anything you compute in your head is a hunch until a gate has scored it. The same
+   goes for anything the toolbox returns — a skill, a web result — it is context, never
+   evidence.
 
 THROUGHPUT
 Test SEVERAL hypotheses per iteration — aim for three to six `test_hypothesis` calls
@@ -220,6 +229,20 @@ class RunScope(ContextProvider):
         return feedback
 
 
+@function_middleware
+async def echo_tool_calls(context, call_next) -> None:
+    """One line per tool call on stdout. Observability for the CLI; the ledger is the record."""
+    name = getattr(context.function, "name", "?")
+    args = context.arguments
+    brief = ""
+    if isinstance(args, dict):
+        brief = str(args.get("kind") or args.get("skill_name") or args.get("query") or args.get("action_type") or "")[:60]
+    elif args is not None:
+        brief = str(getattr(args, "kind", "") or getattr(args, "skill_name", "") or getattr(args, "query", ""))[:60]
+    print(f"    tool: {name} {brief}".rstrip(), flush=True)
+    await call_next()
+
+
 def finalise(charter: RoleCharter, run: RunState) -> dict[str, Any]:
     """Correct for multiple testing across the WHOLE run, then report."""
     evidence = run.ledger.all("evidence")
@@ -251,6 +274,32 @@ def finalise(charter: RoleCharter, run: RunState) -> dict[str, Any]:
     return report
 
 
+def build_toolbox():
+    """The Foundry toolbox as an MCP tool, or None when none is configured.
+
+    `TOOLBOX_ENDPOINT` is what `azd ai toolbox create` writes to the azd environment
+    (as `TOOLBOX_<NAME>_MCP_ENDPOINT`; azure.yaml maps it across). `TOOLBOX_NAME` plus the
+    platform-injected `FOUNDRY_PROJECT_ENDPOINT` is the hosted fallback. Neither set means
+    no toolbox, and the loop runs on its bound tools alone — the CLI must not need Azure
+    credentials to work.
+    """
+    endpoint = os.environ.get("TOOLBOX_ENDPOINT") or None
+    name = os.environ.get("TOOLBOX_NAME") or None
+    if not (endpoint or name):
+        return None
+    from agent_framework_foundry_hosting import FoundryToolbox
+    from azure.identity import DefaultAzureCredential
+
+    return FoundryToolbox(
+        DefaultAzureCredential(),
+        url=endpoint,
+        name=name or "toolbox",
+        load_prompts=False,
+        # The toolbox MCP endpoint is behind a preview feature flag.
+        header_provider=lambda _: {"Foundry-Features": "Toolboxes=V1Preview"},
+    )
+
+
 def default_runs_dir() -> pathlib.Path:
     # Under Foundry hosting `$HOME` persists per session, so a report written there
     # survives the turn.
@@ -267,12 +316,27 @@ def build_agent(
     echo: bool = False,
 ) -> tuple[Agent, RunScope]:
     scope = RunScope(charter, data, runs_dir or default_runs_dir(), max_iterations, echo=echo)
+    toolbox = build_toolbox()
+    providers = [scope]
+    if toolbox is not None:
+        # The toolbox serves its skills as MCP resources (`skill://index.json`), not as
+        # tools; this provider advertises them and adds `load_skill`. Approval is off
+        # because nobody is watching: an unattended loop that stops to ask may not load
+        # a skill body is a loop that never loads one.
+        providers.append(
+            toolbox.as_skills_provider(
+                disable_load_skill_approval=True,
+                disable_read_skill_resource_approval=True,
+            )
+        )
     agent = Agent(
         client=build_chat_client(model),
         name="strong-loop",
         instructions=SYSTEM,
-        context_providers=[scope],
+        tools=[toolbox] if toolbox is not None else None,
+        context_providers=providers,
         middleware=[
+            *([echo_tool_calls] if echo else []),
             AgentLoopMiddleware(
                 scope.should_continue,
                 max_iterations=max_iterations,
@@ -301,7 +365,10 @@ async def run_once(
         charter, data, max_iterations=max_iterations, runs_dir=runs_dir, model=model, echo=True
     )
     session = agent.create_session()
-    response = await agent.run(steer, session=session)
+    # Entering the agent connects (and on exit closes) the toolbox's MCP session, the
+    # same way the hosting server does it.
+    async with agent:
+        response = await agent.run(steer, session=session)
     print(str(response.text)[:1500], flush=True)
     run = scope.state_for(session)
     return json.loads((run.run_dir / "report.json").read_text())

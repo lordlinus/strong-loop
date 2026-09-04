@@ -1,0 +1,19 @@
+# The toolbox attached to the strong-loop agent, created with:
+#   azd ai toolbox create strong-loop-toolbox --from-file toolbox.yaml
+#
+# A toolbox is attached to the AGENT and reaches every charter it serves, so only what is
+# safe for the most restricted role belongs here: reference lookups and method guidance
+# that can inform a hypothesis and can never settle one. NOT here, on purpose: the three
+# certifying operations (they stay in loop/tools.py, bound per run), and code_interpreter
+# (a sandbox is a per-charter grant, not a per-deployment one).
+description: >
+  Reference tools and method guidance for the strong-loop analyst. Context reach only:
+  nothing here can mint evidence.
+skills:
+  - name: choosing-a-gate
+  - name: challenging-a-finding
+  - name: profiling-a-dataset
+  - name: proposing-an-action
+tools:
+  - type: web_search
+    name: web

@@ -126,3 +126,14 @@ def test_sessions_do_not_share_a_ledger(scope):
     _record(scope, a, Verdict.REJECTED, 1)
     assert scope.state_for(a).run_dir != scope.state_for(b).run_dir
     assert len(scope.state_for(b).ledger.all("evidence")) == 0
+
+
+def test_toolbox_is_optional(monkeypatch):
+    """No toolbox configured means no static tools and no Azure credential needed."""
+    from loop.runner import build_toolbox
+
+    monkeypatch.delenv("TOOLBOX_ENDPOINT", raising=False)
+    monkeypatch.delenv("TOOLBOX_NAME", raising=False)
+    assert build_toolbox() is None
+    monkeypatch.setenv("TOOLBOX_ENDPOINT", "")
+    assert build_toolbox() is None, "azd injects unset variables as empty strings"

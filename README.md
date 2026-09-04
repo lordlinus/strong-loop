@@ -52,6 +52,29 @@ run into every iteration — hence `--new-session`. Iterations, charter and data
 `LOOP_MAX_ITERATIONS`, `LOOP_CHARTER`, `LOOP_DATA`. Reports land under `~/runs/`, which
 Foundry persists per session.
 
+## The toolbox
+
+A Foundry toolbox is attached to the agent over MCP. It is declared in `toolbox.yaml` and
+created once per project:
+
+```bash
+for s in src/strong-loop/skills/*/; do azd ai skill create "$(basename $s)" --file "$s/SKILL.md" --force; done
+azd ai toolbox create strong-loop-toolbox --from-file toolbox.yaml   # writes TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT to the azd env
+```
+
+It holds four method skills (choosing a gate, challenging a finding, profiling a dataset,
+proposing an action) and a `web` search. The skills arrive as MCP resources and are
+exposed through `FoundryToolbox.as_skills_provider()`, so the agent sees a `load_skill`
+tool and loads a skill's body only when it needs it. Everything in the toolbox is context:
+it can inform a hypothesis and can never settle one. The three certifying operations stay
+in `loop/tools.py`, bound per run, and `code_interpreter` is deliberately absent because a
+toolbox reaches every charter the agent serves.
+
+The toolbox is optional. With `TOOLBOX_ENDPOINT` unset the agent runs on its bound tools
+alone and needs no Azure credential, which is what keeps the CLI and the tests
+self-contained. Locally, export the endpoint from the azd env; in the container,
+`azure.yaml` passes it through and the managed identity authenticates.
+
 ## What is here, and what is not
 
 | `src/strong-loop/loop/` | |
@@ -67,7 +90,7 @@ Foundry persists per session.
 | `runner.py` | `AgentLoopMiddleware(fresh_context=True)` + `RunScope` |
 
 Deliberately absent: a shell, a sandbox, a filesystem policy, a workflow graph, a run
-registry, a front door, a skills system, fuzzy column matching. Each is a later step if a
+registry, a front door, fuzzy column matching. Each is a later step if a
 run proves it is needed, and not before.
 
 Loop mechanics adapted from the [ralph-playbook](https://github.com/ClaytonFarr/ralph-playbook).
