@@ -15,6 +15,9 @@ dataset (a CSV whose columns the charter's metrics name) ┘      ▲          �
                                             agent proposes ─────┘   gate decides
 ```
 
+Why it is built this way, what has been decided, and what comes next: `PLAN.md`.
+How to work on it: `AGENTS.md`.
+
 ## Run it
 
 ```bash

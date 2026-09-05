@@ -2,6 +2,10 @@
 
 Operational guide for agents working on this repo. Short on purpose.
 
+**Read first:** `PLAN.md` — the decisions and why, the deployment coordinates, the platform
+gotchas already paid for, and the roadmap. `README.md` — how to run it. `docs/loop.html` —
+the loop explained from a recorded run. When a roadmap step lands, update `PLAN.md` §3 and §6.
+
 ## Commands
 
 ```bash
