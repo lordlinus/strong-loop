@@ -73,12 +73,13 @@ the model's reasoning summaries and text, and the loop's own events as items nam
 `loop.iteration_end` (the tally `should_continue` read) and `loop.report` (the corrected
 report). No side channel, no parsing of prose.
 
-`docs/live.html` is a viewer for that stream. Start the agent locally, open the page,
-and press Start:
+`docs/live.html` is a viewer for that stream. In production it calls the authenticated
+`/api/run` proxy. For local development, start the agent, open the page, and change the
+endpoint field to `http://localhost:8088/responses`:
 
 ```bash
 azd ai agent run --no-client          # or: cd src/strong-loop && python main.py
-open docs/live.html                   # endpoint defaults to http://localhost:8088/responses
+open docs/live.html
 ```
 
 ## Read the loop in detail
@@ -89,6 +90,37 @@ context each iteration received, every tool call joined to the ledger record it 
 gate and screen source, the confound challenge, the authorisation checks and the corrected
 report. Regenerate it with `tools/make_loop_doc.py` after any engine change; it has no
 hand-written numbers.
+
+`docs/showcase.html` is the same run on one non-scrolling screen: the loop as a ring around
+the ledger, the model's moves outside it, code's verdicts inside it, the charter as input on
+the left and report.json as output on the right. Press ▶ to replay the recorded trace through
+the ring, or ● live to drive it from a running agent; click any station for the record behind
+it. Built by `tools/make_showcase.py` from the same run directory.
+
+## Customer site and deployment
+
+The Static Web App preserves all three views as one customer journey:
+
+1. `/showcase.html` — replay the outcome on one screen.
+2. `/loop.html` — inspect the mechanism and its evidence trail.
+3. `/live.html` — sign in with Microsoft Entra ID and steer a fresh hosted-agent run.
+
+The live page never receives Azure credentials. Static Web Apps authentication protects
+both the page and `/api/*`; a linked Flex Consumption Function uses managed identity to
+call the Foundry Responses endpoint and relays its stream.
+
+Bootstrap and configure the production pipeline once:
+
+```bash
+./scripts/provision-web.sh
+./scripts/setup-azure-auth-for-pipeline.sh <github-owner/repository>
+```
+
+Then pushes to `master` run `.github/workflows/deploy.yml`: tests first, then independent
+agent, API and site deployments behind the `production` GitHub environment. Pull requests
+run tests only. Configure required reviewers on that environment if deployment approval is
+required. The workflow uses GitHub OIDC for Azure; only the APIM key and Static Web Apps
+deployment token are stored as environment secrets.
 
 ## The toolbox
 

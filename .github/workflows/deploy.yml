@@ -1,0 +1,160 @@
+name: Deploy strong-loop
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strong-loop-production
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install test dependencies
+        run: python -m pip install -r src/strong-loop/requirements.txt pytest
+      - name: Run tests
+        run: python -m pytest tests -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - name: Build live API
+        working-directory: api
+        run: npm ci --ignore-scripts --no-audit --no-fund && npm run build
+
+  deploy-agent:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZD_ENV_NAME: strong-loop
+      AGENT_TEST_PROMPT: "Confirm that the Strong Loop agent is running. Do not start a data analysis."
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Azure/setup-azd@v2
+      - name: Install Foundry extension
+        run: AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd ext install microsoft.foundry
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Configure azd environment
+        run: |
+          set -euo pipefail
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd config set auth.useAzCliAuth true
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env select "$AZD_ENV_NAME" || AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env new "$AZD_ENV_NAME" --no-prompt
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_SUBSCRIPTION_ID "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_TENANT_ID "${{ vars.AZURE_TENANT_ID }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_LOCATION "${{ vars.AZURE_LOCATION }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_RESOURCE_GROUP "${{ vars.AZURE_RESOURCE_GROUP }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_FOUNDRY_RESOURCE_GROUP "${{ vars.AZURE_FOUNDRY_RESOURCE_GROUP }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_AI_ACCOUNT_NAME "${{ vars.AZURE_AI_ACCOUNT_NAME }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_AI_PROJECT_NAME "${{ vars.AZURE_AI_PROJECT_NAME }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_AI_PROJECT_ENDPOINT "${{ vars.AZURE_AI_PROJECT_ENDPOINT }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set FOUNDRY_PROJECT_ENDPOINT "${{ vars.FOUNDRY_PROJECT_ENDPOINT }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set AZURE_AI_PROJECT_ID "${{ vars.AZURE_AI_PROJECT_ID }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set APIM_GATEWAY_URL "${{ vars.APIM_GATEWAY_URL }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set APIM_SUBSCRIPTION_KEY "${{ secrets.APIM_SUBSCRIPTION_KEY }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_MODEL "${{ vars.LOOP_MODEL }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_CHARTER "${{ vars.LOOP_CHARTER }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_DATA "${{ vars.LOOP_DATA }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_MAX_ITERATIONS "${{ vars.LOOP_MAX_ITERATIONS }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT "${{ vars.TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT }}"
+      - name: Deploy hosted agent
+        run: AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd deploy strong-loop --no-prompt
+      - name: Verify and smoke-test hosted agent
+        run: |
+          set -euo pipefail
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd ai agent show --output json > /tmp/agent.json
+          python -c 'import json; d=json.load(open("/tmp/agent.json")); assert d.get("status") in ("active", "deployed"), d'
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd ai agent invoke --new-session "$AGENT_TEST_PROMPT" > /tmp/agent-response.txt 2>&1
+          test -s /tmp/agent-response.txt
+
+  deploy-api:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy streaming API
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          package: api
+          sku: flexconsumption
+          remote-build: true
+
+  deploy-web:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy customer showcase
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: docs
+          api_location: ""
+          output_location: ""
+          skip_app_build: true
+
+  smoke:
+    if: github.event_name != 'pull_request'
+    needs: [deploy-agent, deploy-api, deploy-web]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Verify public customer pages
+        env:
+          SITE_URL: ${{ vars.AZURE_STATIC_WEB_APP_URL }}
+        run: |
+          set -euo pipefail
+          for path in / /showcase.html /loop.html; do
+            curl --fail --silent --show-error --retry 5 --retry-delay 5 "$SITE_URL$path" >/dev/null
+          done
+          live_status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE_URL/live.html")"
+          test "$live_status" = "302"
+      - name: Record deployment
+        run: |
+          {
+            echo "## strong-loop deployment"
+            echo "- Site: ${{ vars.AZURE_STATIC_WEB_APP_URL }}"
+            echo "- Agent and API deployment jobs completed"
+            echo "- Authenticated live-run acceptance test: open ${{ vars.AZURE_STATIC_WEB_APP_URL }}/live.html"
+          } >> "$GITHUB_STEP_SUMMARY"

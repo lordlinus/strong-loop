@@ -10,7 +10,8 @@
 *{box-sizing:border-box} html{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body)} body{margin:0;padding:0 24px 80px}
 h1{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:clamp(1.8rem,4vw,2.6rem);margin:0}
 .mono{font-family:var(--mono);font-size:.85em} .muted{color:var(--graphite)}
-header{max-width:1120px;margin:0 auto;padding:2rem 0 1rem;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:end;justify-content:space-between;border-bottom:1px solid var(--rule)}
+.site-nav{max-width:1120px;margin:0 auto;padding:1rem 0 0;display:flex;gap:1.2rem;font:600 .75rem var(--mono);text-transform:uppercase;letter-spacing:.05em}.site-nav a{color:var(--code);text-decoration:none}.site-nav a:hover{text-decoration:underline}
+header{max-width:1120px;margin:0 auto;padding:1rem 0;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:end;justify-content:space-between;border-bottom:1px solid var(--rule)}
 form{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center} input{font:inherit;font-family:var(--mono);font-size:.82rem;padding:.45rem .6rem;border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);color:var(--ink)}
 input.url{width:26rem} input.steer{width:24rem} button{font-family:var(--mono);font-size:.82rem;font-weight:600;padding:.5rem .9rem;border:0;border-radius:3px;background:var(--code);color:#fff;cursor:pointer} button[disabled]{opacity:.5;cursor:default}
 button:focus-visible,input:focus-visible{outline:2px solid var(--code);outline-offset:2px}
@@ -41,10 +42,11 @@ details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:va
 @media (max-width:720px){li.rec{grid-template-columns:1fr}.rail{display:none}.lane.code{border-left:2px solid var(--code);padding-left:.9rem}}
 </style></head>
 <body>
+<nav class="site-nav" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html">Understand it</a><a href="/live.html" aria-current="page">Try it live</a><a href="/.auth/logout">Sign out</a></nav>
 <header>
   <div><p class="status" id="status">idle</p><h1>The agent proposes. <span style="color:var(--code)">Code disposes.</span> Live.</h1></div>
   <form id="form">
-    <input class="url" id="url" value="http://localhost:8088/responses" aria-label="responses endpoint">
+    <input class="url" id="url" value="/api/run" aria-label="responses endpoint">
     <input class="steer" id="steer" value="Focus on the highest-priority accountability." aria-label="steer">
     <button id="go" type="submit">Start a run</button>
   </form>
@@ -58,7 +60,7 @@ details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:va
     <div><dt>actions</dt><dd id="f-act">0</dd></div>
     <div><dt>skills loaded</dt><dd id="f-skill">0</dd></div>
   </dl>
-  <ol class="timeline" id="timeline"><li class="empty">Start the agent locally with <span class="mono">azd ai agent run --no-client</span> (or <span class="mono">python main.py</span>), then start a run. Every tool call, its output, the model's reasoning summary and the loop's own events arrive on one Responses stream.</li></ol>
+  <ol class="timeline" id="timeline"><li class="empty">Press Start to create a fresh hosted-agent run. For local development, start the agent with <span class="mono">azd ai agent run --no-client</span> and change the endpoint above to <span class="mono">http://localhost:8088/responses</span>. Every tool call, its output, the model's reasoning summary and the loop's own events arrive on one Responses stream.</li></ol>
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
@@ -165,7 +167,7 @@ async function run(ev){
       let idx; while ((idx = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, idx)); buf = buf.slice(idx + 2); }
     }
     if ($("status").textContent !== "complete") $("status").textContent = "stream ended";
-  } catch (e) { $("status").textContent = "failed: " + e.message; add(el(`<li class="empty">${esc(e.message)}. Is the agent running at that URL, with CORS allowed (it is, locally)?</li>`)); }
+  } catch (e) { $("status").textContent = "failed: " + e.message; add(el(`<li class="empty">${esc(e.message)}. Use /api/run on the deployed site, or http://localhost:8088/responses when running the agent locally.</li>`)); }
   finally { $("go").disabled = false; setLive(null); }
 }
 

@@ -502,8 +502,9 @@ td{padding:.5rem .5rem .5rem 0;border-bottom:1px solid var(--rule);vertical-alig
 .aside{font-size:.95rem;color:var(--graphite);border-left:3px solid var(--rule);padding-left:1rem}
 ol.questions{padding-left:1.2rem} ol.questions li{margin:0 0 1.2rem} ol.questions .qid{color:var(--graphite)} ol.questions p{margin:.2rem 0} ol.questions .why{color:var(--graphite);font-size:.92rem}
 ul.log{list-style:none;padding:0} ul.log li{padding:.25rem 0;border-bottom:1px dashed var(--rule)}
+nav.site{max-width:var(--measure);margin:0 auto;padding:1rem 0 0;font-family:var(--mono);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem}
+nav.site a,nav.toc a{color:var(--code);text-decoration:none} nav.site a:hover,nav.site a:focus,nav.toc a:hover,nav.toc a:focus{text-decoration:underline}
 nav.toc{max-width:var(--measure);margin:0 auto;padding:1rem 0 0;font-family:var(--mono);font-size:.8rem;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem}
-nav.toc a{color:var(--code);text-decoration:none} nav.toc a:hover,nav.toc a:focus{text-decoration:underline}
 a:focus-visible,summary:focus-visible{outline:2px solid var(--code);outline-offset:2px}
 footer{max-width:var(--measure);margin:3rem auto 0;font-family:var(--mono);font-size:.78rem;color:var(--graphite)}
 @media (max-width:720px){ .lanes,.timeline li.rec{grid-template-columns:1fr} .rail{display:none} .lane.code{padding-left:.9rem;border-left:2px solid var(--code)} html{font-size:16px} }
@@ -531,6 +532,7 @@ def build(run_dir: pathlib.Path, charter_path: pathlib.Path, data_path: pathlib.
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>{CSS}</style></head>
 <body>
+<nav class="site" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html" aria-current="page">Understand it</a><a href="/live.html">Try it live</a></nav>
 <nav class="toc" aria-label="sections">{toc}</nav>
 {"".join(sections)}
 <footer>Generated {dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")} from <span class="mono">{E(str(run_dir.relative_to(ROOT)) if run_dir.is_relative_to(ROOT) else str(run_dir))}</span> by tools/make_loop_doc.py. Regenerate after any change to the engine; the page has no hand-written numbers.</footer>
