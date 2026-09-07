@@ -34,14 +34,18 @@ Two invariants carry everything, and both are enforced by tests rather than docu
 | Loop events streamed as `function_call`/`function_call_output` items named `loop.*` | Every Responses client already renders that shape; no side endpoint, no parsing prose. Tool calls are already native items and are not re-emitted. | — |
 | Runs partitioned `runs/<user>/<session>/<role>-<stamp>-<conversation>` | Ids from the platform request context; the report carries them. Per-user isolation itself is the platform's (protocol 2.0.0 derives the user from the Entra token). | Archive at finalise when audit across sessions is needed (§6.2). |
 
-## 3. What exists (all verified live, 2026-09-04)
+## 3. What exists (all verified live, 2026-09-07)
 
 - Steps 1–5: scaffold + APIM routing → trust boundary + tests → the loop → hosted → toolbox.
 - Stream contract (`LoopEventStream`), live viewer (`docs/live.html`), explainer page
   generated from a recorded run (`docs/loop.html`, `tools/make_loop_doc.py`, `docs/runs/`).
-- 47 tests, no model or network. Both charters pass `check`.
+- Customer deployment: Standard Static Web App with public replay/deep-dive pages,
+  Entra-protected live page, and a linked Linux App Service streaming proxy using managed
+  identity. GitHub Actions deploys agent, API, and site through environment-scoped OIDC.
+- 49 tests, no model or network. Both charters pass `check`.
 - Results: 2-iteration local run 16 hypotheses / 4 findings / 2 approved actions; deployed
-  4-iteration run 34 hypotheses / 9 findings / 4 actions in ~150 s.
+  4-iteration run 34 hypotheses / 9 findings / 4 actions in ~150 s. Hosted agent version 6
+  and the full production workflow were verified successfully.
 
 ## 4. Deployment coordinates
 
@@ -54,6 +58,9 @@ Two invariants carry everything, and both are enforced by tests rather than docu
 | Toolbox | `strong-loop-toolbox` v1, endpoint in azd env `TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT` |
 | Models | APIM `apim-ssattiraju-01`; gateway + key from `~/.config/azure-apim/apim-ssattiraju-01.env` locally, azd env in the container. Default `gpt-5.6-luna`. |
 | azd environment | `strong-loop` (`.azure/strong-loop/.env`, gitignored) |
+| Customer site | `https://wonderful-smoke-0d5632100.3.azurestaticapps.net` (Standard, East Asia) |
+| Live API | `app-strong-loop-s56amuculonh4` linked behind SWA `/api/*`; UAMI holds **Foundry User** on the project |
+| GitHub deployment | `https://github.com/lordlinus/strong-loop/actions/workflows/deploy.yml`, OIDC through environment `production` |
 
 ## 5. Verified platform gotchas (each cost real time; do not re-learn)
 
@@ -80,6 +87,14 @@ Two invariants carry everything, and both are enforced by tests rather than docu
 - `azd ai agent files download` takes one path and writes into the azd project dir.
 
 ## 6. Roadmap — next steps in order, each separately testable
+
+### 6.0 Customer deployment — completed 2026-09-07
+GitHub Actions tests first, then deploys the Foundry hosted agent, linked API, and Static Web
+App in parallel. The live route is Entra-protected and the browser receives no Azure token.
+The API is App Service rather than Flex Consumption because the subscription policy
+`StorageAccount_PublicNetwork_Modify` forces deployment storage public access off, which
+made OneDeploy fail before code upload. App Service preserves streaming without weakening
+that policy.
 
 ### 6.1 Resilient runs (crash recovery + steering) — designed, not built
 Wrap the loop in `@task` from `azure.ai.agentserver.core.tasks` (works inside agent-framework's
