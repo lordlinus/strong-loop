@@ -109,12 +109,10 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Deploy streaming API
-        uses: Azure/functions-action@v1
+        uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          app-name: ${{ vars.AZURE_API_APP_NAME }}
           package: api
-          sku: flexconsumption
-          remote-build: true
 
   deploy-web:
     if: github.event_name != 'pull_request'

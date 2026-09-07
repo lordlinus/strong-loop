@@ -34,6 +34,8 @@ var rgName = !empty(resourceGroupName) ? resourceGroupName : 'rg-strong-loop-web
 var staticWebAppName = 'stapp-strong-loop-${resourceToken}'
 var functionAppName = 'func-strong-loop-${resourceToken}'
 var functionPlanName = 'plan-strong-loop-${resourceToken}'
+var apiWebAppName = 'app-strong-loop-${resourceToken}'
+var apiWebPlanName = 'plan-strong-loop-api-${resourceToken}'
 var identityName = 'id-strong-loop-api-${resourceToken}'
 var storageName = 'st${take(replace(resourceToken, '-', ''), 18)}loop'
 var logAnalyticsName = 'log-strong-loop-${resourceToken}'
@@ -158,6 +160,21 @@ module storageRbac './app/rbac.bicep' = {
   }
 }
 
+module apiWeb './app/appservice.bicep' = {
+  name: 'api-web'
+  scope: rg
+  params: {
+    name: apiWebAppName
+    planName: apiWebPlanName
+    location: location
+    tags: tags
+    identityId: apiIdentity.outputs.resourceId
+    identityClientId: apiIdentity.outputs.clientId
+    foundryAgentEndpoint: foundryAgentEndpoint
+    applicationInsightsConnectionString: monitoring.outputs.connectionString
+  }
+}
+
 module web './app/web.bicep' = {
   name: 'web'
   scope: rg
@@ -165,13 +182,15 @@ module web './app/web.bicep' = {
     name: staticWebAppName
     location: location
     tags: tags
-    backendResourceId: api.outputs.SERVICE_API_RESOURCE_ID
+    backendResourceId: apiWeb.outputs.resourceId
   }
 }
 
 output AZURE_LOCATION string = location
 output AZURE_RESOURCE_GROUP string = rg.name
-output SERVICE_API_NAME string = api.outputs.SERVICE_API_NAME
+output SERVICE_API_NAME string = apiWeb.outputs.name
+output SERVICE_API_URI string = apiWeb.outputs.uri
+output SERVICE_FUNCTION_NAME string = api.outputs.SERVICE_API_NAME
 output SERVICE_API_IDENTITY_CLIENT_ID string = apiIdentity.outputs.clientId
 output SERVICE_API_IDENTITY_PRINCIPAL_ID string = apiIdentity.outputs.principalId
 output SERVICE_WEB_NAME string = web.outputs.name

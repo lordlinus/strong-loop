@@ -49,7 +49,7 @@ foundry_project_endpoint="$(AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env
 foundry_resource_group="$(AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env get-value AZURE_RESOURCE_GROUP -e "$azd_environment")"
 foundry_account_name="$(AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env get-value AZURE_AI_ACCOUNT_NAME -e "$azd_environment")"
 foundry_project_name="$(AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env get-value AZURE_AI_PROJECT_NAME -e "$azd_environment")"
-function_name="$(az functionapp list --resource-group "$web_group" --query '[0].name' -o tsv)"
+api_name="$(az webapp list --resource-group "$web_group" --query "[?starts_with(name, 'app-strong-loop-')].name | [0]" -o tsv)"
 web_name="$(az staticwebapp list --resource-group "$web_group" --query '[0].name' -o tsv)"
 web_hostname="$(az staticwebapp show --name "$web_name" --resource-group "$web_group" --query defaultHostname -o tsv)"
 
@@ -82,7 +82,7 @@ for pair in \
   "AZURE_LOCATION=southeastasia" \
   "AZURE_WEB_LOCATION=$location" \
   "AZURE_WEB_RESOURCE_GROUP=$web_group" \
-  "AZURE_FUNCTION_APP_NAME=$function_name" \
+  "AZURE_API_APP_NAME=$api_name" \
   "AZURE_STATIC_WEB_APP_NAME=$web_name" \
   "AZURE_STATIC_WEB_APP_URL=https://$web_hostname" \
   "AZURE_RESOURCE_GROUP=$foundry_resource_group" \

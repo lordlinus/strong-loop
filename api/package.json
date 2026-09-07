@@ -9,15 +9,17 @@
     "watch": "tsc -w",
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
-    "start": "func start",
+    "start": "node dist/src/server.js",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
     "@azure/functions": "^4.11.0",
-    "@azure/identity": "^4.11.1"
+    "@azure/identity": "^4.11.1",
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "azure-functions-core-tools": "^4.x",
+    "@types/express": "^5.0.3",
     "@types/node": "^22.x",
     "typescript": "^5.0.0",
     "rimraf": "^5.0.0"

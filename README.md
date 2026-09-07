@@ -106,8 +106,9 @@ The Static Web App preserves all three views as one customer journey:
 3. `/live.html` — sign in with Microsoft Entra ID and steer a fresh hosted-agent run.
 
 The live page never receives Azure credentials. Static Web Apps authentication protects
-both the page and `/api/*`; a linked Flex Consumption Function uses managed identity to
-call the Foundry Responses endpoint and relays its stream.
+both the page and `/api/*`; a linked Linux App Service uses managed identity to call the
+Foundry Responses endpoint and relays its stream. App Service is used because the subscription's
+storage policy disables public access required by Flex Consumption's OneDeploy path.
 
 Bootstrap and configure the production pipeline once:
 
