@@ -27,8 +27,11 @@ az identity create --name "$identity_name" --resource-group "$identity_group" --
 
 client_id="$(az identity show --name "$identity_name" --resource-group "$identity_group" --query clientId -o tsv)"
 principal_id="$(az identity show --name "$identity_name" --resource-group "$identity_group" --query principalId -o tsv)"
-credential_name="github-${environment_name}"
-subject="repo:${repo}:environment:${environment_name}"
+subject_prefix="$(gh api "repos/$repo/actions/oidc/customization/sub" --jq '.sub_claim_prefix // empty' 2>/dev/null || true)"
+subject_prefix="${subject_prefix:-repo:${repo}}"
+subject="${subject_prefix}:environment:${environment_name}"
+credential_suffix="$(printf '%s' "$subject_prefix" | sha256sum | cut -c1-8)"
+credential_name="github-${environment_name}-${credential_suffix}"
 
 if ! az identity federated-credential show --name "$credential_name" --identity-name "$identity_name" --resource-group "$identity_group" >/dev/null 2>&1; then
   az identity federated-credential create \
