@@ -152,8 +152,8 @@ module storageRbac './app/rbac.bicep' = {
     managedIdentityPrincipalId: apiIdentity.outputs.principalId
     userIdentityPrincipalId: deployerPrincipalId
     enableBlob: true
-    enableQueue: false
-    enableTable: false
+    enableQueue: true
+    enableTable: true
     allowUserIdentityPrincipal: true
   }
 }

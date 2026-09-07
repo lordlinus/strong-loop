@@ -28,7 +28,8 @@ var kind = 'functionapp,linux'
 
 // Create base application settings
 var baseAppSettings = {
-  // Only include required credential settings unconditionally
+  // Flex Consumption resolves host storage through managed identity.
+  AzureWebJobsStorage__accountName: storageAccountName
   AzureWebJobsStorage__credential: 'managedidentity'
   AzureWebJobsStorage__clientId: identityClientId
   
