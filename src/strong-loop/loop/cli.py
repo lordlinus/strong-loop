@@ -4,6 +4,7 @@
     check      charter + data are a valid pairing; the gate and the screens work; no model
     questions  the question set a run would inherit, numbered
     sign       ratify a charter's current content
+    presets    the shipped roles and datasets, as the JSON the customer page reads
     run        the loop. Needs a model.
 """
 
@@ -13,16 +14,14 @@ import argparse
 import asyncio
 import json
 import pathlib
-import shutil
 import sys
 
 import pandas as pd
 
-from . import gates, models
+from . import models
 from .charter import load_charter, sign, write_charter
-from .ledger import Ledger
+from .intake import pair
 from .questions import questions_from
-from .types import Hypothesis
 
 
 def cmd_models(args: argparse.Namespace) -> int:
@@ -48,83 +47,52 @@ def missing_metrics(charter, data: pd.DataFrame) -> list[str]:
 
 
 def cmd_check(args: argparse.Namespace) -> int:
+    """A printer over `intake.pair` — the same pairing the hosted agent shows before a run."""
     charter = load_charter(args.charter)
     data = load_data(args.data)
-    print(f"charter : {charter.role} v{charter.version} [{charter.status}]")
-    if charter.content_hash:
-        print(f"authority hash: {charter.content_hash[:12]}")
-    print(f"data    : {args.data} ({len(data)} rows, {len(data.columns)} cols)")
+    r = pair(charter, data)
+    if args.json:
+        print(r.model_dump_json(indent=2))
+        return 0 if r.ok else 1
 
-    sensitive = [c for c in data.columns if gates.is_sensitive_column(c)]
-    if sensitive:
-        print(f"excluded as sensitive: {sensitive}")
+    print(f"charter : {r.role} v{r.version} [{r.status}]")
+    if r.content_hash:
+        print(f"authority hash: {r.content_hash[:12]}")
+    print(f"data    : {args.data} ({r.rows} rows, {len(data.columns)} cols, "
+          f"{len(r.analysable_columns)} analysable)")
+    if r.screened:
+        print("screened out:")
+        for s in r.screened:
+            print(f"  - {s.column}: {s.reason}")
 
     print("\naccountabilities:")
-    missing = missing_metrics(charter, data)
-    for acc in charter.accountabilities:
-        mark = "MISSING" if acc.metric in missing else "ok "
-        print(f"  [{mark}] {acc.id}: {acc.metric}")
+    for a in r.accountabilities:
+        mark = "ok " if a.status == "ok" else a.status.upper()
+        print(f"  [{mark}] {a.id}: {a.metric}")
+    for c in r.clarifications:
+        print(f"  ? {c.accountability_id}: {c.question}")
+        for cand in c.candidates:
+            print(f"      - {cand}")
 
-    questions = questions_from(charter)
-    print(f"\n{len(questions)} questions:")
-    for q in questions:
-        print(f"  - {q.text}")
-
-    # Exercise the gate end to end without a model, so a broken engine fails here rather
-    # than in iteration 3. Start from an empty ledger every time: a reused one answers
-    # "duplicate" instead of a verdict, and a pre-commit check must not fail on its
-    # second run.
-    check_dir = pathlib.Path(args.run_dir) / "check"
-    shutil.rmtree(check_dir, ignore_errors=True)
-    ledger = Ledger(check_dir)
-    for q in questions:
-        ledger.append(q)
-    target_col = next((a.metric for a in charter.accountabilities if a.metric not in missing), None)
-    ctx = gates.GateContext(
-        data=data,
-        charter=charter,
-        standard=charter.evidence_standards,
-        target=data[target_col] if target_col else None,
-    )
+    print(f"\n{len(r.questions)} questions:")
+    for q in r.questions:
+        print(f"  - {q}")
 
     print("\ngate smoke test:")
-    probe = args.probe or _default_probe(data, charter)
-    if probe and target_col:
-        h = Hypothesis(question_id=questions[0].id, statement=f"probe: {probe}",
-                       kind="proportion_lift", spec={"where": probe}, rationale="CLI smoke test")
-        ledger.append(h)
-        e = ledger.append(gates.evaluate(h, ctx))
-        print(f"  where={probe!r} -> {e.verdict.value}" + (f" ({e.refusal_reason})" if e.refusal_reason else ""))
+    if r.gate_probe:
+        p = r.gate_probe
+        print(f"  {p.gate} where={p.where!r} -> {p.verdict}" + (f" ({p.reason})" if p.reason else ""))
     else:
-        print("  (no probe available; pass --probe)")
+        print("  (no probe available)")
+    if r.screen_probe:
+        p = r.screen_probe
+        print(f"  sensitive-column probe {p.where!r} -> {p.verdict} ({p.reason})")
 
-    # Prove the screens bite, on a real identifier from THIS dataset. Assert on the
-    # reason, not just the verdict: an internal error is also REFUSED.
-    if sensitive and target_col:
-        col = sensitive[0]
-        h = Hypothesis(question_id=questions[0].id, statement="probe: sensitive column",
-                       kind="proportion_lift", spec={"where": f"{col} == {col}"})
-        e = gates.evaluate(h, ctx)
-        print(f"  sensitive-column probe ({col}) -> {e.verdict.value} ({e.refusal_reason})")
-        if e.verdict.value != "REFUSED" or "sensitive" not in (e.refusal_reason or ""):
-            print(f"  !! screens did not block identifier column {col}", file=sys.stderr)
-            return 1
-
-    if missing:
-        print(f"\n{len(missing)} accountability metric(s) not in this data: {missing}", file=sys.stderr)
+    if r.problems:
+        print("\n" + "\n".join(f"!! {p}" for p in r.problems), file=sys.stderr)
         return 1
     print("\nOK")
     return 0
-
-
-def _default_probe(data: pd.DataFrame, charter) -> str | None:
-    blocked = set(charter.constraints.forbidden_features) | set(charter.constraints.leakage_features)
-    for col in data.columns:
-        if col in blocked or gates.is_sensitive_column(col):
-            continue
-        if pd.api.types.is_numeric_dtype(data[col]) and data[col].nunique() > 2:
-            return f"{col} > {data[col].median()}"
-    return None
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -148,6 +116,47 @@ def cmd_questions(args: argparse.Namespace) -> int:
     charter = load_charter(args.charter)
     for i, q in enumerate(questions_from(charter), start=1):
         print(f"{i:>2}. [{q.accountability_id}] {q.text}")
+    return 0
+
+
+def presets_manifest() -> dict:
+    """What the customer page offers without a round-trip: every shipped charter and dataset,
+    described from its own content, plus which pairings the same check passes."""
+    from .inputs import SERVICE, presets
+    from .charter import RoleCharter
+
+    names = presets()
+    charters = []
+    for stem in names["charters"]:
+        path = SERVICE / "charters" / f"{stem}.yaml"
+        c = load_charter(path)
+        charters.append({
+            "name": stem, "description": " ".join(c.description.split()),
+            "metrics": [a.metric for a in c.accountabilities],
+            "accountabilities": [a.statement for a in c.accountabilities],
+            "yaml": path.read_text(),   # the editor's starting point
+        })
+    datasets = []
+    frames = {}
+    for stem in names["data"]:
+        frames[stem] = df = load_data(SERVICE / "data" / f"{stem}.csv")
+        datasets.append({"name": stem, "rows": int(len(df)), "columns": list(map(str, df.columns))})
+    pairings = [
+        {"charter": c["name"], "data": d, "metrics": c["metrics"]}
+        for c in charters for d in frames
+        if all(m in frames[d].columns for m in c["metrics"]) and pair(load_charter(SERVICE / "charters" / f"{c['name']}.yaml"), frames[d]).ok
+    ]
+    schema = RoleCharter.model_json_schema()
+    return {"charters": charters, "data": datasets, "pairings": pairings, "charter_schema": schema}
+
+
+def cmd_presets(args: argparse.Namespace) -> int:
+    text = json.dumps(presets_manifest(), indent=1)
+    if args.out:
+        pathlib.Path(args.out).write_text(text + "\n")
+        print(f"wrote {args.out}")
+    else:
+        print(text)
     return 0
 
 
@@ -175,8 +184,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("check", help="validate charter + data, exercise the gate, no model")
     p.add_argument("--charter", required=True)
     p.add_argument("--data", required=True)
-    p.add_argument("--probe", default=None, help="a where-expression for the smoke test")
-    p.add_argument("--run-dir", default="runs")
+    p.add_argument("--json", action="store_true", help="print the IntakeReport instead of prose")
     p.set_defaults(func=cmd_check)
 
     p = sub.add_parser("run", help="run the loop against a charter and a dataset")
@@ -198,6 +206,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--by", required=True, help="who is ratifying")
     p.add_argument("--out", default=None, help="write here instead of in place")
     p.set_defaults(func=cmd_sign)
+
+    p = sub.add_parser("presets", help="shipped roles, datasets and valid pairings, as JSON")
+    p.add_argument("--out", default=None, help="write here (e.g. docs/presets.json) instead of stdout")
+    p.set_defaults(func=cmd_presets)
 
     args = parser.parse_args(argv)
     return args.func(args)

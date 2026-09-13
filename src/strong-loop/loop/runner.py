@@ -56,6 +56,7 @@ from agent_framework import (
 
 from . import gates
 from .charter import RoleCharter
+from .inputs import Inputs, Outcome, Settled, session_home, settle
 from .ledger import Ledger
 from .models import build_chat_client
 from .questions import questions_from
@@ -120,6 +121,10 @@ class RunState:
     run_dir: pathlib.Path
     ledger: Ledger
     max_iterations: int
+    # What this run analyses. Settled per session by `IntakeGate`; the environment's
+    # defaults when the session brought nothing of its own.
+    charter: RoleCharter = None  # type: ignore[assignment]
+    data: pd.DataFrame = None    # type: ignore[assignment]
     # Whose run this is, from the hosting platform's request headers. `None` locally.
     user_id: str | None = None
     session_id: str | None = None
@@ -173,6 +178,8 @@ class RunScope(ContextProvider):
         self.max_iterations = max_iterations
         self.echo = echo
         self._runs: dict[str, RunState] = {}
+        # Pairings `IntakeGate` has settled for a session, consumed by the next new run.
+        self._settled: dict[str, Settled] = {}
         # The run most recently entered by `before_run`. The tool-call logger has no
         # session in hand, so it attributes calls to this run. Exact for one run at a
         # time (the CLI); best-effort under concurrent hosted conversations.
@@ -185,11 +192,22 @@ class RunScope(ContextProvider):
         one on this conversation has already finalised: with `history_source="agent"` a
         second turn in the same conversation is a second run, not a continuation.
         """
-        key = str(getattr(session, "session_id", None) or "cli")
+        key = self._key(session)
         state = self._runs.get(key)
         if state is None or (new_turn and state.finished):
             state = self._runs[key] = self._new_run(key)
         return state
+
+    @staticmethod
+    def _key(session: Any) -> str:
+        return str(getattr(session, "session_id", None) or "cli")
+
+    def defaults(self) -> Settled:
+        return Settled(self.charter, self.data, self.max_iterations)
+
+    def settle(self, session: Any, settled: Settled) -> None:
+        """Bind the next run on this conversation to a settled pairing."""
+        self._settled[self._key(session)] = settled
 
     def _new_run(self, conversation: str) -> RunState:
         """Lay out the run directory: runs/<user>/<hosted session>/<role>-<stamp>-<conv>.
@@ -201,18 +219,20 @@ class RunScope(ContextProvider):
         """
         ctx = get_request_context()
         user_id, session_id = ctx.user_id or None, ctx.session_id or None
+        settled = self._settled.pop(conversation, None) or self.defaults()
         stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
         parts = [_safe(x) for x in (user_id, session_id) if x]
-        base = self.runs_dir.joinpath(*parts) / f"{self.charter.role}-{stamp}-{_safe(conversation)[:8]}"
+        base = self.runs_dir.joinpath(*parts) / f"{settled.charter.role}-{stamp}-{_safe(conversation)[:8]}"
         run_dir, n = base, 1
         while run_dir.exists():  # two turns on one conversation within a second
             n += 1
             run_dir = base.with_name(f"{base.name}-{n}")
         ledger = Ledger(run_dir)
         if not ledger.all("question"):
-            for question in questions_from(self.charter):
+            for question in questions_from(settled.charter):
                 ledger.append(question)
-        state = RunState(run_dir, ledger, self.max_iterations,
+        state = RunState(run_dir, ledger, min(settled.max_iterations, self.max_iterations),
+                         charter=settled.charter, data=settled.data,
                          user_id=user_id, session_id=session_id, conversation_id=conversation)
         self._say(f"--- run: {run_dir}" + (f" (user {user_id})" if user_id else ""))
         return state
@@ -251,7 +271,7 @@ class RunScope(ContextProvider):
                    summary=run.ledger.summary(), user_id=run.user_id,
                    session_id=run.session_id, conversation_id=run.conversation_id)
         context.extend_instructions(self.source_id, header)
-        context.extend_tools(self.source_id, Toolbelt(self.charter, self.data, run.ledger).tools())
+        context.extend_tools(self.source_id, Toolbelt(run.charter, run.data, run.ledger).tools())
 
     async def after_run(self, *, agent, session, context, state) -> None:
         # Deferred to the end of the loop by `after_run_once_per_turn`. Fires on cap-stop,
@@ -260,7 +280,7 @@ class RunScope(ContextProvider):
         if not run.finished:
             run.finished = True
             self._tally(run, run.iteration)   # the cap-stopped last iteration
-            report = finalise(self.charter, run)
+            report = finalise(run.charter, run)
             self.trace(run, "report", hypotheses_tested=report["hypotheses_tested"],
                        findings=len(report["findings"]), actions=len(report["actions"]),
                        demoted=report["demoted_by_multiple_testing"], report=report)
@@ -274,11 +294,16 @@ class RunScope(ContextProvider):
         converged = iteration >= MIN_ITERATIONS and (
             run.idle >= IDLE_PATIENCE or run.stagnant >= PATIENCE
         )
+        # The middleware's cap is the agent-wide ceiling and stays its job; a session may
+        # have asked for FEWER, and only that smaller budget is enforced here.
+        exhausted = run.max_iterations < self.max_iterations and iteration >= run.max_iterations
         if converged:
             why = "nothing left to test" if run.idle >= IDLE_PATIENCE else "no new supported evidence"
             run.log[-1] += f" — converged: {why}"
+        elif exhausted:
+            run.log[-1] += " — budget spent"
         self._say(f"--- {run.log[-1]}")
-        return (not converged), run.log[-1]
+        return not (converged or exhausted), run.log[-1]
 
     def _tally(self, run: RunState, iteration: int) -> tuple[int, int]:
         """Score an iteration from the ledger and log one line for it. Idempotent per
@@ -316,11 +341,17 @@ def loop_event_updates(run: RunState) -> list[AgentResponseUpdate]:
     iteration was given, and the final report arrive on the same channel as the tool
     calls — no side endpoint, no parsing of prose.
     """
+    entries, run.pending[:] = list(run.pending), []
+    return event_updates(entries, len(run.log))
+
+
+def event_updates(entries: list[dict], tag: int = 0) -> list[AgentResponseUpdate]:
+    """Loop events as stream updates. Split from `loop_event_updates` so an event that
+    precedes any run — the intake verdict — travels the same way."""
     updates: list[AgentResponseUpdate] = []
-    while run.pending:
-        entry = run.pending.pop(0)
+    for entry in entries:
         event = entry["event"]
-        call_id = f"loop_{event}_{entry['iteration']}_{len(run.log)}_{id(entry) & 0xffff:x}"
+        call_id = f"loop_{event}_{entry['iteration']}_{tag}_{id(entry) & 0xffff:x}"
         args = {"iteration": entry["iteration"]}
         if event == "iteration_start":
             args["max_iterations"] = entry["max_iterations"]
@@ -376,6 +407,66 @@ class LoopEventStream(AgentMiddleware):
                 yield extra
 
         context.result = ResponseStream(tapped(), finalizer=AgentResponse.from_updates)
+
+
+class IntakeGate(AgentMiddleware):
+    """Outermost of all: no model runs until the session's pairing is settled.
+
+    Reads the session's `intake/` folder (see `loop.inputs`). Three outcomes:
+
+      run       nothing was brought, or an accepted pairing exists — bind it to the next
+                run and `call_next()`.
+      awaiting  a role and data are present but nobody has accepted the pairing yet —
+                answer with the intake report as a single `loop.intake` item and return
+                WITHOUT calling the model. Zero tokens; the client renders the questions.
+      refused   the inputs cannot be paired (bad preset, unreadable CSV, an answer that
+                was not on the menu, no ratifier) — same shape, with the reasons.
+
+    The event is written to `intake/intake.log` in the session rather than a run
+    directory, because there is no run yet. Streaming only, like the rest of the loop's
+    events: hosting always streams.
+    """
+
+    def __init__(self, scope: RunScope):
+        self.scope = scope
+
+    def outcome(self, session: Any) -> Outcome:
+        ctx = get_request_context()
+        inputs = Inputs(session_home(ctx.session_id or None))
+        try:
+            return settle(inputs, self.scope.defaults())
+        except Exception as exc:  # a corrupt upload must never take the agent down
+            return Outcome("refused", problems=[f"intake: {type(exc).__name__}: {exc}"])
+
+    async def process(self, context, call_next) -> None:
+        outcome = self.outcome(context.session)
+        if outcome.status == "run":
+            assert outcome.settled is not None
+            self.scope.settle(context.session, outcome.settled)
+            await call_next()
+            return
+        entry = {"t": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+                 "iteration": 0, "event": "intake", **outcome.as_event()}
+        self._log(entry)
+        self.scope._say(f"--- intake: {outcome.status} {outcome.problems or ''}".rstrip())
+        updates = event_updates([entry])
+        if getattr(context, "stream", False):
+            async def gen():
+                for u in updates:
+                    yield u
+            context.result = ResponseStream(gen(), finalizer=AgentResponse.from_updates)
+        else:
+            context.result = AgentResponse.from_updates(updates)
+
+    @staticmethod
+    def _log(entry: dict) -> None:
+        home = session_home(get_request_context().session_id or None)
+        try:
+            (home / "intake").mkdir(parents=True, exist_ok=True)
+            with (home / "intake" / "intake.log").open("a") as fh:
+                fh.write(json.dumps(entry, default=str) + "\n")
+        except OSError:
+            pass
 
 
 def _brief(value: Any, limit: int = 160) -> Any:
@@ -537,7 +628,8 @@ def build_agent(
         context_providers=providers,
         middleware=[
             tool_logger(scope),
-            LoopEventStream(scope),      # outermost: sees the whole run's stream
+            IntakeGate(scope),           # first: no pairing, no model
+            LoopEventStream(scope),      # sees the whole run's stream
             AgentLoopMiddleware(
                 scope.should_continue,
                 max_iterations=max_iterations,

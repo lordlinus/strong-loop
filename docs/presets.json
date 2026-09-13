@@ -1,0 +1,527 @@
+{
+ "charters": [
+  {
+   "name": "claims_analyst",
+   "description": "Owns the cost and integrity of claims settlement: what is paid, how fast, and how much of it should not have been paid at all.",
+   "metrics": [
+    "leakage_flag",
+    "settled_amount",
+    "days_to_settle"
+   ],
+   "accountabilities": [
+    "Reduce payments that should not have been made at the amount they were made",
+    "Reduce average settled claim cost without harming legitimate claimants",
+    "Reduce the time taken to settle a claim"
+   ],
+   "yaml": "# The acceptance test for the whole platform.\n#\n#   \"If I give you claims data and an underwriting analyst role, can the system figure out\n#    by itself what it should analyse?\"\n#\n# This charter shares NO vocabulary with portfolio_analyst.yaml \u2014 different domain,\n# different metrics, different actions, different burden of proof. If running both\n# requires touching any code in loop/, the engine has a leak and the missing abstraction\n# has just identified itself.\nrole: claims_analyst\nversion: 1\ndescription: >\n  Owns the cost and integrity of claims settlement: what is paid, how fast, and how much\n  of it should not have been paid at all.\n\naccountabilities:\n  - id: reduce_leakage\n    statement: Reduce payments that should not have been made at the amount they were made\n    metric: leakage_flag\n    direction: decrease\n    horizon_days: 180\n    priority: 1\n\n  - id: control_severity\n    statement: Reduce average settled claim cost without harming legitimate claimants\n    metric: settled_amount\n    direction: decrease\n    horizon_days: 365\n    priority: 2\n\n  - id: speed_settlement\n    statement: Reduce the time taken to settle a claim\n    metric: days_to_settle\n    direction: decrease\n    horizon_days: 90\n    priority: 3\n\ndecision_rights:\n  - action_type: route_to_investigation\n    description: Send a defined group of claims to the special investigations queue.\n    autonomy_level: L2_act_reversible\n    reversible: true\n    blast_radius:\n      unit: claims\n      max_per_run: 200\n    observation_metric: leakage_flag\n    observation_lag_days: 60\n\n  - action_type: fast_track_settlement\n    description: Approve straight-through settlement for a defined low-risk group.\n    autonomy_level: L1_recommend\n    reversible: true\n    blast_radius:\n      unit: claims\n      max_per_run: 1000\n    observation_metric: days_to_settle\n    observation_lag_days: 30\n\n  - action_type: revise_reserve_guidance\n    description: Change the reserving guidance applied to a class of claims.\n    autonomy_level: L1_recommend\n    reversible: false\n    blast_radius:\n      unit: claims\n      max_per_run: 50\n    requires_authority: chief_actuary\n    observation_metric: settled_amount\n    observation_lag_days: 365\n\n# A stricter default than the portfolio role: acting wrongly on a claim harms a specific\n# identifiable person, so the standing burden of proof is higher.\nevidence_standards:\n  min_sample_size: 150\n  max_p_value: 0.01\n  min_effect_size: 1.25\n  multiple_testing_correction: benjamini_hochberg\n\nevidence_overrides:\n  revise_reserve_guidance:\n    min_sample_size: 500\n    max_p_value: 0.005\n    min_effect_size: 1.3\n    multiple_testing_correction: benjamini_hochberg\n    requires_causal_design: true\n\nconstraints:\n  leakage_features:\n    - leakage_flag\n  forbidden_features:\n    # Routing on the assessor rather than the claim would optimise the measurement, not\n    # the outcome.\n    - assessor_name\n  block_sensitive_columns: true\n"
+  },
+  {
+   "name": "hr_analyst",
+   "description": "Owns workforce retention and engagement. Finds where people leave and where satisfaction is low, and proposes reversible, manager-led interventions. A human reviews outcomes, not steps.",
+   "metrics": [
+    "attrition_flag",
+    "JobSatisfaction"
+   ],
+   "accountabilities": [
+    "Reduce the share of employees who leave the organisation",
+    "Raise job satisfaction across the workforce"
+   ],
+   "yaml": "# A workforce role over a plain HR extract (data/hr_attrition.csv, the IBM attrition set with\n# Attrition derived to a 0/1 column). Same code as the insurance roles: nothing here is\n# special-cased. Protected attributes are forbidden explicitly as well as by the standing screens.\nrole: hr_analyst\nversion: 1\ndescription: >\n  Owns workforce retention and engagement. Finds where people leave and where satisfaction is\n  low, and proposes reversible, manager-led interventions. A human reviews outcomes, not steps.\n\naccountabilities:\n  - id: reduce_attrition\n    statement: Reduce the share of employees who leave the organisation\n    metric: attrition_flag\n    direction: decrease\n    horizon_days: 365\n    priority: 1\n\n  - id: raise_satisfaction\n    statement: Raise job satisfaction across the workforce\n    metric: JobSatisfaction\n    direction: increase\n    horizon_days: 180\n    priority: 2\n\ndecision_rights:\n  - action_type: flag_for_stay_interview\n    description: Add employees in a defined group to their manager's stay-interview list.\n    autonomy_level: L2_act_reversible\n    reversible: true\n    blast_radius:\n      unit: employees\n      max_per_run: 100\n    observation_metric: attrition_flag\n    observation_lag_days: 180\n\n  - action_type: recommend_policy_change\n    description: Propose a change to a working-pattern or compensation policy for a defined group.\n    autonomy_level: L1_recommend\n    reversible: true\n    blast_radius:\n      unit: employees\n      max_per_run: 500\n    requires_authority: hr_director\n    observation_metric: attrition_flag\n    observation_lag_days: 365\n\nevidence_standards:\n  min_sample_size: 50\n  max_p_value: 0.05\n  min_effect_size: 1.2\n  multiple_testing_correction: benjamini_hochberg\n\nconstraints:\n  leakage_features:\n    - attrition_flag\n  forbidden_features:\n    - Age\n    - Gender\n    - MaritalStatus\n  block_sensitive_columns: true\n  notes: >\n    Protected attributes are listed here as well as caught by the standing screens, because in\n    an HR setting the charter should say so in its own words.\n"
+  },
+  {
+   "name": "portfolio_analyst",
+   "description": "Owns the value of an existing customer portfolio: how much of it stays, and how much of it deepens. Operates autonomously; a human reviews outcomes, not steps.",
+   "metrics": [
+    "repeat_purchase",
+    "lapsed"
+   ],
+   "accountabilities": [
+    "Increase the share of customers who hold more than one product",
+    "Reduce the share of customers who lapse"
+   ],
+   "yaml": "# A retention/growth role. Note what is NOT here: no questions, no workflow, no screens,\n# no mention of cohorts or campaigns. Those are derived.\nrole: portfolio_analyst\nversion: 1\ndescription: >\n  Owns the value of an existing customer portfolio: how much of it stays, and how much of\n  it deepens. Operates autonomously; a human reviews outcomes, not steps.\n\naccountabilities:\n  - id: grow_repeat_purchase\n    statement: Increase the share of customers who hold more than one product\n    metric: repeat_purchase          # must be a column of the dataset\n    direction: increase\n    horizon_days: 180\n    priority: 1\n\n  - id: protect_retention\n    statement: Reduce the share of customers who lapse\n    metric: lapsed\n    direction: decrease\n    horizon_days: 365\n    priority: 2\n\ndecision_rights:\n  - action_type: flag_for_outreach\n    description: Add customers to a prioritised contact list for a human or an agent to work.\n    autonomy_level: L2_act_reversible\n    reversible: true\n    blast_radius:\n      unit: customers\n      max_per_run: 500\n    observation_metric: repeat_purchase\n    observation_lag_days: 90\n\n  - action_type: recommend_product_bundle\n    description: Propose a product combination to offer a defined group.\n    autonomy_level: L1_recommend\n    reversible: true\n    blast_radius:\n      unit: customers\n      max_per_run: 2000\n    observation_metric: repeat_purchase\n    observation_lag_days: 180\n\n  # Deliberately granted but heavily constrained \u2014 this is what an evidence override is\n  # for, and it demonstrates that not all actions clear the same bar.\n  - action_type: change_pricing_factor\n    description: Alter a pricing input for a defined group.\n    autonomy_level: L1_recommend\n    reversible: false\n    blast_radius:\n      unit: policies\n      max_per_run: 100\n    requires_authority: pricing_committee\n    observation_metric: repeat_purchase\n    observation_lag_days: 365\n\nevidence_standards:\n  min_sample_size: 100\n  max_p_value: 0.05\n  min_effect_size: 1.2\n  multiple_testing_correction: benjamini_hochberg\n\nevidence_overrides:\n  change_pricing_factor:\n    min_sample_size: 1000\n    max_p_value: 0.01\n    min_effect_size: 1.3\n    multiple_testing_correction: benjamini_hochberg\n    requires_causal_design: true    # observational gates can never satisfy this\n\nconstraints:\n  # Columns that would leak the outcome into its own predictor.\n  leakage_features:\n    - repeat_purchase\n    - lapsed\n  block_sensitive_columns: true\n  notes: >\n    Identifiers and protected attributes are blocked by the platform's standing screens\n    and do not need to be listed here.\n"
+  },
+  {
+   "name": "web_analyst",
+   "description": "Owns the health of a digital platform: which devices, sources and journeys throw errors, and where active use is falling. Proposes fixes for engineering to schedule; never ships code.",
+   "metrics": [
+    "is_js_error",
+    "is_active_user"
+   ],
+   "accountabilities": [
+    "Reduce the share of events that hit a JavaScript error",
+    "Increase the share of events from active users"
+   ],
+   "yaml": "# A digital analytics role over a flattened GA4 event export (data/web_events.csv). The raw\n# export carries device/geo/traffic as JSON blobs; the preset has them flattened to columns,\n# because a gate can only test a bare column. Small data: the sample-size bar is set to match.\nrole: web_analyst\nversion: 1\ndescription: >\n  Owns the health of a digital platform: which devices, sources and journeys throw errors, and\n  where active use is falling. Proposes fixes for engineering to schedule; never ships code.\n\naccountabilities:\n  - id: cut_js_errors\n    statement: Reduce the share of events that hit a JavaScript error\n    metric: is_js_error\n    direction: decrease\n    horizon_days: 30\n    priority: 1\n\n  - id: keep_users_active\n    statement: Increase the share of events from active users\n    metric: is_active_user\n    direction: increase\n    horizon_days: 90\n    priority: 2\n\ndecision_rights:\n  - action_type: raise_engineering_ticket\n    description: Open a prioritised defect for a defined device, OS or traffic segment.\n    autonomy_level: L2_act_reversible\n    reversible: true\n    blast_radius:\n      unit: tickets\n      max_per_run: 10\n    observation_metric: is_js_error\n    observation_lag_days: 14\n\n  - action_type: recommend_traffic_change\n    description: Propose pausing or reweighting a traffic source or medium.\n    autonomy_level: L1_recommend\n    reversible: true\n    blast_radius:\n      unit: sources\n      max_per_run: 3\n    requires_authority: marketing_lead\n    observation_metric: is_active_user\n    observation_lag_days: 30\n\nevidence_standards:\n  min_sample_size: 30\n  max_p_value: 0.05\n  min_effect_size: 1.2\n  multiple_testing_correction: benjamini_hochberg\n\nconstraints:\n  leakage_features:\n    - is_js_error\n    - is_active_user\n  block_sensitive_columns: true\n"
+  }
+ ],
+ "data": [
+  {
+   "name": "claims",
+   "rows": 7000,
+   "columns": [
+    "claim_id",
+    "assessor_name",
+    "claim_type",
+    "notification_channel",
+    "complexity_score",
+    "prior_claims",
+    "days_to_report",
+    "settled_amount",
+    "days_to_settle",
+    "leakage_flag"
+   ]
+  },
+  {
+   "name": "customers",
+   "rows": 6000,
+   "columns": [
+    "customer_id",
+    "tenure_years",
+    "age",
+    "region",
+    "channel",
+    "annual_premium",
+    "contacts_last_year",
+    "repeat_purchase",
+    "lapsed"
+   ]
+  },
+  {
+   "name": "hr_attrition",
+   "rows": 1470,
+   "columns": [
+    "Age",
+    "BusinessTravel",
+    "DailyRate",
+    "Department",
+    "DistanceFromHome",
+    "Education",
+    "EducationField",
+    "EmployeeNumber",
+    "EnvironmentSatisfaction",
+    "Gender",
+    "HourlyRate",
+    "JobInvolvement",
+    "JobLevel",
+    "JobRole",
+    "JobSatisfaction",
+    "MaritalStatus",
+    "MonthlyIncome",
+    "MonthlyRate",
+    "NumCompaniesWorked",
+    "OverTime",
+    "PercentSalaryHike",
+    "PerformanceRating",
+    "RelationshipSatisfaction",
+    "StockOptionLevel",
+    "TotalWorkingYears",
+    "TrainingTimesLastYear",
+    "WorkLifeBalance",
+    "YearsAtCompany",
+    "YearsInCurrentRole",
+    "YearsSinceLastPromotion",
+    "YearsWithCurrManager",
+    "attrition_flag"
+   ]
+  },
+  {
+   "name": "web_events",
+   "rows": 1788,
+   "columns": [
+    "event_name",
+    "user_pseudo_id",
+    "is_active_user",
+    "device_category",
+    "device_os",
+    "geo_city",
+    "traffic_source_name",
+    "traffic_source_medium",
+    "is_js_error"
+   ]
+  }
+ ],
+ "pairings": [
+  {
+   "charter": "claims_analyst",
+   "data": "claims",
+   "metrics": [
+    "leakage_flag",
+    "settled_amount",
+    "days_to_settle"
+   ]
+  },
+  {
+   "charter": "hr_analyst",
+   "data": "hr_attrition",
+   "metrics": [
+    "attrition_flag",
+    "JobSatisfaction"
+   ]
+  },
+  {
+   "charter": "portfolio_analyst",
+   "data": "customers",
+   "metrics": [
+    "repeat_purchase",
+    "lapsed"
+   ]
+  },
+  {
+   "charter": "web_analyst",
+   "data": "web_events",
+   "metrics": [
+    "is_js_error",
+    "is_active_user"
+   ]
+  }
+ ],
+ "charter_schema": {
+  "$defs": {
+   "Accountability": {
+    "description": "An outcome the role owns, expressed as a measurable quantity and a direction.\n\nThe `metric` must be a column of the dataset the role runs against. This is what\nforces charters to be honest: \"improve customer relationships\" cannot be written here,\nbecause there is no measure to point at.",
+    "properties": {
+     "id": {
+      "title": "Id",
+      "type": "string"
+     },
+     "statement": {
+      "title": "Statement",
+      "type": "string"
+     },
+     "metric": {
+      "title": "Metric",
+      "type": "string"
+     },
+     "direction": {
+      "enum": [
+       "increase",
+       "decrease",
+       "stabilise"
+      ],
+      "title": "Direction",
+      "type": "string"
+     },
+     "horizon_days": {
+      "default": 90,
+      "title": "Horizon Days",
+      "type": "integer"
+     },
+     "priority": {
+      "default": 5,
+      "title": "Priority",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "statement",
+     "metric",
+     "direction"
+    ],
+    "title": "Accountability",
+    "type": "object"
+   },
+   "AutonomyLevel": {
+    "description": "How much rope a role has for a given action type.\n\nA role is not \"autonomous\" or \"not autonomous\" \u2014 autonomy is granted per action\nclass and earned by evidence in the outcome ledger. New action types start at\nL1_RECOMMEND and are promoted only after their outcome record justifies it.",
+    "enum": [
+     "L0_observe",
+     "L1_recommend",
+     "L2_act_reversible",
+     "L3_act_report",
+     "L4_act"
+    ],
+    "title": "AutonomyLevel",
+    "type": "string"
+   },
+   "BlastRadius": {
+    "description": "The maximum damage a single action type can do in one run.",
+    "properties": {
+     "unit": {
+      "default": "records",
+      "title": "Unit",
+      "type": "string"
+     },
+     "max_per_run": {
+      "default": 100,
+      "title": "Max Per Run",
+      "type": "integer"
+     },
+     "max_value_at_risk": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Max Value At Risk"
+     }
+    },
+    "title": "BlastRadius",
+    "type": "object"
+   },
+   "Constraints": {
+    "description": "What the role may not touch, regardless of what it discovers.",
+    "properties": {
+     "forbidden_features": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Forbidden Features",
+      "type": "array"
+     },
+     "leakage_features": {
+      "items": {
+       "type": "string"
+      },
+      "title": "Leakage Features",
+      "type": "array"
+     },
+     "allowed_features": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Allowed Features"
+     },
+     "block_sensitive_columns": {
+      "default": true,
+      "title": "Block Sensitive Columns",
+      "type": "boolean"
+     },
+     "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+     }
+    },
+    "title": "Constraints",
+    "type": "object"
+   },
+   "DecisionRight": {
+    "description": "One thing this role is permitted to do, and how much rope it has.\n\nActions the charter does not name simply cannot be taken. There is no escape hatch \u2014\nan agent that invents an action type gets a hard refusal from `authorise_action`.",
+    "properties": {
+     "action_type": {
+      "title": "Action Type",
+      "type": "string"
+     },
+     "description": {
+      "default": "",
+      "title": "Description",
+      "type": "string"
+     },
+     "autonomy_level": {
+      "$ref": "#/$defs/AutonomyLevel",
+      "default": "L1_recommend"
+     },
+     "reversible": {
+      "default": true,
+      "title": "Reversible",
+      "type": "boolean"
+     },
+     "blast_radius": {
+      "$ref": "#/$defs/BlastRadius"
+     },
+     "requires_authority": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Requires Authority"
+     },
+     "observation_metric": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "default": null,
+      "title": "Observation Metric"
+     },
+     "observation_lag_days": {
+      "default": 30,
+      "title": "Observation Lag Days",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "action_type"
+    ],
+    "title": "DecisionRight",
+    "type": "object"
+   },
+   "EvidenceStandard": {
+    "description": "What counts as proof. Different actions warrant different burdens of proof.\n\nFlagging a customer for a phone call and changing a pricing factor are not the same\ndecision, and should not clear the same bar.",
+    "properties": {
+     "min_sample_size": {
+      "default": 100,
+      "title": "Min Sample Size",
+      "type": "integer"
+     },
+     "max_p_value": {
+      "default": 0.05,
+      "title": "Max P Value",
+      "type": "number"
+     },
+     "min_effect_size": {
+      "default": 1.2,
+      "title": "Min Effect Size",
+      "type": "number"
+     },
+     "multiple_testing_correction": {
+      "default": "benjamini_hochberg",
+      "enum": [
+       "benjamini_hochberg",
+       "bonferroni",
+       "none"
+      ],
+      "title": "Multiple Testing Correction",
+      "type": "string"
+     },
+     "requires_causal_design": {
+      "default": false,
+      "title": "Requires Causal Design",
+      "type": "boolean"
+     },
+     "requires_holdout": {
+      "default": false,
+      "title": "Requires Holdout",
+      "type": "boolean"
+     },
+     "requires_confound_control": {
+      "default": true,
+      "title": "Requires Confound Control",
+      "type": "boolean"
+     }
+    },
+    "title": "EvidenceStandard",
+    "type": "object"
+   }
+  },
+  "properties": {
+   "role": {
+    "title": "Role",
+    "type": "string"
+   },
+   "version": {
+    "default": 1,
+    "title": "Version",
+    "type": "integer"
+   },
+   "description": {
+    "default": "",
+    "title": "Description",
+    "type": "string"
+   },
+   "extends": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Extends"
+   },
+   "accountabilities": {
+    "items": {
+     "$ref": "#/$defs/Accountability"
+    },
+    "title": "Accountabilities",
+    "type": "array"
+   },
+   "decision_rights": {
+    "items": {
+     "$ref": "#/$defs/DecisionRight"
+    },
+    "title": "Decision Rights",
+    "type": "array"
+   },
+   "evidence_standards": {
+    "$ref": "#/$defs/EvidenceStandard"
+   },
+   "evidence_overrides": {
+    "additionalProperties": {
+     "$ref": "#/$defs/EvidenceStandard"
+    },
+    "title": "Evidence Overrides",
+    "type": "object"
+   },
+   "constraints": {
+    "$ref": "#/$defs/Constraints"
+   },
+   "status": {
+    "default": "SIGNED",
+    "enum": [
+     "DRAFT",
+     "SIGNED"
+    ],
+    "title": "Status",
+    "type": "string"
+   },
+   "ratified_by": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Ratified By"
+   },
+   "ratified_at": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Ratified At"
+   },
+   "content_hash": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Content Hash"
+   }
+  },
+  "required": [
+   "role",
+   "accountabilities"
+  ],
+  "title": "RoleCharter",
+  "type": "object"
+ }
+}

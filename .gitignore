@@ -19,3 +19,4 @@ graphify-out/
 # recorded run docs/loop.html is generated from, which is kept as evidence.
 runs/
 !docs/runs/
+src/strong-loop/data/*

@@ -532,7 +532,7 @@ def build(run_dir: pathlib.Path, charter_path: pathlib.Path, data_path: pathlib.
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>{CSS}</style></head>
 <body>
-<nav class="site" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html" aria-current="page">Understand it</a><a href="/live.html">Try it live</a></nav>
+<nav class="site" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html" aria-current="page">Understand it</a><a href="/charters.html">Charters</a><a href="/live.html">Try it live</a></nav>
 <nav class="toc" aria-label="sections">{toc}</nav>
 {"".join(sections)}
 <footer>Generated {dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")} from <span class="mono">{E(str(run_dir.relative_to(ROOT)) if run_dir.is_relative_to(ROOT) else str(run_dir))}</span> by tools/make_loop_doc.py. Regenerate after any change to the engine; the page has no hand-written numbers.</footer>

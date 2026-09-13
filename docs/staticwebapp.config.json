@@ -9,6 +9,10 @@
       "allowedRoles": ["authenticated"]
     },
     {
+      "route": "/charters.html",
+      "allowedRoles": ["authenticated"]
+    },
+    {
       "route": "/api/*",
       "allowedRoles": ["authenticated"]
     }

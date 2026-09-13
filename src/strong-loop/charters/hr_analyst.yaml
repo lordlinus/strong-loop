@@ -1,0 +1,63 @@
+# A workforce role over a plain HR extract (data/hr_attrition.csv, the IBM attrition set with
+# Attrition derived to a 0/1 column). Same code as the insurance roles: nothing here is
+# special-cased. Protected attributes are forbidden explicitly as well as by the standing screens.
+role: hr_analyst
+version: 1
+description: >
+  Owns workforce retention and engagement. Finds where people leave and where satisfaction is
+  low, and proposes reversible, manager-led interventions. A human reviews outcomes, not steps.
+
+accountabilities:
+  - id: reduce_attrition
+    statement: Reduce the share of employees who leave the organisation
+    metric: attrition_flag
+    direction: decrease
+    horizon_days: 365
+    priority: 1
+
+  - id: raise_satisfaction
+    statement: Raise job satisfaction across the workforce
+    metric: JobSatisfaction
+    direction: increase
+    horizon_days: 180
+    priority: 2
+
+decision_rights:
+  - action_type: flag_for_stay_interview
+    description: Add employees in a defined group to their manager's stay-interview list.
+    autonomy_level: L2_act_reversible
+    reversible: true
+    blast_radius:
+      unit: employees
+      max_per_run: 100
+    observation_metric: attrition_flag
+    observation_lag_days: 180
+
+  - action_type: recommend_policy_change
+    description: Propose a change to a working-pattern or compensation policy for a defined group.
+    autonomy_level: L1_recommend
+    reversible: true
+    blast_radius:
+      unit: employees
+      max_per_run: 500
+    requires_authority: hr_director
+    observation_metric: attrition_flag
+    observation_lag_days: 365
+
+evidence_standards:
+  min_sample_size: 50
+  max_p_value: 0.05
+  min_effect_size: 1.2
+  multiple_testing_correction: benjamini_hochberg
+
+constraints:
+  leakage_features:
+    - attrition_flag
+  forbidden_features:
+    - Age
+    - Gender
+    - MaritalStatus
+  block_sensitive_columns: true
+  notes: >
+    Protected attributes are listed here as well as caught by the standing screens, because in
+    an HR setting the charter should say so in its own words.

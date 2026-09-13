@@ -39,19 +39,74 @@ li.report{margin-top:1rem;padding:1.2rem;background:var(--paper-2);border:1px so
 li.report h2{font-family:var(--display);margin:0 0 .6rem;font-size:1.3rem} li.report ul{margin:.4rem 0 .8rem 1.2rem;padding:0}
 details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:var(--code)} pre{font-family:var(--mono);font-size:.76rem;white-space:pre-wrap;word-break:break-word;background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:.7rem;margin:.4rem 0 0}
 .empty{padding:3rem 0;color:var(--graphite);max-width:60ch}
-@media (max-width:720px){li.rec{grid-template-columns:1fr}.rail{display:none}.lane.code{border-left:2px solid var(--code);padding-left:.9rem}}
+/* intake: the three steps a person takes before any model runs */
+.intake{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.2rem 0;border-bottom:1px solid var(--rule)}
+.step{background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+.step h2{font-family:var(--display);font-size:1rem;margin:0;letter-spacing:-.01em}.step h2 .n{color:var(--code);margin-right:.4rem}
+.step label{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);display:block}
+.step select,.step input[type=file],.step input[type=text],.step input[type=number],.step textarea{font:inherit;font-family:var(--mono);font-size:.82rem;width:100%;padding:.45rem .6rem;border:1px solid var(--rule);border-radius:3px;background:#fff;color:var(--ink)}
+.step .or{font-size:.8rem;color:var(--graphite);text-align:center}
+.step .hint{font-size:.85rem;color:var(--graphite);margin:0}
+.pairing{display:none;padding:1.2rem 0;border-bottom:1px solid var(--rule);gap:1rem}
+.pairing.show{display:grid;grid-template-columns:3fr 2fr}
+.pairing h2{font-family:var(--display);font-size:1.15rem;margin:0 0 .6rem}
+.pairing table{border-collapse:collapse;width:100%;font-size:.9rem}.pairing td,.pairing th{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--rule);vertical-align:top}.pairing th{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)}
+.pairing .problem{color:var(--rejected);margin:.3rem 0}.pairing .ok{color:var(--supported)}
+.ask{background:#FFF7E6;border:1px solid #F1D9A6;border-radius:4px;padding:.8rem;margin:.6rem 0}.ask p{margin:0 0 .4rem}.ask select{font-family:var(--mono);font-size:.82rem;width:100%;padding:.4rem}
+.accept{background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:1rem;display:flex;flex-direction:column;gap:.6rem;align-self:start}
+.accept label{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)}
+.accept input,.accept textarea{font:inherit;font-family:var(--mono);font-size:.82rem;width:100%;padding:.45rem .6rem;border:1px solid var(--rule);border-radius:3px;background:#fff}
+button.ghost{background:transparent;color:var(--code);border:1px solid var(--code)}
+@media (max-width:720px){li.rec{grid-template-columns:1fr}.rail{display:none}.lane.code{border-left:2px solid var(--code);padding-left:.9rem}.intake,.pairing.show{grid-template-columns:1fr}}
 </style></head>
 <body>
-<nav class="site-nav" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html">Understand it</a><a href="/live.html" aria-current="page">Try it live</a><a href="/.auth/logout">Sign out</a></nav>
+<nav class="site-nav" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html">Understand it</a><a href="/charters.html">Charters</a><a href="/live.html" aria-current="page">Try it live</a><a href="/.auth/logout">Sign out</a></nav>
 <header>
   <div><p class="status" id="status">idle</p><h1>The agent proposes. <span style="color:var(--code)">Code disposes.</span> Live.</h1></div>
-  <form id="form">
-    <input class="url" id="url" value="/api/run" aria-label="responses endpoint">
-    <input class="steer" id="steer" value="Focus on the highest-priority accountability." aria-label="steer">
-    <button id="go" type="submit">Start a run</button>
-  </form>
+  <p class="muted" style="max-width:44ch;margin:0;font-size:.92rem">Pick a role and a dataset, check that they pair, answer anything the platform cannot decide for you, then start. No model runs until you have.</p>
 </header>
 <main>
+  <form class="intake" id="intake">
+    <div class="step">
+      <h2><span class="n">1</span>Role charter</h2>
+      <label for="charter-preset">a shipped role, or one you saved</label>
+      <select id="charter-preset"></select>
+      <p class="or">— or —</p>
+      <label for="charter-file">your own charter (YAML)</label>
+      <input type="file" id="charter-file" accept=".yaml,.yml,text/yaml">
+      <p class="hint">What the role is accountable for, what it may do, and what it may never use. Uploads win over the preset. <a href="/charters.html">Write a new charter →</a></p>
+    </div>
+    <div class="step">
+      <h2><span class="n">2</span>Data</h2>
+      <label for="data-preset">a shipped dataset</label>
+      <select id="data-preset"></select>
+      <p class="hint mono" id="pairs-hint" style="font-size:.72rem"></p>
+      <p class="or">— or —</p>
+      <label for="data-file">your own CSV (up to 50 MB)</label>
+      <input type="file" id="data-file" accept=".csv,text/csv">
+      <p class="hint">One row per unit the role acts on. Identifiers and protected attributes are screened out automatically.</p>
+    </div>
+    <div class="step">
+      <h2><span class="n">3</span>Check the pairing</h2>
+      <p class="hint">Fixed code, no model: which accountabilities this data can measure, which columns are screened, and whether the evidence gate bites on it. Anything ambiguous comes back as a question with a closed list of answers.</p>
+      <button id="check" type="submit">Check pairing</button>
+      <p class="hint mono" id="session" style="font-size:.72rem"></p>
+    </div>
+  </form>
+  <section class="pairing" id="pairing" aria-live="polite">
+    <div id="pairing-report"></div>
+    <form class="accept" id="accept">
+      <h2 style="font-family:var(--display);font-size:1.05rem;margin:0">Start the run</h2>
+      <div id="asks"></div>
+      <label for="iterations">iterations (each starts from an empty context)</label>
+      <input type="number" id="iterations" min="1" max="6" value="3">
+      <label for="steer">steer — the only human text the agent ever sees (where to look first; it cannot change what counts as evidence)</label>
+      <textarea id="steer" rows="2">Focus on the highest-priority accountability.</textarea>
+      <div id="ratifier-row" hidden><label for="ratifier">ratified by (local only; the site uses your sign-in)</label><input type="text" id="ratifier" placeholder="your name"></div>
+      <button id="go" type="submit" disabled>Start a run</button>
+      <button id="again" type="button" class="ghost" hidden>New pairing</button>
+    </form>
+  </section>
   <dl class="facts" id="facts">
     <div><dt>iteration</dt><dd id="f-iter">—</dd></div>
     <div><dt>hypotheses tested</dt><dd id="f-tested">0</dd></div>
@@ -60,11 +115,18 @@ details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:va
     <div><dt>actions</dt><dd id="f-act">0</dd></div>
     <div><dt>skills loaded</dt><dd id="f-skill">0</dd></div>
   </dl>
-  <ol class="timeline" id="timeline"><li class="empty">Press Start to create a fresh hosted-agent run. For local development, start the agent with <span class="mono">azd ai agent run --no-client</span> and change the endpoint above to <span class="mono">http://localhost:8088/responses</span>. Every tool call, its output, the model's reasoning summary and the loop's own events arrive on one Responses stream.</li></ol>
+  <ol class="timeline" id="timeline"><li class="empty">Check a pairing, then start. Every tool call, its output, the model's reasoning summary and the loop's own events arrive on one Responses stream. For local development, start the agent with <span class="mono">azd ai agent run --no-client</span> and open this page from <span class="mono">localhost</span>.</li></ol>
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
-if (["localhost", "127.0.0.1"].includes(location.hostname)) $("url").value = "http://localhost:8088/responses";
+// Two backends, one page. Hosted: the site's API creates the Foundry session, writes files
+// into it and relays the stream. Local: `python main.py` serves the same three verbs itself.
+const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+const API = LOCAL
+  ? {sessions: "http://localhost:8088/sessions", file: (id, p) => `http://localhost:8088/sessions/${id}/files/content?path=${encodeURIComponent(p)}`, run: "http://localhost:8088/responses"}
+  : {sessions: "/api/sessions", file: (id, p) => `/api/sessions/${encodeURIComponent(id)}/files?path=${encodeURIComponent(p)}`, run: "/api/run"};
+if (LOCAL) $("ratifier-row").hidden = false;
+let sessionId = null, settled = false;
 const tl = $("timeline"); const facts = {tested:0, sup:0, find:0, act:0, skill:0};
 const calls = new Map();          // call_id -> {name, args, li, right}
 let liveStamp = null;
@@ -134,8 +196,122 @@ function onLoopEvent(name, args, out){
     const a = (out.actions || []).map(x => `<li><span class="mono">${esc(x.type)}</span> <span class="verdict v-${esc(x.status)}">${esc(String(x.status).toUpperCase())}</span> <span class="mono muted">${esc(x.autonomy)}</span></li>`).join("");
     add(el(`<li class="report"><h2>Report — ${esc(out.iterations_run)} iterations, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2><p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p><strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>Actions</strong><ul>${a || "<li>none</li>"}</ul><details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details></li>`));
     $("status").textContent = "complete";
+  } else if (name === "loop.intake") {
+    onIntake(out);
   }
 }
+
+// ---- intake: what `loop.intake` says, rendered as a decision for the person -------------
+function fmtMeasure(m){
+  if (!m || !m.kind) return "";
+  if (m.kind === "rate") return `rate ${(m.base_rate * 100).toFixed(1)}% (${m.positives?.toLocaleString?.() ?? m.positives} of ${m.n?.toLocaleString?.() ?? m.n})`;
+  return `mean ${round(m.mean)} · median ${round(m.median)} · n ${m.n?.toLocaleString?.() ?? m.n}`;
+}
+function onIntake(out){
+  const r = out.report || {}; const status = out.status || "refused";
+  const box = $("pairing-report"); $("pairing").classList.add("show");
+  let html = `<h2>${esc(r.role || "pairing")}${r.version ? ` v${esc(r.version)}` : ""} <span class="mono muted">${esc(out.source?.charter || "")} · ${esc(out.source?.data || "")}${r.rows ? ` · ${r.rows.toLocaleString()} rows` : ""}</span></h2>`;
+  const problems = [...new Set([...(out.problems || []), ...(r.problems || [])])];
+  if (problems.length) html += problems.map(p => `<p class="problem">${esc(p)}</p>`).join("");
+  if (status === "awaiting" && (r.problems || []).length && !(r.clarifications || []).length) html += `<p class="problem">Nothing in this data plausibly measures the missing metric(s); starting will be refused. Pick a different pairing.</p>`;
+  if (r.accountabilities) {
+    html += `<table><tr><th>accountability</th><th>metric</th><th>in this data</th></tr>` + r.accountabilities.map(a =>
+      `<tr><td>${esc(a.statement)}<br><span class="mono muted">${esc(a.id)}</span></td><td class="mono">${esc(a.metric)}</td><td>${a.status === "ok" ? `<span class="ok">✓</span> <span class="mono muted">${esc(fmtMeasure(a.measure))}</span>` : `<span class="problem">${a.status === "unmeasurable" ? "not numeric or 0/1" : "not a column"}</span>`}</td></tr>`).join("") + `</table>`;
+    html += `<p class="stats muted">analysable: ${(r.analysable_columns || []).map(esc).join(", ") || "none"}</p>`;
+    if (r.screened && r.screened.length) html += `<p class="stats muted">screened out: ${r.screened.map(s => `${esc(s.column)} <span style="opacity:.7">(${esc(s.reason)})</span>`).join(", ")}</p>`;
+    const probes = [r.gate_probe, r.screen_probe].filter(Boolean).map(p => `${esc(p.gate)} on <span class="mono">${esc(p.where)}</span> → <span class="verdict v-${esc(p.verdict)}">${esc(p.verdict)}</span>`);
+    if (probes.length) html += `<p class="stats muted">probes — the gate and the screens, exercised on this data before anything runs: ${probes.join(" · ")}</p>`;
+    if (r.questions) html += `<details><summary>${r.questions.length} question(s) the agent will pursue — derived from the charter, not for you to answer</summary><ul>${r.questions.map(q => `<li>${esc(q)}</li>`).join("")}</ul></details>`;
+  }
+  box.innerHTML = html;
+  const asks = $("asks"); asks.innerHTML = "";
+  for (const c of (r.clarifications || [])) {
+    asks.appendChild(el(`<div class="ask"><p><strong>${esc(c.question)}</strong></p><p class="muted" style="font-size:.85rem">${esc(c.why)}</p><select data-acc="${esc(c.accountability_id)}">${c.candidates.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select></div>`));
+  }
+  if (r.accountabilities && !(r.clarifications || []).length) asks.appendChild(el(`<p class="hint">Nothing to answer — every metric was found in the data. You would only be asked here when the pairing is ambiguous.</p>`));
+  // A report means the inputs paired; a refusal at this point is about the answers or
+  // the ratifier, both of which the person can change and try again.
+  $("go").disabled = !r.accountabilities; $("again").hidden = false; $("check").disabled = false;
+  $("status").textContent = status === "awaiting" ? "paired — awaiting your acceptance" : status;
+  $("pairing").scrollIntoView({block:"start", behavior:"smooth"});
+}
+
+async function putFile(path, body){
+  const res = await fetch(API.file(sessionId, path), {method:"PUT", headers:{"Content-Type":"application/octet-stream"}, body});
+  if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `upload ${path}: HTTP ${res.status}`); }
+}
+
+async function openSession(){
+  const res = await fetch(API.sessions, {method:"POST"});
+  if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `session: HTTP ${res.status}`); }
+  sessionId = (await res.json()).agent_session_id; settled = false;
+  $("session").textContent = `session ${sessionId.slice(0, 12)}…`;
+}
+
+async function check(ev){
+  ev.preventDefault();
+  $("check").disabled = true; $("go").disabled = true; $("status").textContent = "uploading";
+  try {
+    await openSession();
+    const charterFile = $("charter-file").files[0], dataFile = $("data-file").files[0];
+    const request = {};
+    const chosen = $("charter-preset").value;
+    if (charterFile) await putFile("intake/charter.yaml", charterFile);
+    else if (chosen.startsWith("mine:")) await putFile("intake/charter.yaml", savedCharters()[chosen.slice(5)] ?? "");
+    else request.charter = chosen;
+    if (dataFile) await putFile("intake/data.csv", dataFile); else request.data = $("data-preset").value;
+    await putFile("intake/request.json", JSON.stringify(request));
+    $("status").textContent = "checking";
+    await stream("check the pairing");   // the gate answers with loop.intake and never reaches the model
+  } catch (e) { $("status").textContent = "failed: " + e.message; $("check").disabled = false; }
+}
+
+async function start(ev){
+  ev.preventDefault();
+  const answers = {}; for (const s of $("asks").querySelectorAll("select")) answers[s.dataset.acc] = s.value;
+  const accept = {answers, iterations: Number($("iterations").value) || 3};
+  if (LOCAL && $("ratifier").value.trim()) accept.ratified_by = $("ratifier").value.trim();
+  $("go").disabled = true; $("status").textContent = "accepting";
+  try {
+    if (!settled) await putFile("intake/accept.json", JSON.stringify(accept));
+    tl.innerHTML = ""; calls.clear(); Object.keys(facts).forEach(k => facts[k] = 0); refresh(); $("f-iter").textContent = "—"; endText();
+    await stream($("steer").value);
+    if ($("status").textContent === "complete") settled = true;   // a settled session re-runs the same pairing
+  } catch (e) { $("status").textContent = "failed: " + e.message; }
+  finally { $("go").disabled = false; setLive(null); }
+}
+
+function reset(){ sessionId = null; settled = false; $("pairing").classList.remove("show"); $("asks").innerHTML = ""; $("go").disabled = true; $("again").hidden = true; $("session").textContent = ""; $("status").textContent = "idle"; }
+
+// The option lists come from what the service actually ships (`python -m loop presets`)
+// plus charters written on /charters.html, which live only in this browser.
+function savedCharters(){ try { return JSON.parse(localStorage.getItem("strong-loop.charters") || "{}"); } catch { return {}; } }
+let presets = {charters: [], data: [], pairings: []};
+function pairsHint(){
+  const c = $("charter-preset").value, d = $("data-preset").value;
+  const ok = presets.pairings.find(p => p.charter === c && p.data === d);
+  const knownFor = presets.pairings.filter(p => p.charter === c).map(p => p.data);
+  $("pairs-hint").textContent = c.startsWith("mine:") ? "your charter — the check will tell you whether this data can measure it"
+    : ok ? `pairs: ${ok.metrics.join(", ")}` : knownFor.length ? `${c} is known to pair with ${knownFor.join(", ")}` : "";
+}
+async function loadPresets(){
+  try { presets = await (await fetch("/presets.json", {cache: "no-store"})).json(); } catch { /* selects stay empty; uploads still work */ }
+  const cs = $("charter-preset"), ds = $("data-preset");
+  const group = (label, items) => { const g = document.createElement("optgroup"); g.label = label; for (const [v, t] of items) { const o = document.createElement("option"); o.value = v; o.textContent = t; g.append(o); } return g; };
+  cs.innerHTML = ""; ds.innerHTML = "";
+  const mine = Object.keys(savedCharters()).sort();
+  if (mine.length) cs.append(group("saved in this browser", mine.map(n => ["mine:" + n, n])));
+  cs.append(group("shipped", presets.charters.map(c => [c.name, `${c.name} — ${c.metrics.join(", ")}`])));
+  ds.append(group("shipped", presets.data.map(d => [d.name, `${d.name}.csv — ${d.rows.toLocaleString()} rows`])));
+  const want = new URLSearchParams(location.search).get("charter");
+  if (want && [...cs.options].some(o => o.value === want)) cs.value = want;
+  const match = presets.pairings.find(p => p.charter === cs.value);
+  if (match) ds.value = match.data;
+  pairsHint();
+}
+$("charter-preset").addEventListener("change", () => { const m = presets.pairings.find(p => p.charter === $("charter-preset").value); if (m) $("data-preset").value = m.data; pairsHint(); });
+$("data-preset").addEventListener("change", pairsHint);
+loadPresets();
 
 let proseLi = null, proseText = "";
 function onTextDelta(d){ if (!proseLi) { proseLi = el(`<li class="prose"></li>`); add(proseLi); } proseText += d; proseLi.textContent = proseText; }
@@ -152,24 +328,18 @@ function onReasoning(text){ if (text && text.trim()) add(el(`<li class="think">$
 function fmtP(p){ if (p == null) return "—"; return p < 0.001 ? p.toExponential(2) : p.toFixed(4); }
 function round(x){ return typeof x === "number" ? x.toFixed(3) : (x ?? "—"); }
 
-async function run(ev){
-  ev.preventDefault();
-  tl.innerHTML = ""; calls.clear(); Object.keys(facts).forEach(k => facts[k] = 0); refresh(); $("f-iter").textContent = "—"; endText();
-  $("go").disabled = true; $("status").textContent = "connecting";
-  try {
-    const res = await fetch($("url").value, {method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({model:"strong-loop", input: $("steer").value, stream:true})});
-    if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
-    $("status").textContent = "streaming";
-    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
-    for (;;) {
-      const {value, done} = await reader.read(); if (done) break;
-      buf += dec.decode(value, {stream:true});
-      let idx; while ((idx = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, idx)); buf = buf.slice(idx + 2); }
-    }
-    if ($("status").textContent !== "complete") $("status").textContent = "stream ended";
-  } catch (e) { $("status").textContent = "failed: " + e.message; add(el(`<li class="empty">${esc(e.message)}. Use /api/run on the deployed site, or http://localhost:8088/responses when running the agent locally.</li>`)); }
-  finally { $("go").disabled = false; setLive(null); }
+async function stream(input){
+  const res = await fetch(API.run, {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({model:"strong-loop", input, stream:true, agent_session_id: sessionId})});
+  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+  const was = $("status").textContent; $("status").textContent = "streaming";
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
+  for (;;) {
+    const {value, done} = await reader.read(); if (done) break;
+    buf += dec.decode(value, {stream:true});
+    let idx; while ((idx = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, idx)); buf = buf.slice(idx + 2); }
+  }
+  if ($("status").textContent === "streaming") $("status").textContent = was === "checking" ? "no answer from the gate" : "stream ended";
 }
 
 function handle(block){
@@ -187,10 +357,12 @@ function handle(block){
     }
     case "response.output_text.delta": onTextDelta(data.delta); break;
     case "response.reasoning_summary_text.done": onReasoning(data.text); break;
-    case "response.completed": if ($("status").textContent !== "complete") $("status").textContent = "complete"; break;
+    case "response.completed": if ($("status").textContent === "streaming") $("status").textContent = "complete"; break;
     case "error": $("status").textContent = "error"; add(el(`<li class="empty">${esc(JSON.stringify(data))}</li>`)); break;
   }
 }
-$("form").addEventListener("submit", run);
+$("intake").addEventListener("submit", check);
+$("accept").addEventListener("submit", start);
+$("again").addEventListener("click", reset);
 </script>
 </body></html>

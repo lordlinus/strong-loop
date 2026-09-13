@@ -1,0 +1,57 @@
+# A digital analytics role over a flattened GA4 event export (data/web_events.csv). The raw
+# export carries device/geo/traffic as JSON blobs; the preset has them flattened to columns,
+# because a gate can only test a bare column. Small data: the sample-size bar is set to match.
+role: web_analyst
+version: 1
+description: >
+  Owns the health of a digital platform: which devices, sources and journeys throw errors, and
+  where active use is falling. Proposes fixes for engineering to schedule; never ships code.
+
+accountabilities:
+  - id: cut_js_errors
+    statement: Reduce the share of events that hit a JavaScript error
+    metric: is_js_error
+    direction: decrease
+    horizon_days: 30
+    priority: 1
+
+  - id: keep_users_active
+    statement: Increase the share of events from active users
+    metric: is_active_user
+    direction: increase
+    horizon_days: 90
+    priority: 2
+
+decision_rights:
+  - action_type: raise_engineering_ticket
+    description: Open a prioritised defect for a defined device, OS or traffic segment.
+    autonomy_level: L2_act_reversible
+    reversible: true
+    blast_radius:
+      unit: tickets
+      max_per_run: 10
+    observation_metric: is_js_error
+    observation_lag_days: 14
+
+  - action_type: recommend_traffic_change
+    description: Propose pausing or reweighting a traffic source or medium.
+    autonomy_level: L1_recommend
+    reversible: true
+    blast_radius:
+      unit: sources
+      max_per_run: 3
+    requires_authority: marketing_lead
+    observation_metric: is_active_user
+    observation_lag_days: 30
+
+evidence_standards:
+  min_sample_size: 30
+  max_p_value: 0.05
+  min_effect_size: 1.2
+  multiple_testing_correction: benjamini_hochberg
+
+constraints:
+  leakage_features:
+    - is_js_error
+    - is_active_user
+  block_sensitive_columns: true
