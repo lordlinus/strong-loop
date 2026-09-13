@@ -1,0 +1,1789 @@
+event_name,user_pseudo_id,is_active_user,device_category,device_os,geo_city,traffic_source_name,traffic_source_medium,is_js_error
+page_view,9834208859.871237,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,4254688189.434436,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,3889669098.802765,1,desktop,Windows,Central Singapore,(direct),(none),0
+javascript_error,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9964994370.649103,1,desktop,macOS,,(direct),(none),1
+javascript_error,5404418656.13088,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,7479120336.423056,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,9078378578.247969,1,desktop,Windows,,(direct),(none),0
+page_view,3046532072.263701,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8999402914.483046,1,desktop,Windows,Singapore,(direct),(none),0
+login,1579406866.96365,1,desktop,Windows,Central Singapore,(direct),(none),0
+page_view,7479120336.423056,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,4754378618.436832,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2441481291.1053567,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3295263970.7811265,1,desktop,Windows,Singapore,(direct),(none),0
+login,4202990882.13622,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,3295263970.7811265,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9917028464.77163,1,desktop,macOS,,(direct),(none),0
+page_view,9203729420.761017,1,desktop,Windows,Central Singapore,(direct),(none),0
+login_otp_view,9638315709.435,1,desktop,macOS,,(direct),(none),0
+page_view,9397281857.753096,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,5850277009.955588,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,9514310254.528845,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),1
+login,6858629855.7416,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9242742741.520424,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3575133498.200388,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9511701079.460356,1,desktop,Windows,Singapore,(direct),(none),0
+login,5337325818.317813,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2493524417.994997,1,desktop,Windows,,(direct),(none),1
+login,9559148595.393116,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,1311187015.6406667,0,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,5554444636.444482,1,desktop,macOS,,(direct),(none),0
+page_view,3295263970.7811265,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9917028464.77163,1,desktop,macOS,,(direct),(none),0
+javascript_error,1579406866.96365,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,3396543197.901001,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,7552017085.430901,1,desktop,Windows,,(direct),(none),0
+Authenticated User,9242742741.520424,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4400171448.669835,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6380491780.96549,1,desktop,macOS,,(direct),(none),0
+Authenticated User,8166618829.112005,1,desktop,Windows,,(direct),(none),0
+user_engagement,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8278213316.363795,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3874866185.328192,1,desktop,Windows,,(direct),(none),0
+javascript_error,2545955708.8906507,1,desktop,macOS,,(direct),(none),1
+virtual_page_load_time,9781764231.46115,1,desktop,macOS,,(direct),(none),0
+login_otp_view,9265154944.899696,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4464639424.353031,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4499382681.600982,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9273285715.497375,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,2645951559.8600206,1,desktop,macOS,,(direct),(none),0
+login,9471779829.9604,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,2274944963.529047,1,desktop,Windows,Singapore,(direct),(none),0
+login,9019709263.474009,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9265154944.899696,1,desktop,Windows,,(direct),(none),0
+login,9964994370.649103,1,desktop,macOS,,(direct),(none),0
+page_view,9203729420.761017,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4224666978.163954,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,1546516959.6691127,1,desktop,Windows,Singapore,(direct),(none),0
+login,1846962304.8269527,1,desktop,Windows,Singapore,(direct),(none),0
+login,9559148595.393116,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1546516959.6691127,1,desktop,macOS,,(direct),(none),1
+login,4499382681.600982,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2493524417.994997,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4224666978.163954,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9781764231.46115,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9514310254.528845,1,desktop,Windows,Singapore,(direct),(none),1
+login,3889669098.802765,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1208411965.298038,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,6380491780.96549,1,desktop,macOS,,(direct),(none),0
+javascript_error,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),1
+session_start,9514310254.528845,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,7479120336.423056,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9279276665.313663,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,4638858844.282696,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4752317266.424378,1,desktop,macOS,,(direct),(none),1
+page_view,1579406866.96365,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3727645333.9775968,1,desktop,Windows,,(direct),(none),0
+login,1311187015.6406667,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9273285715.497375,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,3053924237.616631,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,8155454195.973104,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,8401204324.368673,1,desktop,macOS,,(direct),(none),0
+first_visit,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+login,1098681267.455012,1,desktop,Windows,Singapore,(direct),(none),0
+login,1846962304.8269527,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,9019709263.474009,0,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,7552017085.430901,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8166618829.112005,1,desktop,macOS,,(direct),(none),0
+page_view,4592532859.984282,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4281756113.8510566,1,desktop,Windows,,(direct),(none),0
+page_view,4499382681.600982,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,5404418656.13088,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1302326237.762634,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,4464639424.353031,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8401204324.368673,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,3059556864.3467145,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4281756113.8510566,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,6092529374.757284,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,9781764231.46115,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9219974946.480968,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6786903943.699848,1,desktop,Windows,,(direct),(none),0
+javascript_error,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,7178508039.12229,1,desktop,macOS,Singapore,(referral),referral,1
+javascript_error,1889585583.7467337,1,desktop,macOS,,(direct),(none),1
+javascript_error,5221710251.614656,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6786903943.699848,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3652299024.24816,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1846962304.8269527,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8548242451.915548,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4754378618.436832,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,6114726901.7575655,1,desktop,macOS,,(direct),(none),0
+javascript_error,5553179427.905471,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,2493524417.994997,1,desktop,macOS,Singapore,(direct),(none),0
+login,1590548317.1258576,1,desktop,macOS,,(direct),(none),0
+session_start,7479120336.423056,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5553179427.905471,1,desktop,macOS,,(direct),(none),0
+scroll,1311187015.6406667,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8831376652.19018,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2645951559.8600206,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3889669098.802765,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9471779829.9604,1,desktop,macOS,,(direct),(none),1
+session_start,8977272162.882082,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8103771472.845114,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4464639424.353031,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1252076048.5564077,1,desktop,Windows,,(direct),(none),0
+javascript_error,2493524417.994997,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9917028464.77163,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1862076308.9945488,1,desktop,Windows,,(direct),(none),0
+page_view,5419257589.180461,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3059556864.3467145,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8977272162.882082,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8103771472.845114,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,4400171448.669835,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5031311184.754516,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,7552017085.430901,1,desktop,Windows,Singapore,(direct),(none),1
+user_engagement,1546516959.6691127,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9203729420.761017,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4202990882.13622,1,desktop,Windows,Singapore,(direct),(none),1
+session_start,2693232085.4658227,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6786903943.699848,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5073917392.470713,1,desktop,macOS,,(direct),(none),0
+user_engagement,9917028464.77163,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7714262531.610063,1,desktop,macOS,Singapore,(direct),(none),0
+login,5031311184.754516,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1846962304.8269527,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4814843716.449596,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4315582630.519032,0,desktop,macOS,Singapore,(direct),(none),0
+page_view,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4638858844.282696,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,8103771472.845114,1,desktop,Windows,Central Singapore,(direct),(none),0
+Authenticated User,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,2645951559.8600206,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3727645333.9775968,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2645951559.8600206,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,7479120336.423056,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8548242451.915548,1,desktop,macOS,,(direct),(none),0
+javascript_error,4638858844.282696,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,9286075365.808067,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,4281756113.8510566,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,4547256337.367772,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2693232085.4658227,1,desktop,macOS,,(direct),(none),1
+login_otp_view,8548242451.915548,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9781764231.46115,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2493524417.994997,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9078378578.247969,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8977272162.882082,1,desktop,Windows,,(direct),(none),1
+page_view,2929296143.385878,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6786903943.699848,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,7714262531.610063,1,desktop,macOS,Central Singapore,(direct),(none),0
+javascript_error,2274944963.529047,1,desktop,macOS,,(direct),(none),1
+virtual_page_load_time,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4656011753.6115885,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),1
+login,4754378618.436832,1,desktop,macOS,Central Singapore,(direct),(none),0
+login_otp_view,9580197593.709215,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8401204324.368673,1,desktop,macOS,,(direct),(none),0
+login,3046532072.263701,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,7552017085.430901,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9839450034.696367,1,desktop,Windows,Singapore,(direct),(none),0
+login,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6870379282.995956,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3889669098.802765,1,desktop,Windows,Central Singapore,(direct),(none),1
+scroll,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,4656011753.6115885,1,desktop,Windows,,(direct),(none),0
+login,9265154944.899696,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,4638858844.282696,1,desktop,macOS,,(direct),(none),1
+page_view,1579406866.96365,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,1765376847.6518931,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,6786903943.699848,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,4281756113.8510566,1,desktop,Windows,Central Singapore,(direct),(none),0
+Authenticated User,5554444636.444482,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9781764231.46115,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6380491780.96549,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,7274278335.725636,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2493524417.994997,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,8831376652.19018,1,desktop,macOS,,(direct),(none),0
+form_submit,1903059783.143024,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2982944137.8176875,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4814843716.449596,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9514310254.528845,1,desktop,Windows,Singapore,(referral),referral,1
+javascript_error,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1098681267.455012,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2493524417.994997,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8166618829.112005,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,4281756113.8510566,1,desktop,Windows,,(direct),(none),0
+user_engagement,4754378618.436832,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1546516959.6691127,1,desktop,macOS,,(direct),(none),0
+Authenticated User,5337325818.317813,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2693232085.4658227,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1903059783.143024,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,6786903943.699848,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6778245110.47197,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,3889669098.802765,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7546082791.216015,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9019709263.474009,1,desktop,Windows,Singapore,(direct),(none),1
+login,8278213316.363795,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9219974946.480968,1,desktop,macOS,Singapore,(direct),(none),1
+login_otp_view,7295668055.298718,1,desktop,macOS,,(direct),(none),0
+javascript_error,9917028464.77163,1,desktop,macOS,Central Singapore,(direct),(none),1
+scroll,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,3818159063.364424,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1302326237.762634,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8103771472.845114,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),0
+login,2982944137.8176875,1,desktop,macOS,,(direct),(none),0
+session_start,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6452436418.712981,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),0
+login,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),1
+login_otp_view,4656011753.6115885,1,desktop,Windows,Central Singapore,(direct),(none),0
+login_otp_view,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4499382681.600982,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,2972749052.5462923,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8278213316.363795,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,7295668055.298718,0,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2615935458.728316,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5850277009.955588,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3874866185.328192,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9279276665.313663,1,desktop,macOS,Singapore,(direct),(none),0
+login,4980740620.249357,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9078378578.247969,1,desktop,Windows,,(direct),(none),0
+javascript_error,6870379282.995956,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,2709539860.2945724,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1095126406.4093568,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),0
+login,1252076048.5564077,1,desktop,macOS,Singapore,(referral),referral,0
+user_engagement,9219974946.480968,1,desktop,macOS,,(direct),(none),0
+Authenticated User,3059556864.3467145,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4254688189.434436,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9205924667.969608,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3727645333.9775968,1,desktop,macOS,Singapore,(direct),(none),0
+form_submit,6858629855.7416,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5031311184.754516,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5850277009.955588,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,1579406866.96365,1,desktop,macOS,,(direct),(none),0
+page_view,9917028464.77163,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,2982944137.8176875,1,desktop,macOS,Singapore,(direct),(none),0
+login,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5221710251.614656,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3986673048.4733534,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,9559148595.393116,1,desktop,Windows,Central Singapore,(direct),(none),0
+javascript_error,4400171448.669835,1,desktop,Windows,,(direct),(none),1
+page_view,6786903943.699848,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,2441481291.1053567,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,5221710251.614656,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8977272162.882082,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9219974946.480968,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,7546082791.216015,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8278213316.363795,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,3986673048.4733534,1,desktop,macOS,,(direct),(none),0
+javascript_error,4656011753.6115885,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,4202990882.13622,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+login,2709539860.2945724,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9219974946.480968,1,desktop,Windows,,(direct),(none),0
+page_view,2645951559.8600206,1,desktop,Windows,,(direct),(none),0
+user_engagement,9219974946.480968,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6114726901.7575655,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9638315709.435,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8103771472.845114,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,4499382681.600982,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9273285715.497375,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7552017085.430901,1,desktop,Windows,,(direct),(none),0
+login,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9265154944.899696,1,desktop,Windows,Singapore,(direct),(none),0
+login,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9559148595.393116,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2972749052.5462923,1,desktop,macOS,Singapore,(direct),(none),0
+login,2441481291.1053567,1,desktop,Windows,Singapore,(referral),referral,0
+page_view,6380491780.96549,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5337325818.317813,1,desktop,Windows,,(direct),(none),1
+page_view,6778245110.47197,1,desktop,macOS,,(direct),(none),0
+page_view,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1311187015.6406667,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,4315582630.519032,1,desktop,Windows,,(direct),(none),0
+page_view,6870379282.995956,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1098681267.455012,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,3986673048.4733534,1,desktop,macOS,,(direct),(none),0
+page_view,1302326237.762634,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7295668055.298718,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5553179427.905471,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9511701079.460356,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,3059556864.3467145,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9242742741.520424,1,desktop,Windows,Central Singapore,(direct),(none),1
+login,1889585583.7467337,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2645951559.8600206,1,desktop,macOS,Singapore,(direct),(none),1
+login,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9279276665.313663,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),0
+login,9242742741.520424,1,desktop,macOS,,(direct),(none),0
+user_engagement,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9312497830.30973,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,2441481291.1053567,1,desktop,macOS,,(direct),(none),0
+javascript_error,9511701079.460356,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3889669098.802765,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+login,2493524417.994997,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3652299024.24816,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,8831376652.19018,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,4464639424.353031,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8103771472.845114,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4224666978.163954,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9242742741.520424,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,3295263970.7811265,1,desktop,Windows,Central Singapore,(direct),(none),0
+login_otp_view,6778245110.47197,1,desktop,Windows,Singapore,(direct),(none),0
+login,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,9265154944.899696,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2615935458.728316,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5073917392.470713,1,desktop,macOS,Singapore,(referral),referral,0
+user_engagement,6092529374.757284,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9397281857.753096,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,4656011753.6115885,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,2972749052.5462923,1,desktop,Windows,Central Singapore,(direct),(none),1
+virtual_page_load_time,9839450034.696367,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9219974946.480968,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4592532859.984282,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,3889669098.802765,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,7479120336.423056,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2645951559.8600206,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3652299024.24816,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,3547834980.3856707,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1208411965.298038,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,8789504094.742397,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9781764231.46115,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,4464639424.353031,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4224666978.163954,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8033119301.238212,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8962873739.567862,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4281756113.8510566,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8977272162.882082,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9514310254.528845,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2693232085.4658227,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3053924237.616631,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,5404418656.13088,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9559148595.393116,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,7546082791.216015,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9511701079.460356,1,desktop,Windows,Central Singapore,(direct),(none),0
+login_otp_view,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+login,6452436418.712981,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,9723002124.90124,1,desktop,macOS,,(direct),(none),0
+javascript_error,3295263970.7811265,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,5221710251.614656,1,desktop,macOS,Central Singapore,(direct),(none),1
+page_view,4315582630.519032,1,desktop,Windows,,(direct),(none),0
+login_otp_view,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3046532072.263701,1,desktop,Windows,,(direct),(none),0
+login_otp_view,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1889585583.7467337,1,desktop,macOS,Central Singapore,(direct),(none),1
+scroll,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,8999402914.483046,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+login,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,1903059783.143024,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4814843716.449596,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,7546082791.216015,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5337325818.317813,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,9559148595.393116,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7274278335.725636,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2929296143.385878,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6114726901.7575655,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1302326237.762634,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,4547256337.367772,1,desktop,Windows,Central Singapore,(direct),(none),0
+page_view,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3053924237.616631,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,5271835298.889677,1,desktop,macOS,Singapore,(direct),(none),1
+session_start,2441481291.1053567,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3986673048.4733534,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,3295263970.7811265,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4464639424.353031,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4224666978.163954,1,desktop,Windows,,(direct),(none),1
+login,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,5073917392.470713,1,desktop,macOS,Singapore,(referral),referral,0
+virtual_page_load_time,7546082791.216015,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9203729420.761017,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6880863413.701577,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4752317266.424378,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6092529374.757284,1,desktop,macOS,,(direct),(none),0
+login,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+login,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1889585583.7467337,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2693232085.4658227,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,4980740620.249357,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9219974946.480968,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6786903943.699848,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3396543197.901001,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+login,4281756113.8510566,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8391830846.564149,1,desktop,Windows,,(direct),(none),0
+javascript_error,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),1
+login,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,2645951559.8600206,1,desktop,macOS,,(direct),(none),0
+Authenticated User,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,7178508039.12229,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,2972749052.5462923,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3889669098.802765,1,desktop,Windows,,(direct),(none),0
+login_otp_view,8391830846.564149,1,desktop,macOS,,(direct),(none),0
+Authenticated User,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+login,2274944963.529047,1,desktop,Windows,Singapore,(referral),referral,0
+virtual_page_load_time,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4547256337.367772,1,mobile,iOS,Singapore,(direct),(none),0
+page_view,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,1095126406.4093568,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1765376847.6518931,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9917028464.77163,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9514310254.528845,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7274278335.725636,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4752317266.424378,1,desktop,Windows,,(direct),(none),0
+session_start,8789504094.742397,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,3986673048.4733534,1,desktop,macOS,,(direct),(none),0
+javascript_error,5404418656.13088,1,desktop,Windows,Central Singapore,(direct),(none),1
+session_start,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),0
+login,7178508039.12229,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9205924667.969608,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2545955708.8906507,1,desktop,macOS,,(direct),(none),0
+user_engagement,3053924237.616631,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,6452436418.712981,1,desktop,macOS,Singapore,(referral),referral,0
+Authenticated User,4224666978.163954,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9397281857.753096,1,desktop,macOS,,(direct),(none),1
+user_engagement,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4980740620.249357,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9397281857.753096,1,desktop,Windows,Central Singapore,(direct),(none),0
+javascript_error,3396543197.901001,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9203729420.761017,1,desktop,macOS,,(direct),(none),0
+javascript_error,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),0
+login,3652299024.24816,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,4224666978.163954,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9205924667.969608,1,desktop,Windows,,(direct),(none),0
+page_view,3572052070.76376,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,2982944137.8176875,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9242742741.520424,1,desktop,Windows,Singapore,(direct),(none),0
+login,9834208859.871237,1,desktop,Windows,Singapore,(referral),referral,0
+javascript_error,9839450034.696367,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9839450034.696367,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,3727645333.9775968,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,8401204324.368673,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,8401204324.368673,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8103771472.845114,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9638315709.435,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3986673048.4733534,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1590548317.1258576,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9471779829.9604,1,desktop,macOS,,(direct),(none),0
+login_otp_view,9834208859.871237,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,4499382681.600982,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,7295668055.298718,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,6114726901.7575655,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9781764231.46115,1,desktop,Windows,Singapore,(direct),(none),0
+login,9273285715.497375,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,3295263970.7811265,1,desktop,macOS,Singapore,(direct),(none),0
+form_submit,5404418656.13088,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5554444636.444482,1,desktop,Windows,,(direct),(none),0
+page_view,8789504094.742397,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9781764231.46115,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,2972749052.5462923,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5328896479.802444,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5271835298.889677,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6380491780.96549,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8962873739.567862,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5073917392.470713,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1862076308.9945488,1,desktop,Windows,,(direct),(none),0
+login,4315582630.519032,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,6858629855.7416,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6880863413.701577,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8831376652.19018,1,desktop,macOS,Singapore,(direct),(none),0
+login,3295263970.7811265,1,desktop,Windows,Singapore,(direct),(none),0
+login,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9580197593.709215,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9638315709.435,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2929296143.385878,1,desktop,macOS,,(direct),(none),0
+Authenticated User,3727645333.9775968,1,desktop,Windows,,(direct),(none),0
+Authenticated User,4400171448.669835,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,4814843716.449596,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9205924667.969608,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4638858844.282696,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1095126406.4093568,1,desktop,Windows,,(direct),(none),0
+Authenticated User,4547256337.367772,1,desktop,macOS,Singapore,(direct),(none),0
+login,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2972749052.5462923,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5554444636.444482,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,7552017085.430901,1,desktop,macOS,,(direct),(none),0
+login_otp_view,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9839450034.696367,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9638315709.435,1,desktop,macOS,,(direct),(none),0
+page_view,5271835298.889677,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9312497830.30973,1,desktop,Windows,Central Singapore,(direct),(none),0
+login_otp_view,5554444636.444482,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5554444636.444482,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8103771472.845114,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9019709263.474009,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,3986673048.4733534,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,2982944137.8176875,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,1889585583.7467337,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1579406866.96365,1,desktop,Windows,,(direct),(none),0
+javascript_error,6786903943.699848,1,desktop,macOS,Singapore,(direct),(none),1
+session_start,8033119301.238212,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,1311187015.6406667,1,desktop,macOS,Central Singapore,(direct),(none),0
+session_start,3396543197.901001,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4656011753.6115885,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,5404418656.13088,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2972749052.5462923,1,desktop,macOS,Singapore,(referral),referral,0
+javascript_error,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,1546516959.6691127,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,9834208859.871237,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1208411965.298038,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3986673048.4733534,1,desktop,Windows,,(direct),(none),0
+page_view,4281756113.8510566,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8103771472.845114,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3986673048.4733534,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,5419257589.180461,1,desktop,macOS,,(direct),(none),0
+session_start,2929296143.385878,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5419257589.180461,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,4592532859.984282,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3818159063.364424,1,desktop,macOS,,(direct),(none),0
+page_view,2441481291.1053567,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4656011753.6115885,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9559148595.393116,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),0
+login,9397281857.753096,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2545955708.8906507,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,2693232085.4658227,1,desktop,macOS,Singapore,(direct),(none),0
+login,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3572052070.76376,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,4499382681.600982,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),0
+login,6452436418.712981,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,8789504094.742397,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4980740620.249357,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,1846962304.8269527,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9471779829.9604,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,3818159063.364424,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4499382681.600982,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,4814843716.449596,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8401204324.368673,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,8033119301.238212,1,desktop,Windows,Central Singapore,(direct),(none),0
+form_submit,5271835298.889677,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9471779829.9604,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,4638858844.282696,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,5404418656.13088,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9312497830.30973,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1765376847.6518931,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,3889669098.802765,1,desktop,macOS,,(referral),referral,0
+javascript_error,1208411965.298038,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,1846962304.8269527,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3046532072.263701,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9397281857.753096,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1208411965.298038,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4281756113.8510566,1,desktop,Windows,Singapore,(referral),referral,0
+scroll,4281756113.8510566,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5337325818.317813,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,8977272162.882082,1,desktop,macOS,Singapore,(direct),(none),0
+login,2274944963.529047,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4656011753.6115885,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2982944137.8176875,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1889585583.7467337,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,7479120336.423056,1,desktop,Windows,Singapore,(direct),(none),1
+scroll,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,5073917392.470713,1,desktop,macOS,Central Singapore,(referral),referral,0
+Authenticated User,5553179427.905471,1,desktop,Windows,,(direct),(none),0
+javascript_error,6380491780.96549,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,1889585583.7467337,1,desktop,macOS,Singapore,(direct),(none),0
+login,4547256337.367772,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,1302326237.762634,1,desktop,macOS,Singapore,(direct),(none),0
+login,2441481291.1053567,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9834208859.871237,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2493524417.994997,1,desktop,macOS,,(direct),(none),0
+first_visit,1311187015.6406667,1,desktop,macOS,Central Singapore,(direct),(none),0
+user_engagement,4752317266.424378,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,6870379282.995956,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2693232085.4658227,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,7274278335.725636,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3396543197.901001,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1903059783.143024,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,4656011753.6115885,1,desktop,Windows,,(direct),(none),0
+page_view,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,1311187015.6406667,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,8831376652.19018,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9078378578.247969,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9580197593.709215,1,desktop,Windows,,(direct),(none),0
+page_view,8278213316.363795,1,desktop,Windows,,(direct),(none),0
+user_engagement,1546516959.6691127,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,9511701079.460356,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9265154944.899696,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9286075365.808067,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9638315709.435,1,desktop,Windows,,(direct),(none),0
+javascript_error,3818159063.364424,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,5404418656.13088,1,desktop,macOS,,(direct),(none),0
+javascript_error,8401204324.368673,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,1579406866.96365,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,1590548317.1258576,1,desktop,macOS,Singapore,(direct),(none),0
+login,9286075365.808067,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3727645333.9775968,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9917028464.77163,1,desktop,Windows,,(direct),(none),0
+first_visit,1098681267.455012,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,9312497830.30973,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,5337325818.317813,1,desktop,macOS,,(direct),(none),0
+login,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9511701079.460356,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,6452436418.712981,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,4752317266.424378,1,desktop,macOS,Singapore,(referral),referral,0
+javascript_error,9580197593.709215,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,8789504094.742397,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4980740620.249357,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9019709263.474009,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8962873739.567862,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,1311187015.6406667,1,desktop,macOS,Central Singapore,(direct),(none),0
+form_submit,8999402914.483046,1,desktop,macOS,Singapore,(referral),referral,0
+page_view,1208411965.298038,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7546082791.216015,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,1098681267.455012,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,8548242451.915548,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,8548242451.915548,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9638315709.435,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8391830846.564149,1,desktop,Windows,Singapore,(direct),(none),0
+login,7479120336.423056,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1302326237.762634,1,desktop,macOS,Singapore,(direct),(none),0
+login,9471779829.9604,1,desktop,Windows,,(direct),(none),0
+javascript_error,8977272162.882082,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,5404418656.13088,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3396543197.901001,1,desktop,macOS,,(direct),(none),1
+virtual_page_load_time,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,8831376652.19018,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,6092529374.757284,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4202990882.13622,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,4323465507.5455065,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8401204324.368673,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,7274278335.725636,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2615935458.728316,1,desktop,macOS,,(direct),(none),0
+login,8548242451.915548,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9078378578.247969,1,desktop,macOS,Singapore,(direct),(none),0
+login,2615935458.728316,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,3575133498.200388,1,desktop,macOS,,(direct),(none),0
+javascript_error,2645951559.8600206,1,mobile,iOS,Singapore,(direct),(none),1
+virtual_page_load_time,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9219974946.480968,1,desktop,macOS,Singapore,(direct),(none),0
+login,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2982944137.8176875,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,4980740620.249357,1,desktop,Windows,Singapore,(direct),(none),0
+login,6778245110.47197,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2615935458.728316,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3572052070.76376,1,desktop,Windows,,(direct),(none),1
+javascript_error,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,2929296143.385878,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,1590548317.1258576,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,8401204324.368673,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9834208859.871237,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,4323465507.5455065,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,9312497830.30973,1,desktop,Windows,,(direct),(none),0
+login,3986673048.4733534,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9312497830.30973,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7552017085.430901,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,macOS,,(direct),(none),0
+javascript_error,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,4638858844.282696,1,mobile,iOS,Singapore,(direct),(none),0
+page_view,9511701079.460356,1,desktop,macOS,Central Singapore,(direct),(none),0
+login,9580197593.709215,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3046532072.263701,1,desktop,Windows,,(direct),(none),0
+page_view,5271835298.889677,1,desktop,macOS,,(direct),(none),0
+javascript_error,3547834980.3856707,1,desktop,Windows,Central Singapore,(direct),(none),1
+virtual_page_load_time,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),1
+first_visit,9917028464.77163,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,9781764231.46115,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1208411965.298038,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,5328896479.802444,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,4814843716.449596,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8391830846.564149,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3572052070.76376,1,desktop,Windows,,(direct),(none),0
+login_otp_view,9242742741.520424,1,desktop,macOS,,(direct),(none),0
+login_otp_view,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4400171448.669835,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,8977272162.882082,1,desktop,macOS,,(direct),(none),0
+page_view,3889669098.802765,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9580197593.709215,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1095126406.4093568,1,desktop,macOS,Singapore,(referral),referral,0
+login,8962873739.567862,1,desktop,Windows,Singapore,(direct),(none),0
+login,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,1765376847.6518931,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,9203729420.761017,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7546082791.216015,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9286075365.808067,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8789504094.742397,1,desktop,macOS,,(direct),(none),1
+page_view,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2615935458.728316,1,desktop,macOS,Singapore,(direct),(none),1
+login,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,6092529374.757284,1,desktop,macOS,Central Singapore,(direct),(none),0
+Authenticated User,2615935458.728316,1,desktop,Windows,Central Singapore,(direct),(none),0
+javascript_error,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,9511701079.460356,1,desktop,macOS,,(direct),(none),0
+login,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,1903059783.143024,1,desktop,Windows,Singapore,(direct),(none),0
+login,4592532859.984282,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,7552017085.430901,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,9312497830.30973,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2274944963.529047,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,1903059783.143024,1,desktop,macOS,,(direct),(none),0
+javascript_error,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8155454195.973104,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,2274944963.529047,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,3046532072.263701,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,1311187015.6406667,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,6114726901.7575655,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7552017085.430901,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2929296143.385878,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+form_submit,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,9580197593.709215,1,desktop,Windows,Singapore,(referral),referral,0
+javascript_error,3295263970.7811265,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,6778245110.47197,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,3575133498.200388,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,5221710251.614656,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9019709263.474009,1,desktop,Windows,Central Singapore,(direct),(none),0
+user_engagement,1579406866.96365,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,5553179427.905471,1,desktop,Windows,Singapore,(direct),(none),1
+login,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2929296143.385878,1,desktop,macOS,Singapore,(direct),(none),1
+login,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7552017085.430901,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4202990882.13622,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,5328896479.802444,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9019709263.474009,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4814843716.449596,1,desktop,macOS,,(direct),(none),0
+login,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7479120336.423056,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,5073917392.470713,1,desktop,macOS,,(direct),(none),0
+page_view,7274278335.725636,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3818159063.364424,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9286075365.808067,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,6880863413.701577,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,5419257589.180461,1,desktop,Windows,Central Singapore,(referral),referral,0
+javascript_error,6870379282.995956,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,9265154944.899696,1,desktop,macOS,Singapore,(direct),(none),0
+login,1889585583.7467337,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,5850277009.955588,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9471779829.9604,1,desktop,macOS,Singapore,(direct),(none),0
+login,2493524417.994997,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1302326237.762634,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2972749052.5462923,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,4464639424.353031,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,3575133498.200388,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9471779829.9604,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9559148595.393116,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9219974946.480968,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,6092529374.757284,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6880863413.701577,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4464639424.353031,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,3396543197.901001,1,desktop,Windows,Singapore,(direct),(none),0
+login,4464639424.353031,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7178508039.12229,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3727645333.9775968,1,desktop,macOS,Singapore,(referral),referral,1
+virtual_page_load_time,6858629855.7416,1,desktop,macOS,,(direct),(none),0
+session_start,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4400171448.669835,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1579406866.96365,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9834208859.871237,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9839450034.696367,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9312497830.30973,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5337325818.317813,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4638858844.282696,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,4400171448.669835,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,3053924237.616631,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2493524417.994997,1,desktop,macOS,Singapore,(referral),referral,1
+javascript_error,9917028464.77163,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,1302326237.762634,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8401204324.368673,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9559148595.393116,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9078378578.247969,1,desktop,macOS,,(direct),(none),0
+user_engagement,9839450034.696367,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,5328896479.802444,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,7178508039.12229,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,8033119301.238212,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,6114726901.7575655,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3986673048.4733534,1,desktop,macOS,Singapore,(direct),(none),0
+login,1095126406.4093568,1,desktop,Windows,,(direct),(none),0
+Authenticated User,2441481291.1053567,1,desktop,macOS,,(direct),(none),0
+user_engagement,4400171448.669835,1,desktop,macOS,,(direct),(none),0
+login,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+login,6786903943.699848,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1095126406.4093568,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1098681267.455012,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,2441481291.1053567,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,6778245110.47197,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,4754378618.436832,1,desktop,macOS,,(direct),(none),0
+javascript_error,9279276665.313663,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,3295263970.7811265,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,3727645333.9775968,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1098681267.455012,0,desktop,macOS,Singapore,(direct),(none),0
+page_view,5031311184.754516,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8831376652.19018,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,2645951559.8600206,1,desktop,macOS,Central Singapore,(direct),(none),0
+Authenticated User,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5328896479.802444,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,8831376652.19018,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9312497830.30973,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,4224666978.163954,1,desktop,Windows,Central Singapore,(direct),(none),0
+page_view,7552017085.430901,1,desktop,Windows,Central Singapore,(direct),(none),0
+Authenticated User,1903059783.143024,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9312497830.30973,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2441481291.1053567,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5271835298.889677,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5404418656.13088,1,desktop,macOS,,(direct),(none),0
+javascript_error,9471779829.9604,1,desktop,Windows,Central Singapore,(direct),(none),1
+login,9397281857.753096,1,desktop,macOS,,(direct),(none),0
+page_view,1579406866.96365,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4638858844.282696,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1765376847.6518931,1,desktop,macOS,,(direct),(none),0
+login_otp_view,1098681267.455012,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8977272162.882082,1,desktop,Windows,Central Singapore,(direct),(none),0
+javascript_error,9265154944.899696,1,desktop,Windows,,(direct),(none),1
+javascript_error,9471779829.9604,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,5328896479.802444,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,4656011753.6115885,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9559148595.393116,1,desktop,Windows,Singapore,(direct),(none),0
+login,5221710251.614656,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,6778245110.47197,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9286075365.808067,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8155454195.973104,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2982944137.8176875,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1311187015.6406667,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,4464639424.353031,1,desktop,macOS,Central Singapore,(direct),(none),0
+javascript_error,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,4400171448.669835,1,desktop,macOS,,(direct),(none),1
+javascript_error,1903059783.143024,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3986673048.4733534,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9242742741.520424,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9839450034.696367,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9286075365.808067,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,9781764231.46115,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8999402914.483046,1,desktop,macOS,Central Singapore,(direct),(none),0
+javascript_error,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,2493524417.994997,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3889669098.802765,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1903059783.143024,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8962873739.567862,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,9781764231.46115,1,desktop,Windows,Central Singapore,(direct),(none),0
+form_submit,9511701079.460356,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9638315709.435,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4464639424.353031,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8789504094.742397,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4281756113.8510566,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8401204324.368673,1,desktop,Windows,Central Singapore,(direct),(none),1
+virtual_page_load_time,9265154944.899696,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,3874866185.328192,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),1
+scroll,1546516959.6691127,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9834208859.871237,1,desktop,macOS,,(direct),(none),1
+page_view,5553179427.905471,1,desktop,macOS,Central Singapore,(direct),(none),0
+user_engagement,9273285715.497375,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9203729420.761017,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,9834208859.871237,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4202990882.13622,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4980740620.249357,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9917028464.77163,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3986673048.4733534,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,9834208859.871237,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9638315709.435,1,desktop,Windows,,(direct),(none),0
+user_engagement,4547256337.367772,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1903059783.143024,1,desktop,Windows,Singapore,(referral),referral,0
+page_view,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,8166618829.112005,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1302326237.762634,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3547834980.3856707,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6778245110.47197,1,desktop,macOS,Singapore,(referral),referral,0
+javascript_error,5073917392.470713,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9273285715.497375,1,desktop,macOS,,(direct),(none),0
+page_view,9917028464.77163,1,desktop,Windows,,(direct),(none),0
+page_view,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9279276665.313663,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9078378578.247969,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,2615935458.728316,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1903059783.143024,1,desktop,Windows,Central Singapore,(direct),(none),0
+Authenticated User,1302326237.762634,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,8548242451.915548,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),1
+session_start,6870379282.995956,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,4400171448.669835,1,desktop,Windows,Central Singapore,(direct),(none),0
+Authenticated User,2493524417.994997,1,desktop,macOS,Singapore,(direct),(none),0
+login,7546082791.216015,1,desktop,macOS,,(direct),(none),0
+page_view,3053924237.616631,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3986673048.4733534,1,desktop,macOS,Singapore,(direct),(none),1
+session_start,7479120336.423056,0,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9397281857.753096,1,desktop,macOS,,(direct),(none),0
+page_view,3818159063.364424,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2929296143.385878,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,3053924237.616631,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9312497830.30973,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4400171448.669835,1,desktop,macOS,,(direct),(none),1
+virtual_page_load_time,9917028464.77163,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5031311184.754516,1,desktop,Windows,,(referral),referral,0
+page_view,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),1
+scroll,4464639424.353031,1,desktop,Windows,,(direct),(none),0
+page_view,1095126406.4093568,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,3889669098.802765,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1846962304.8269527,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,7552017085.430901,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3889669098.802765,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7178508039.12229,1,desktop,macOS,,(direct),(none),0
+Authenticated User,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9638315709.435,1,desktop,Windows,,(direct),(none),0
+login_otp_view,9559148595.393116,1,desktop,Windows,,(direct),(none),0
+login,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6452436418.712981,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,8155454195.973104,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4814843716.449596,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4592532859.984282,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7295668055.298718,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2972749052.5462923,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,6380491780.96549,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9580197593.709215,1,desktop,Windows,,(direct),(none),0
+page_view,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,6380491780.96549,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9471779829.9604,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1579406866.96365,1,desktop,macOS,Singapore,(direct),(none),0
+login,8033119301.238212,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,8391830846.564149,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,6452436418.712981,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9019709263.474009,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1579406866.96365,1,desktop,macOS,Central Singapore,(direct),(none),0
+Authenticated User,5073917392.470713,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,8278213316.363795,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5271835298.889677,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,7552017085.430901,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,6786903943.699848,1,desktop,macOS,,(direct),(none),0
+login,6452436418.712981,1,desktop,macOS,Singapore,(direct),(none),0
+login,4281756113.8510566,1,desktop,macOS,,(direct),(none),0
+page_view,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8831376652.19018,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9242742741.520424,1,desktop,macOS,Singapore,(referral),referral,0
+virtual_page_load_time,3572052070.76376,1,desktop,Windows,,(direct),(none),0
+user_engagement,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2982944137.8176875,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9834208859.871237,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5850277009.955588,1,desktop,macOS,,(direct),(none),0
+page_view,5554444636.444482,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,1765376847.6518931,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+login,3053924237.616631,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,2441481291.1053567,1,desktop,macOS,,(direct),(none),0
+login,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2274944963.529047,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9839450034.696367,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1579406866.96365,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,2709539860.2945724,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,3986673048.4733534,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,2929296143.385878,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3046532072.263701,1,desktop,Windows,,(referral),referral,0
+login,1311187015.6406667,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,4202990882.13622,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,2441481291.1053567,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,3046532072.263701,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2972749052.5462923,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,4754378618.436832,1,desktop,macOS,Singapore,(direct),(none),0
+login,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+login,6114726901.7575655,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,9397281857.753096,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4202990882.13622,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5221710251.614656,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,8548242451.915548,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9273285715.497375,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,4814843716.449596,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,4281756113.8510566,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9219974946.480968,1,desktop,Windows,,(direct),(none),0
+javascript_error,9312497830.30973,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,6870379282.995956,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,2929296143.385878,1,desktop,Windows,,(direct),(none),0
+javascript_error,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,1208411965.298038,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8278213316.363795,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2493524417.994997,1,desktop,macOS,,(direct),(none),0
+login,6114726901.7575655,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2693232085.4658227,1,desktop,Windows,,(direct),(none),0
+javascript_error,4323465507.5455065,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,7295668055.298718,1,desktop,Windows,,(direct),(none),0
+page_view,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),0
+login,1208411965.298038,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4202990882.13622,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6114726901.7575655,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2441481291.1053567,1,desktop,macOS,,(direct),(none),0
+first_visit,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,5419257589.180461,1,desktop,macOS,,(direct),(none),0
+user_engagement,8278213316.363795,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6380491780.96549,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,1302326237.762634,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5337325818.317813,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6452436418.712981,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),1
+login,5850277009.955588,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4224666978.163954,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,8155454195.973104,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,4464639424.353031,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7552017085.430901,1,desktop,macOS,,(direct),(none),0
+session_start,5337325818.317813,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,4224666978.163954,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,6092529374.757284,1,desktop,macOS,,(direct),(none),1
+page_view,7274278335.725636,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3986673048.4733534,1,desktop,macOS,,(referral),referral,1
+javascript_error,1208411965.298038,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7178508039.12229,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8789504094.742397,1,desktop,Windows,Singapore,(direct),(none),1
+login,4281756113.8510566,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9781764231.46115,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,4752317266.424378,1,desktop,macOS,Singapore,(referral),referral,0
+login,8999402914.483046,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9286075365.808067,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,1579406866.96365,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1579406866.96365,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8155454195.973104,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,7552017085.430901,1,desktop,macOS,,(direct),(none),0
+page_view,4254688189.434436,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,1098681267.455012,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8033119301.238212,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),1
+session_start,9580197593.709215,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4980740620.249357,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9078378578.247969,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,6452436418.712981,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9273285715.497375,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9580197593.709215,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,9820104033.92473,1,desktop,macOS,,(direct),(none),1
+page_view,6452436418.712981,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,3575133498.200388,1,desktop,macOS,,(direct),(none),0
+javascript_error,6880863413.701577,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,5271835298.889677,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6786903943.699848,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,8401204324.368673,1,desktop,Windows,,(direct),(none),0
+login,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,7178508039.12229,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,8789504094.742397,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3046532072.263701,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,8103771472.845114,1,desktop,macOS,Central Singapore,(direct),(none),0
+virtual_page_load_time,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2929296143.385878,1,desktop,Windows,Singapore,(direct),(none),1
+login_otp_view,5419257589.180461,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,7552017085.430901,1,desktop,Windows,,(direct),(none),1
+virtual_page_load_time,8278213316.363795,1,desktop,Windows,Singapore,(referral),referral,0
+javascript_error,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,2709539860.2945724,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3889669098.802765,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9279276665.313663,1,desktop,Windows,Central Singapore,(direct),(none),0
+javascript_error,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,2615935458.728316,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,9397281857.753096,1,desktop,macOS,Singapore,(direct),(none),0
+login,4281756113.8510566,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,8962873739.567862,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,1311187015.6406667,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,3986673048.4733534,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7178508039.12229,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,4656011753.6115885,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4814843716.449596,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4323465507.5455065,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8166618829.112005,1,desktop,macOS,Singapore,(direct),(none),1
+login_otp_view,3986673048.4733534,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9203729420.761017,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9203729420.761017,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9242742741.520424,1,mobile,iOS,Singapore,(referral),referral,0
+page_view,9273285715.497375,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,9397281857.753096,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6880863413.701577,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,8103771472.845114,1,desktop,macOS,,(direct),(none),0
+page_view,4254688189.434436,1,desktop,macOS,Central Singapore,(direct),(none),0
+javascript_error,5337325818.317813,1,desktop,macOS,Central Singapore,(direct),(none),1
+page_view,7479120336.423056,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,2274944963.529047,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,4499382681.600982,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4202990882.13622,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9242742741.520424,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,9781764231.46115,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,8831376652.19018,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,6880863413.701577,1,desktop,macOS,Singapore,(direct),(none),0
+form_submit,9514310254.528845,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9917028464.77163,1,desktop,macOS,Central Singapore,(direct),(none),1
+user_engagement,8977272162.882082,1,desktop,macOS,Singapore,(referral),referral,0
+virtual_page_load_time,1252076048.5564077,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,9580197593.709215,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4547256337.367772,1,desktop,macOS,,(direct),(none),1
+first_visit,9242742741.520424,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2274944963.529047,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,4814843716.449596,1,desktop,macOS,Central Singapore,(direct),(none),0
+login,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5850277009.955588,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,4814843716.449596,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2274944963.529047,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,7274278335.725636,1,desktop,Windows,Singapore,(direct),(none),0
+login,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4754378618.436832,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,9781764231.46115,1,desktop,Windows,,(direct),(none),1
+javascript_error,4323465507.5455065,1,desktop,macOS,,(direct),(none),1
+page_view,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6452436418.712981,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2274944963.529047,1,desktop,Windows,,(direct),(none),1
+form_submit,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9917028464.77163,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,1098681267.455012,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4254688189.434436,1,desktop,macOS,,(direct),(none),0
+user_engagement,9638315709.435,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4638858844.282696,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,9219974946.480968,1,desktop,Windows,Central Singapore,(direct),(none),1
+Authenticated User,9219974946.480968,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9242742741.520424,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8831376652.19018,1,desktop,Windows,Singapore,(direct),(none),1
+login,4464639424.353031,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,5850277009.955588,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9511701079.460356,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,8103771472.845114,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4754378618.436832,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3053924237.616631,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4281756113.8510566,1,desktop,macOS,Singapore,(direct),(none),1
+scroll,1208411965.298038,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+login,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3874866185.328192,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,8789504094.742397,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2545955708.8906507,1,desktop,Windows,,(direct),(none),1
+javascript_error,6092529374.757284,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,8401204324.368673,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,7178508039.12229,1,desktop,Windows,Singapore,(direct),(none),1
+login,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,4254688189.434436,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,8962873739.567862,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,1889585583.7467337,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5404418656.13088,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2972749052.5462923,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9781764231.46115,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4224666978.163954,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1095126406.4093568,1,desktop,macOS,Singapore,(referral),referral,1
+javascript_error,1546516959.6691127,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,3572052070.76376,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,3547834980.3856707,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,9279276665.313663,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,2274944963.529047,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9279276665.313663,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3986673048.4733534,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,5271835298.889677,1,desktop,Windows,,(direct),(none),0
+login,6452436418.712981,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+login,7714262531.610063,1,desktop,macOS,,(direct),(none),0
+page_view,7295668055.298718,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9397281857.753096,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3396543197.901001,1,desktop,Windows,Singapore,(direct),(none),1
+form_submit,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2274944963.529047,1,desktop,Windows,,(direct),(none),0
+javascript_error,9219974946.480968,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,9580197593.709215,1,mobile,iOS,Singapore,(direct),(none),1
+virtual_page_load_time,4814843716.449596,1,desktop,macOS,Singapore,(direct),(none),0
+login,9580197593.709215,1,desktop,macOS,Central Singapore,(direct),(none),0
+user_engagement,5271835298.889677,1,desktop,Windows,Singapore,(direct),(none),0
+login,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,4592532859.984282,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9471779829.9604,1,desktop,macOS,,(direct),(none),0
+login,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9265154944.899696,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2274944963.529047,1,desktop,macOS,Singapore,(direct),(none),0
+login,4499382681.600982,1,desktop,macOS,,(direct),(none),0
+javascript_error,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,1903059783.143024,1,desktop,Windows,,(direct),(none),0
+login_otp_view,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3889669098.802765,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4547256337.367772,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,9078378578.247969,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9279276665.313663,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9834208859.871237,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,1846962304.8269527,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2274944963.529047,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),1
+user_engagement,1590548317.1258576,1,desktop,macOS,,(direct),(none),0
+Authenticated User,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9242742741.520424,1,desktop,Windows,,(direct),(none),0
+session_start,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2929296143.385878,1,desktop,macOS,Singapore,(direct),(none),0
+first_visit,5031311184.754516,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1098681267.455012,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9781764231.46115,1,desktop,Windows,,(direct),(none),0
+login,5031311184.754516,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9279276665.313663,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,6380491780.96549,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4323465507.5455065,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6092529374.757284,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4638858844.282696,1,desktop,macOS,,(direct),(none),0
+user_engagement,5031311184.754516,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,9078378578.247969,1,desktop,macOS,Singapore,(referral),referral,0
+virtual_page_load_time,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5850277009.955588,1,desktop,macOS,,(direct),(none),0
+javascript_error,6092529374.757284,0,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,5221710251.614656,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,8278213316.363795,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,5271835298.889677,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9820104033.92473,0,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4254688189.434436,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9511701079.460356,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,4224666978.163954,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1846962304.8269527,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,2615935458.728316,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3572052070.76376,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,3053924237.616631,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,4499382681.600982,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2709539860.2945724,1,desktop,macOS,,(direct),(none),0
+user_engagement,1579406866.96365,1,desktop,Windows,Singapore,(direct),(none),0
+login,4464639424.353031,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1862076308.9945488,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,1095126406.4093568,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,8999402914.483046,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,4400171448.669835,1,desktop,Windows,,(referral),referral,0
+Authenticated User,3396543197.901001,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4754378618.436832,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,7274278335.725636,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8401204324.368673,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1098681267.455012,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,1903059783.143024,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9205924667.969608,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),1
+login_otp_view,7178508039.12229,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6114726901.7575655,1,desktop,macOS,Singapore,(direct),(none),0
+form_submit,6778245110.47197,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,7479120336.423056,1,desktop,macOS,,(direct),(none),1
+virtual_page_load_time,7178508039.12229,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3874866185.328192,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,4400171448.669835,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,7295668055.298718,1,desktop,Windows,Central Singapore,(direct),(none),0
+login_otp_view,5404418656.13088,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,7546082791.216015,1,desktop,macOS,Central Singapore,(direct),(none),1
+scroll,4499382681.600982,1,desktop,Windows,,(direct),(none),0
+Authenticated User,3547834980.3856707,0,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3986673048.4733534,1,desktop,macOS,Singapore,(direct),(none),1
+login,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,1252076048.5564077,1,desktop,macOS,,(direct),(none),0
+login_otp_view,9917028464.77163,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9203729420.761017,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,1903059783.143024,1,desktop,Windows,,(direct),(none),0
+login_otp_view,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2709539860.2945724,1,desktop,Windows,Singapore,(direct),(none),0
+first_visit,5850277009.955588,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9514310254.528845,1,desktop,macOS,,(direct),(none),0
+javascript_error,2441481291.1053567,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,4224666978.163954,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9580197593.709215,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5221710251.614656,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9242742741.520424,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2982944137.8176875,1,desktop,macOS,,(direct),(none),0
+login,8999402914.483046,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,3889669098.802765,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,9471779829.9604,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8166618829.112005,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6870379282.995956,1,desktop,macOS,Singapore,(referral),referral,0
+page_view,9286075365.808067,1,desktop,macOS,Central Singapore,(direct),(none),0
+login,4464639424.353031,1,desktop,macOS,,(direct),(none),0
+login,7274278335.725636,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1846962304.8269527,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,3295263970.7811265,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9511701079.460356,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1311187015.6406667,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,9834208859.871237,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,5221710251.614656,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,5850277009.955588,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4752317266.424378,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,6452436418.712981,1,desktop,Windows,Singapore,(direct),(none),0
+login,4656011753.6115885,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,2972749052.5462923,1,desktop,macOS,Singapore,(direct),(none),0
+login,3818159063.364424,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,4638858844.282696,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4315582630.519032,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,8999402914.483046,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,1252076048.5564077,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,2615935458.728316,1,desktop,Windows,,(direct),(none),0
+javascript_error,2493524417.994997,1,desktop,Windows,,(direct),(none),1
+page_view,9265154944.899696,1,desktop,macOS,,(direct),(none),0
+login_otp_view,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2615935458.728316,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9511701079.460356,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,8401204324.368673,1,desktop,macOS,,(direct),(none),0
+login_otp_view,6786903943.699848,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9580197593.709215,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,8391830846.564149,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5553179427.905471,1,desktop,macOS,Singapore,(direct),(none),0
+login,9917028464.77163,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,4202990882.13622,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,6778245110.47197,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+login,3059556864.3467145,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,7552017085.430901,1,desktop,Windows,Central Singapore,(direct),(none),1
+session_start,9203729420.761017,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2493524417.994997,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9273285715.497375,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1546516959.6691127,1,desktop,Windows,,(direct),(none),1
+Authenticated User,9638315709.435,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1546516959.6691127,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4980740620.249357,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8278213316.363795,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3572052070.76376,1,desktop,Windows,Singapore,(referral),referral,0
+page_view,5553179427.905471,1,desktop,Windows,,(direct),(none),0
+first_visit,4547256337.367772,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,5031311184.754516,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,4202990882.13622,1,desktop,macOS,Singapore,(direct),(none),0
+login,9219974946.480968,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5554444636.444482,1,desktop,Windows,,(direct),(none),0
+scroll,8166618829.112005,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,3547834980.3856707,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9514310254.528845,1,desktop,macOS,Singapore,(direct),(none),0
+login,4814843716.449596,1,desktop,macOS,Singapore,(direct),(none),0
+login,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5554444636.444482,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,9723002124.90124,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,9078378578.247969,1,desktop,Windows,Singapore,(direct),(none),1
+login,9820104033.92473,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4752317266.424378,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,3396543197.901001,1,desktop,macOS,,(direct),(none),0
+javascript_error,1889585583.7467337,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,5031311184.754516,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5850277009.955588,1,desktop,Windows,Central Singapore,(direct),(none),0
+javascript_error,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,6870379282.995956,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4980740620.249357,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,4202990882.13622,1,desktop,Windows,,(direct),(none),0
+Authenticated User,2615935458.728316,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8548242451.915548,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9514310254.528845,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2645951559.8600206,1,desktop,Windows,Singapore,(direct),(none),0
+login,2709539860.2945724,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4315582630.519032,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,4754378618.436832,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,6858629855.7416,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9019709263.474009,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5328896479.802444,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5850277009.955588,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,4656011753.6115885,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8789504094.742397,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3889669098.802765,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,2929296143.385878,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9078378578.247969,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9397281857.753096,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),1
+login,9559148595.393116,1,desktop,Windows,Central Singapore,(direct),(none),0
+page_view,6092529374.757284,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5850277009.955588,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,2972749052.5462923,1,desktop,Windows,,(direct),(none),0
+form_submit,3818159063.364424,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2493524417.994997,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7479120336.423056,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4980740620.249357,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9559148595.393116,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7479120336.423056,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,8278213316.363795,1,desktop,macOS,,(direct),(none),0
+scroll,9273285715.497375,1,desktop,Windows,Central Singapore,(direct),(none),0
+login,2493524417.994997,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3053924237.616631,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,4323465507.5455065,1,desktop,Windows,,(direct),(none),0
+first_visit,9834208859.871237,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2982944137.8176875,1,desktop,macOS,,(direct),(none),0
+Authenticated User,2545955708.8906507,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1846962304.8269527,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,4400171448.669835,1,desktop,Windows,,(direct),(none),0
+javascript_error,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),1
+javascript_error,1546516959.6691127,1,desktop,Windows,Singapore,(direct),(none),1
+user_engagement,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+login,5404418656.13088,1,desktop,macOS,Singapore,(direct),(none),0
+session_start,1095126406.4093568,1,desktop,macOS,Central Singapore,(direct),(none),0
+Authenticated User,1302326237.762634,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3889669098.802765,1,desktop,Windows,Central Singapore,(direct),(none),0
+page_view,5328896479.802444,1,desktop,macOS,,(direct),(none),0
+javascript_error,3572052070.76376,1,desktop,macOS,Singapore,(referral),referral,1
+javascript_error,6092529374.757284,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,5221710251.614656,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9559148595.393116,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,3046532072.263701,1,desktop,Windows,Singapore,(direct),(none),0
+form_submit,2929296143.385878,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9312497830.30973,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4499382681.600982,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8548242451.915548,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,3572052070.76376,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9820104033.92473,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,2615935458.728316,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,9205924667.969608,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,2645951559.8600206,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,8789504094.742397,1,desktop,macOS,Singapore,(referral),referral,0
+Authenticated User,1095126406.4093568,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2709539860.2945724,1,desktop,Windows,,(direct),(none),0
+page_view,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),0
+login,4202990882.13622,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,7295668055.298718,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5073917392.470713,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,7546082791.216015,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,5553179427.905471,1,desktop,Windows,,(direct),(none),0
+login_otp_view,9638315709.435,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9511701079.460356,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2709539860.2945724,1,desktop,Windows,Central Singapore,(referral),referral,0
+scroll,9286075365.808067,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),1
+login,1846962304.8269527,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,5328896479.802444,1,desktop,Windows,,(direct),(none),0
+scroll,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),1
+Authenticated User,1546516959.6691127,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,6452436418.712981,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,5553179427.905471,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9279276665.313663,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+scroll,2441481291.1053567,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,6786903943.699848,1,desktop,macOS,Central Singapore,(direct),(none),0
+login,7546082791.216015,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9580197593.709215,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,3727645333.9775968,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,2274944963.529047,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,8401204324.368673,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4752317266.424378,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,2274944963.529047,1,desktop,Windows,Singapore,(referral),referral,0
+login,2982944137.8176875,1,desktop,Windows,Singapore,(direct),(none),0
+login,1862076308.9945488,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,9964994370.649103,1,desktop,Windows,Singapore,(direct),(none),1
+first_visit,3652299024.24816,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,9205924667.969608,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,3652299024.24816,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),1
+user_engagement,5221710251.614656,1,desktop,Windows,Singapore,(direct),(none),0
+login,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,1862076308.9945488,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8999402914.483046,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2274944963.529047,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,8831376652.19018,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,9397281857.753096,1,desktop,macOS,,(direct),(none),0
+javascript_error,9203729420.761017,1,desktop,Windows,Singapore,(direct),(none),1
+Authenticated User,4980740620.249357,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8831376652.19018,1,desktop,Windows,Singapore,(direct),(none),0
+login_otp_view,4592532859.984282,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,4323465507.5455065,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,1208411965.298038,1,desktop,macOS,,(direct),(none),1
+virtual_page_load_time,6380491780.96549,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,7552017085.430901,1,desktop,macOS,,(direct),(none),0
+page_view,8962873739.567862,1,desktop,macOS,,(direct),(none),0
+javascript_error,7274278335.725636,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9397281857.753096,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,6858629855.7416,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,7546082791.216015,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,5850277009.955588,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,3547834980.3856707,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,8391830846.564149,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,1765376847.6518931,1,desktop,Windows,Singapore,(direct),(none),0
+session_start,7714262531.610063,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,9839450034.696367,1,desktop,Windows,,(direct),(none),1
+session_start,5031311184.754516,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,4592532859.984282,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,1846962304.8269527,1,desktop,macOS,,(direct),(none),1
+virtual_page_load_time,7714262531.610063,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,2693232085.4658227,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4400171448.669835,1,desktop,macOS,Singapore,(direct),(none),0
+user_engagement,5419257589.180461,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2545955708.8906507,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1903059783.143024,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,3046532072.263701,1,desktop,macOS,Singapore,(direct),(none),1
+page_view,5419257589.180461,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,1252076048.5564077,1,desktop,macOS,Singapore,(direct),(none),0
+login,6880863413.701577,1,desktop,macOS,,(direct),(none),0
+virtual_page_load_time,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,8977272162.882082,1,desktop,macOS,Singapore,(direct),(none),1
+login_otp_view,9964994370.649103,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1590548317.1258576,1,desktop,macOS,Singapore,(direct),(none),0
+login,7274278335.725636,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,3575133498.200388,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,7274278335.725636,1,desktop,Windows,Central Singapore,(direct),(none),1
+session_start,7552017085.430901,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,9834208859.871237,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6870379282.995956,1,desktop,macOS,Central Singapore,(direct),(none),0
+page_view,2274944963.529047,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,4464639424.353031,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,8831376652.19018,1,desktop,Windows,Singapore,(direct),(none),0
+scroll,3575133498.200388,1,desktop,Windows,,(direct),(none),0
+javascript_error,1903059783.143024,1,desktop,Windows,Singapore,(direct),(none),1
+page_view,3295263970.7811265,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,5554444636.444482,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9312497830.30973,1,desktop,macOS,Singapore,(direct),(none),0
+login_otp_view,4592532859.984282,1,desktop,Windows,,(direct),(none),0
+page_view,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,6880863413.701577,1,desktop,Windows,Singapore,(direct),(none),0
+login,1765376847.6518931,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,6870379282.995956,1,desktop,macOS,Singapore,(direct),(none),1
+first_visit,9580197593.709215,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6786903943.699848,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,2709539860.2945724,1,desktop,macOS,Singapore,(referral),referral,0
+Authenticated User,4464639424.353031,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,5328896479.802444,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,2441481291.1053567,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,8033119301.238212,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,5337325818.317813,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,9723002124.90124,1,desktop,macOS,Singapore,(direct),(none),0
+javascript_error,2693232085.4658227,1,desktop,Windows,Singapore,(direct),(none),1
+virtual_page_load_time,3874866185.328192,1,desktop,Windows,Singapore,(direct),(none),0
+user_engagement,3396543197.901001,1,desktop,Windows,,(direct),(none),0
+scroll,8999402914.483046,1,desktop,Windows,,(direct),(none),0
+virtual_page_load_time,1765376847.6518931,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+javascript_error,3572052070.76376,1,desktop,macOS,Singapore,(direct),(none),1
+javascript_error,5221710251.614656,1,desktop,macOS,,(direct),(none),1
+Authenticated User,9723002124.90124,1,desktop,macOS,,(direct),(none),0
+page_view,4814843716.449596,1,desktop,macOS,Singapore,(direct),(none),0
+virtual_page_load_time,1590548317.1258576,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,3059556864.3467145,1,desktop,Windows,Singapore,(direct),(none),0
+page_view,9723002124.90124,1,desktop,Windows,,(direct),(none),0
+page_view,2929296143.385878,1,desktop,macOS,,(direct),(none),0
+login_otp_view,9219974946.480968,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,9471779829.9604,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,1252076048.5564077,1,desktop,Windows,Singapore,(direct),(none),0
+virtual_page_load_time,6778245110.47197,1,desktop,macOS,Singapore,(direct),(none),0
+page_view,9078378578.247969,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,4254688189.434436,1,desktop,Windows,Central Singapore,(direct),(none),0
+virtual_page_load_time,4754378618.436832,1,desktop,Windows,Singapore,(direct),(none),0
+Authenticated User,5553179427.905471,1,desktop,macOS,,(direct),(none),0
+Authenticated User,9205924667.969608,1,desktop,Windows,Singapore,(referral),referral,0
+virtual_page_load_time,8391830846.564149,1,desktop,Windows,Central Singapore,(direct),(none),0
+Authenticated User,6114726901.7575655,1,mobile,iOS,Singapore,(referral),referral,0
+javascript_error,3727645333.9775968,1,desktop,macOS,Singapore,(direct),(none),1
+virtual_page_load_time,9511701079.460356,1,desktop,macOS,Singapore,(direct),(none),0
+Authenticated User,5419257589.180461,1,desktop,macOS,Singapore,(direct),(none),0
