@@ -66,6 +66,16 @@ The report carries the same three ids. A second turn on a conversation is a new 
 
 ## Watch a run live
 
+For local development, start both the agent and the live UI with:
+
+```bash
+make local-ui
+```
+
+Then open `http://localhost:8000/live.html`. The Make target serves the UI on port 8000,
+starts the local agent on port 8088, and configures the page to use the local Responses
+endpoint automatically.
+
 Everything a run does goes out on the Responses stream, so any client can render it:
 every tool call and its full output as `function_call` / `function_call_output` items,
 the model's reasoning summaries and text, and the loop's own events as items named

@@ -64,6 +64,7 @@ details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:va
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
+if (["localhost", "127.0.0.1"].includes(location.hostname)) $("url").value = "http://localhost:8088/responses";
 const tl = $("timeline"); const facts = {tested:0, sup:0, find:0, act:0, skill:0};
 const calls = new Map();          // call_id -> {name, args, li, right}
 let liveStamp = null;
