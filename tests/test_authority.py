@@ -138,6 +138,85 @@ class TestAuthority:
         assert not auth.granted
 
 
+# ------------------------------------------------------------------ human-actionable
+class TestActionsArePeopleSized:
+    """The loop exists to make a person act. An action that names no group, or a group
+    nobody can count, cannot be carried out, so `propose_action` refuses it before
+    authority is even considered."""
+
+    def _belt(self, charter, data, tmp_path):
+        from loop.ledger import Ledger
+        from loop.tools import Toolbelt
+
+        belt = Toolbelt(charter, data, Ledger(tmp_path))
+        h = belt.ledger.append(Hypothesis(question_id="q", statement="long tenure converts",
+                                          kind="proportion_lift", spec={"where": "tenure > 5"}))
+        e = belt.ledger.append(Evidence(hypothesis_id=h.id, gate="proportion_lift",
+                                        verdict=Verdict.SUPPORTED, p_value=0.001,
+                                        adjusted_p_value=0.004, effect_size=1.6, sample_size=400))
+        f = belt.ledger.append(Finding(hypothesis_id=h.id, evidence_id=e.id, question_id="q",
+                                       headline="Tenure over 5 converts more",
+                                       interpretation="y", confidence=0.8))
+        return belt, f
+
+    def _propose(self, belt, f, **over):
+        kwargs = dict(finding_ids=[f.id], action_type="flag",
+                      recommendation="Call every customer with tenure > 5 this month",
+                      params={"where": "tenure > 5"}, blast_radius={"max_per_run": 60},
+                      observation_plan={"metric": "converted", "lag_days": 30})
+        kwargs.update(over)
+        return belt.propose_action(**kwargs)
+
+    def test_a_targeted_action_is_counted_by_code(self, charter, data, tmp_path):
+        belt, f = self._belt(charter, data, tmp_path)
+        res = self._propose(belt, f)
+        assert res["status"] == "approved"
+        assert res["target_rows"] == int((data["tenure"] > 5).sum()) > 0
+        action = belt.ledger.all("action")[0]
+        assert action.params["target_rows"] == res["target_rows"]
+        assert action.blast_radius == {"max_per_run": 60, "unit": "records"}
+
+    def test_refuses_an_action_with_no_group(self, charter, data, tmp_path):
+        belt, f = self._belt(charter, data, tmp_path)
+        res = self._propose(belt, f, params={"estimated": 400})
+        assert res["status"] == "refused" and "params.where" in res["message"]
+        assert not belt.ledger.all("action") and not belt.ledger.all("decision")
+
+    def test_refuses_a_group_a_test_could_not_use(self, charter, data, tmp_path):
+        # The same screen that guards hypotheses guards targets: no acting on the
+        # target column, a forbidden column, or an identifier.
+        belt, f = self._belt(charter, data, tmp_path)
+        for where in ("converted == 1", "secret > 0", "record_id == 'R1'"):
+            res = self._propose(belt, f, params={"where": where})
+            assert res["status"] == "refused", where
+
+    def test_refuses_a_group_that_selects_nobody(self, charter, data, tmp_path):
+        belt, f = self._belt(charter, data, tmp_path)
+        res = self._propose(belt, f, params={"where": "tenure > 10000"})
+        assert res["status"] == "refused" and "selects nobody" in res["message"]
+
+    def test_refuses_an_unstated_blast_radius(self, charter, data, tmp_path):
+        # Without a stated count the charter's cap can never bite.
+        belt, f = self._belt(charter, data, tmp_path)
+        for br in (None, {}, {"count": 60}, {"max_per_run": 0}, {"max_per_run": "60"}):
+            res = self._propose(belt, f, blast_radius=br)
+            assert res["status"] == "refused" and "max_per_run" in res["message"], br
+
+    def test_report_carries_what_a_person_needs(self, charter, data, tmp_path):
+        from loop.runner import action_report
+
+        belt, f = self._belt(charter, data, tmp_path)
+        self._propose(belt, f)
+        row = action_report(belt.ledger.all("action")[0], charter, belt.ledger)
+        assert row["recommendation"].startswith("Call every customer")
+        assert row["target"]["where"] == "tenure > 5" and row["target"]["rows"] > 0
+        assert row["target"] == {"where": "tenure > 5", "rows": row["target"]["rows"],
+                                 "unit": "records", "max_per_run": 60}
+        assert row["observe"] == {"metric": "converted", "lag_days": 30}
+        assert row["evidence"] == [{"headline": "Tenure over 5 converts more", "confidence": 0.8}]
+        assert row["approval_from"] is None and row["status"] == "approved"
+
+
 # ---------------------------------------------------------------------------- charter
 class TestCharterShape:
     def test_rejects_a_charter_that_encodes_a_workflow(self):

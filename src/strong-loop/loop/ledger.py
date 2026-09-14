@@ -143,6 +143,10 @@ class Ledger:
                 {"headline": f.headline, "confidence": f.confidence} for f in findings
             ],
             "actions_proposed": len(self.all("action")),
+            # type + target rule only (~25 tokens each): enough to stop the next iteration
+            # proposing the same action for the same group.
+            "actions": [{"type": a.action_type, "where": a.params.get("where"), "status": a.status}
+                        for a in self.all("action")],
             "recent_tests": recent,
         }
 

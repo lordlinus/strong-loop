@@ -61,7 +61,7 @@ from .ledger import Ledger
 from .models import build_chat_client
 from .questions import questions_from
 from .tools import Toolbelt
-from .types import Verdict
+from .types import Action, Verdict
 
 # Stop when this many consecutive rounds add no supported evidence. Grinding a question
 # space that has stopped yielding is the main way an autonomous loop wastes budget.
@@ -106,6 +106,9 @@ RULES THAT MATTER
 8. Anything you compute in your head is a hunch until a gate has scored it. The same
    goes for anything the toolbox returns — a skill, a web result — it is context, never
    evidence.
+9. An action is something a named person does next week. `propose_action` needs the
+   group as a `params.where` rule (the one you tested), `blast_radius.max_per_run`, and
+   a `recommendation` that says what to do to that group — not what to study.
 
 THROUGHPUT
 Test SEVERAL hypotheses per iteration — aim for three to six `test_hypothesis` calls
@@ -549,15 +552,40 @@ def finalise(charter: RoleCharter, run: RunState) -> dict[str, Any]:
         "findings": [
             {"headline": f.headline, "confidence": f.confidence} for f in run.ledger.all("finding")
         ],
-        "actions": [
-            {"type": a.action_type, "status": a.status, "autonomy": a.autonomy_level.value}
-            for a in run.ledger.all("action")
-        ],
+        "actions": [action_report(a, charter, run.ledger) for a in run.ledger.all("action")],
         "demoted_by_multiple_testing": len(demoted),
         "iteration_log": list(run.log),
     }
     (run.run_dir / "report.json").write_text(json.dumps(report, indent=2, default=str))
     return report
+
+
+def action_report(action: Action, charter: RoleCharter, ledger: Ledger) -> dict[str, Any]:
+    """One action as a person will read it: what to do, to whom, who signs off, how it is
+    checked, and on what evidence. The ledger holds all of this already; a report that
+    drops it leaves the reader with a type name and a status."""
+    decision = ledger.by_id(action.decision_id)
+    findings = [ledger.by_id(i) for i in (decision.finding_ids if decision else [])]
+    right = charter.right(action.action_type)
+    return {
+        "type": action.action_type,
+        "status": action.status,
+        "autonomy": action.autonomy_level.value,
+        "what": right.description if right else "",
+        "recommendation": decision.recommendation if decision else "",
+        "expected_effect": decision.expected_effect if decision else "",
+        "target": {
+            "where": action.params.get("where"),
+            "rows": action.params.get("target_rows"),
+            "unit": action.blast_radius.get("unit"),
+            "max_per_run": action.blast_radius.get("max_per_run"),
+        },
+        "approval_from": right.requires_authority if right else None,
+        # The charter's lag is the default; the plan may state its own.
+        "observe": ({"lag_days": right.observation_lag_days} if right else {}) | action.observation_plan,
+        "evidence": [{"headline": f.headline, "confidence": f.confidence}
+                     for f in findings if f is not None],
+    }
 
 
 def build_toolbox():

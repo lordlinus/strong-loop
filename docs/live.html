@@ -37,6 +37,9 @@ li.prose{padding:.8rem 0 .8rem;border-left:3px solid var(--model);margin:.6rem 0
 li.think{padding:.2rem 0 .2rem 1rem;border-left:3px solid var(--rule);color:var(--graphite);font-size:.88rem;font-style:italic;max-width:70ch}
 li.report{margin-top:1rem;padding:1.2rem;background:var(--paper-2);border:1px solid var(--rule);border-radius:4px}
 li.report h2{font-family:var(--display);margin:0 0 .6rem;font-size:1.3rem} li.report ul{margin:.4rem 0 .8rem 1.2rem;padding:0}
+li.report ol.todo{list-style:decimal;margin:.4rem 0 .8rem 1.4rem;padding:0} .todo li{margin:.6rem 0 .9rem;max-width:72ch}
+.todo .do{font-size:1rem;margin:.15rem 0} .todo dl{display:grid;grid-template-columns:max-content 1fr;gap:.1rem .8rem;margin:.3rem 0 0;font-size:.86rem}
+.todo dt{color:var(--graphite);font-family:var(--mono);font-size:.74rem;letter-spacing:.04em;text-transform:uppercase;padding-top:.15em} .todo dd{margin:0}
 details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:var(--code)} pre{font-family:var(--mono);font-size:.76rem;white-space:pre-wrap;word-break:break-word;background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:.7rem;margin:.4rem 0 0}
 .empty{padding:3rem 0;color:var(--graphite);max-width:60ch}
 /* intake: the three steps a person takes before any model runs */
@@ -193,12 +196,34 @@ function onLoopEvent(name, args, out){
   } else if (name === "loop.report") {
     setLive(null);
     const f = (out.findings || []).map(x => `<li>${esc(x.headline)} <span class="mono muted">${esc(x.confidence)}</span></li>`).join("");
-    const a = (out.actions || []).map(x => `<li><span class="mono">${esc(x.type)}</span> <span class="verdict v-${esc(x.status)}">${esc(String(x.status).toUpperCase())}</span> <span class="mono muted">${esc(x.autonomy)}</span></li>`).join("");
-    add(el(`<li class="report"><h2>Report — ${esc(out.iterations_run)} iterations, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2><p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p><strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>Actions</strong><ul>${a || "<li>none</li>"}</ul><details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details></li>`));
+    const a = (out.actions || []).map(actionCard).join("");
+    add(el(`<li class="report"><h2>Report — ${esc(out.iterations_run)} iterations, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2><p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p><strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>What to do next</strong><ol class="todo">${a || "<li>nothing was authorised — see the findings and the ledger</li>"}</ol><details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details></li>`));
     $("status").textContent = "complete";
   } else if (name === "loop.intake") {
     onIntake(out);
   }
+}
+
+// ---- an action as a to-do: do this · to these · signed off by · checked by · because ----
+function actionCard(x){
+  const t = x.target || {}, o = x.observe || {};
+  const status = String(x.status || "");
+  const who = status === "approved"
+    ? `authorised — carry it out (${esc(x.autonomy)})`
+    : `needs sign-off${x.approval_from ? ` from <strong>${esc(x.approval_from)}</strong>` : ""} before anyone acts (${esc(x.autonomy)})`;
+  const rows = t.rows != null ? `<strong>${Number(t.rows).toLocaleString()}</strong> ${esc(t.unit || "rows")}` : "";
+  const cap = t.max_per_run != null ? ` · act on at most ${Number(t.max_per_run).toLocaleString()} this run` : "";
+  const when = o.lag_days != null ? `after ${esc(o.lag_days)} days` : (o.follow_up_days ? `after ${esc([].concat(o.follow_up_days).join("/"))} days` : "");
+  const ev = (x.evidence || []).map(e => `${esc(e.headline)} <span class="mono muted">${esc(e.confidence)}</span>`).join("<br>");
+  return `<li><span class="mono">${esc(x.type)}</span> <span class="verdict v-${esc(status)}">${esc(status.toUpperCase())}</span>
+    <p class="do">${esc(x.recommendation || x.what || "")}</p>
+    <dl>
+      <dt>to whom</dt><dd>${rows} where <span class="mono">${esc(t.where || "—")}</span>${cap}</dd>
+      <dt>who</dt><dd>${who}</dd>
+      ${x.expected_effect ? `<dt>expect</dt><dd>${esc(x.expected_effect)}</dd>` : ""}
+      <dt>check</dt><dd>${o.metric ? `<span class="mono">${esc(o.metric)}</span> ${when}` : "—"}${o.baseline != null ? ` · baseline ${esc(typeof o.baseline === "object" ? JSON.stringify(o.baseline) : o.baseline)}` : ""}</dd>
+      <dt>because</dt><dd>${ev || "—"}</dd>
+    </dl></li>`;
 }
 
 // ---- intake: what `loop.intake` says, rendered as a decision for the person -------------

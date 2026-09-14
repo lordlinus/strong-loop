@@ -286,12 +286,17 @@ class Toolbelt:
         observation_plan: dict[str, Any] | None = None,
         expected_effect: str = "",
     ) -> dict[str, Any]:
-        """Convert findings into a typed, permissioned action.
+        """Convert findings into a typed, permissioned action a person can carry out.
 
-        `action_type` must be one of the charter's decision rights; `observation_plan`
-        must name a `metric`. The authorisation reasoning is always returned, including on
-        refusal, so a "no" can be fixed or accepted rather than retried blindly.
+        `action_type` must be one of the charter's decision rights. `params.where` must be
+        the pandas rule that names the group acted on — the same rule you tested — and it
+        is screened and counted against the data. `blast_radius.max_per_run` must state
+        how many of the charter's unit the action touches. `observation_plan` must name a
+        `metric`. The authorisation reasoning is always returned, including on refusal, so
+        a "no" can be fixed or accepted rather than retried blindly.
         """
+        if refused := self._untargeted(params, blast_radius, action_type):
+            return refused
         findings = [f for f in self.ledger.all("finding") if f.id in set(finding_ids)]
         evidence_by_id = {e.id: e for e in self.ledger.all("evidence")}
         auth = authorise_action(
@@ -308,16 +313,50 @@ class Toolbelt:
         )
         self.ledger.append(decision)
         right = self.charter.right(action_type)
+        # The group is counted by code, from the rule, so the report states how many the
+        # action reaches rather than however many the model estimated.
+        params = {**(params or {}),
+                  "target_rows": int(gates._mask(self.data, params["where"]).sum())}
+        blast_radius = {**(blast_radius or {}), "unit": right.blast_radius.unit if right else "records"}
         action = Action(
-            decision_id=decision.id, action_type=action_type, params=params or {},
-            blast_radius=blast_radius or {}, observation_plan=observation_plan or {},
+            decision_id=decision.id, action_type=action_type, params=params,
+            blast_radius=blast_radius, observation_plan=observation_plan or {},
         )
         apply_authorisation(action, auth, right.reversible if right else True)
         self.ledger.append(action)
         return {
             "status": action.status, "action_id": action.id, "decision_id": decision.id,
-            "autonomy_level": action.autonomy_level.value, "authorisation": auth.as_dict(),
+            "autonomy_level": action.autonomy_level.value, "target_rows": params["target_rows"],
+            "authorisation": auth.as_dict(),
         }
+
+    def _untargeted(self, params, blast_radius, action_type) -> dict[str, Any] | None:
+        """Refuse an action nobody could carry out. Returns None if it is fine.
+
+        A person acting on this needs to know WHO it applies to and HOW MANY. The rule is
+        screened like a hypothesis (no leakage, forbidden or sensitive columns — an action
+        may not target what a test may not use) and must select somebody in this data.
+        """
+        where = (params or {}).get("where")
+        if not isinstance(where, str) or not where.strip():
+            return {"status": "refused", "message": (
+                "params.where is required: the pandas rule naming the group this action "
+                "applies to, normally the same `where` the supporting finding tested.")}
+        try:
+            gates.screen(where, self.data, self.charter)
+        except gates.ScreenError as exc:
+            return {"status": "refused", "message": f"params.where: {exc}"}
+        if not gates._mask(self.data, where).any():
+            return {"status": "refused",
+                    "message": f"params.where selects nobody in this data: {where}"}
+        requested = (blast_radius or {}).get("max_per_run")
+        if not isinstance(requested, int) or isinstance(requested, bool) or requested < 1:
+            right = self.charter.right(action_type)
+            unit = right.blast_radius.unit if right else "records"
+            return {"status": "refused", "message": (
+                f"blast_radius.max_per_run is required: how many {unit} this action "
+                f"touches, as a positive integer.")}
+        return None
 
 
 def _guidance(evidence: Evidence) -> str:

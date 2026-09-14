@@ -58,8 +58,17 @@ time, not from the strength of one argument.
 
 ## Writing it
 
-- `recommendation`: what to do, concretely enough to execute. Name the population by the
-  same rule you tested.
+The report hands each action to a person as: **do this** (`recommendation`), **to these**
+(`params.where`, counted by code), **this many** (`blast_radius.max_per_run`), **signed
+off by** (the charter's `requires_authority`, if any), **checked by** (`observation_plan`).
+
+- `params.where`: REQUIRED. The pandas rule naming the group, normally the same `where`
+  the supporting finding tested. It is screened like a hypothesis and must select at
+  least one row; the platform counts the rows and records `target_rows`. Do not restate
+  the count in your own key — it is computed.
+- `recommendation`: an instruction someone can carry out on that group without asking
+  what you meant — the step, who does it, by when. "Investigate further" or "monitor
+  closely" is not an action; it is the absence of one.
 - `expected_effect`: the direction and rough size you expect, in the observation metric.
   Commit to it. This is what the outcome will later be compared against, and a vague
   expectation makes the outcome uninterpretable.
