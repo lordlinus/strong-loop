@@ -18,6 +18,10 @@ param location string = 'eastasia'
 @description('Existing Foundry hosted-agent Responses endpoint.')
 param foundryAgentEndpoint string
 
+@secure()
+@description('Signing key for short-lived browser stream tickets.')
+param streamTicketKey string = newGuid()
+
 @description('Optional resource group name.')
 param resourceGroupName string = ''
 
@@ -172,6 +176,7 @@ module apiWeb './app/appservice.bicep' = {
     identityClientId: apiIdentity.outputs.clientId
     foundryAgentEndpoint: foundryAgentEndpoint
     applicationInsightsConnectionString: monitoring.outputs.connectionString
+    streamTicketKey: streamTicketKey
   }
 }
 
@@ -190,6 +195,8 @@ output AZURE_LOCATION string = location
 output AZURE_RESOURCE_GROUP string = rg.name
 output SERVICE_API_NAME string = apiWeb.outputs.name
 output SERVICE_API_URI string = apiWeb.outputs.uri
+output SERVICE_STREAM_API_NAME string = apiWeb.outputs.streamName
+output SERVICE_STREAM_API_URI string = apiWeb.outputs.streamUri
 output SERVICE_FUNCTION_NAME string = api.outputs.SERVICE_API_NAME
 output SERVICE_API_IDENTITY_CLIENT_ID string = apiIdentity.outputs.clientId
 output SERVICE_API_IDENTITY_PRINCIPAL_ID string = apiIdentity.outputs.principalId

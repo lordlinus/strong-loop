@@ -113,6 +113,30 @@ jobs:
         with:
           app-name: ${{ vars.AZURE_API_APP_NAME }}
           package: api
+      - name: Deploy direct streaming API
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ format('{0}-stream', vars.AZURE_API_APP_NAME) }}
+          package: api
+      - name: Configure direct SSE endpoint
+        env:
+          API_NAME: ${{ vars.AZURE_API_APP_NAME }}
+          RESOURCE_GROUP: ${{ vars.AZURE_WEB_RESOURCE_GROUP }}
+          SITE_URL: ${{ vars.AZURE_STATIC_WEB_APP_URL }}
+        run: |
+          set -euo pipefail
+          stream_api_name="${API_NAME}-stream"
+          stream_api_origin="https://${stream_api_name}.azurewebsites.net"
+          ticket_key="$(az webapp config appsettings list -g "$RESOURCE_GROUP" -n "$API_NAME" --query "[?name=='STREAM_TICKET_KEY'].value | [0]" -o tsv)"
+          if [ -z "$ticket_key" ]; then ticket_key="$(openssl rand -hex 32)"; fi
+          az webapp config appsettings set -g "$RESOURCE_GROUP" -n "$API_NAME" \
+            --settings APP_MODE=control PUBLIC_API_ORIGIN="$stream_api_origin" STREAM_TICKET_KEY="$ticket_key" \
+            --only-show-errors --output none
+          az webapp config appsettings set -g "$RESOURCE_GROUP" -n "$stream_api_name" \
+            --settings APP_MODE=stream PUBLIC_WEB_ORIGIN="$SITE_URL" STREAM_TICKET_KEY="$ticket_key" \
+            --only-show-errors --output none
+          az webapp restart -g "$RESOURCE_GROUP" -n "$API_NAME"
+          az webapp restart -g "$RESOURCE_GROUP" -n "$stream_api_name"
 
   deploy-web:
     if: github.event_name != 'pull_request'

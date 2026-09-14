@@ -124,7 +124,7 @@ const $ = (id) => document.getElementById(id);
 const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
 const API = LOCAL
   ? {sessions: "http://localhost:8088/sessions", file: (id, p) => `http://localhost:8088/sessions/${id}/files/content?path=${encodeURIComponent(p)}`, run: "http://localhost:8088/responses"}
-  : {sessions: "/api/sessions", file: (id, p) => `/api/sessions/${encodeURIComponent(id)}/files?path=${encodeURIComponent(p)}`, run: "/api/run"};
+  : {sessions: "/api/sessions", file: (id, p) => `/api/sessions/${encodeURIComponent(id)}/files?path=${encodeURIComponent(p)}`, ticket: "/api/stream-ticket"};
 if (LOCAL) $("ratifier-row").hidden = false;
 let sessionId = null, settled = false;
 const tl = $("timeline"); const facts = {tested:0, sup:0, find:0, act:0, skill:0};
@@ -329,8 +329,16 @@ function fmtP(p){ if (p == null) return "—"; return p < 0.001 ? p.toExponentia
 function round(x){ return typeof x === "number" ? x.toFixed(3) : (x ?? "—"); }
 
 async function stream(input){
-  const res = await fetch(API.run, {method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({model:"strong-loop", input, stream:true, agent_session_id: sessionId})});
+  let url = API.run, options = {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({model:"strong-loop", input, stream:true, agent_session_id: sessionId})};
+  if (!LOCAL) {
+    const ticket = await fetch(API.ticket, options);
+    if (!ticket.ok) throw new Error(`Ticket HTTP ${ticket.status}`);
+    const issued = await ticket.json();
+    url = issued.url;
+    options = {method:"GET"};
+  }
+  const res = await fetch(url, options);
   if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
   const was = $("status").textContent; $("status").textContent = "streaming";
   const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";

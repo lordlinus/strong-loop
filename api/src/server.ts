@@ -1,11 +1,12 @@
 import express from "express";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { DefaultAzureCredential } from "@azure/identity";
 
 const server = express();
 const credential = new DefaultAzureCredential();
 const maxInputLength = 2_000;
 const scope = "https://ai.azure.com/.default";
+const streamTicketTtlMs = 60_000;
 
 // The session file API is the input channel: a client creates a session, PUTs its role,
 // data and answers into `intake/`, then invokes the agent pinned to that session. The
@@ -50,7 +51,115 @@ function requireAuth(request: express.Request, response: express.Response, reque
     return principal;
 }
 
+function runInput(body: unknown): { input: string; sessionId: string } | null {
+    const value = body as { input?: unknown; agent_session_id?: unknown } | null;
+    const input = typeof value?.input === "string" ? value.input.trim() : "";
+    const sessionId = typeof value?.agent_session_id === "string" ? value.agent_session_id : "";
+    if (!input || input.length > maxInputLength || (sessionId && !sessionIdPattern.test(sessionId))) return null;
+    return { input, sessionId };
+}
+
+function allowStreamOrigin(request: express.Request, response: express.Response): boolean {
+    const expected = process.env.PUBLIC_WEB_ORIGIN;
+    const origin = request.header("origin");
+    if (!expected || origin !== expected) return false;
+    response.set("Access-Control-Allow-Origin", expected);
+    response.set("Vary", "Origin");
+    return true;
+}
+
+function issueStreamTicket(run: { input: string; sessionId: string }): string | null {
+    const key = process.env.STREAM_TICKET_KEY;
+    if (!key) return null;
+    const payload = Buffer.from(JSON.stringify({ ...run, expiresAt: Date.now() + streamTicketTtlMs })).toString("base64url");
+    const signature = createHmac("sha256", key).update(payload).digest("base64url");
+    return `${payload}.${signature}`;
+}
+
+function consumeStreamTicket(ticket: string): { input: string; sessionId: string } | null {
+    const key = process.env.STREAM_TICKET_KEY;
+    const [payload, signature, extra] = ticket.split(".");
+    if (!key || !payload || !signature || extra) return null;
+    const expected = createHmac("sha256", key).update(payload).digest("base64url");
+    const actualBytes = Buffer.from(signature);
+    const expectedBytes = Buffer.from(expected);
+    if (actualBytes.length !== expectedBytes.length || !timingSafeEqual(actualBytes, expectedBytes)) return null;
+    try {
+        const value = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+            input?: unknown; sessionId?: unknown; expiresAt?: unknown;
+        };
+        const run = runInput({ input: value.input, agent_session_id: value.sessionId });
+        return run && typeof value.expiresAt === "number" && value.expiresAt >= Date.now() ? run : null;
+    } catch {
+        return null;
+    }
+}
+
+async function relayFoundry(
+    input: string,
+    sessionId: string,
+    response: express.Response,
+    requestId: string,
+    startedAt: number,
+): Promise<void> {
+    const endpoint = process.env.FOUNDRY_AGENT_ENDPOINT;
+    if (!endpoint) {
+        response.write(`event: error\ndata: ${JSON.stringify({ error: "The live agent is not configured.", requestId })}\n\n`);
+        response.end();
+        return;
+    }
+
+    const heartbeat = setInterval(() => response.write(": proxy-waiting\n\n"), 10_000);
+    response.on("close", () => clearInterval(heartbeat));
+    try {
+        const token = await credential.getToken(scope);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 60_000);
+        const upstream = await fetch(endpoint, {
+            signal: controller.signal,
+            method: "POST",
+            headers: {
+                Accept: "text/event-stream",
+                Authorization: `Bearer ${token.token}`,
+                "Content-Type": "application/json",
+                "x-ms-client-request-id": requestId,
+            },
+            body: JSON.stringify({ model: "strong-loop", input, stream: true, ...(sessionId ? { agent_session_id: sessionId } : {}) }),
+        });
+        clearTimeout(timeout);
+        clearInterval(heartbeat);
+        console.log("Foundry response received", requestId, { elapsedMs: Date.now() - startedAt, status: upstream.status });
+
+        if (!upstream.ok || !upstream.body) {
+            response.write(`event: error\ndata: ${JSON.stringify({ error: "The hosted agent could not start the run.", requestId })}\n\n`);
+            response.end();
+            return;
+        }
+
+        const reader = upstream.body.getReader();
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            response.write(Buffer.from(value));
+        }
+        response.end();
+        console.log("Run request completed", requestId, { elapsedMs: Date.now() - startedAt });
+    } catch (error) {
+        clearInterval(heartbeat);
+        response.write(`event: error\ndata: ${JSON.stringify({ error: "The hosted agent request failed.", requestId })}\n\n`);
+        response.end();
+        console.error("Foundry invocation failed", requestId, error);
+    }
+}
+
 server.use(express.json({ limit: "8kb" }));
+server.use((request, response, next) => {
+    if (process.env.APP_MODE === "stream" && !["/api/direct-run", "/api/health"].includes(request.path)) {
+        response.status(404).end();
+        return;
+    }
+    next();
+});
 server.get("/api/health", (_request, response) => response.json({ status: "ok" }));
 
 server.post("/api/sessions", async (request, response) => {
@@ -139,90 +248,73 @@ server.put("/api/sessions/:id/files", express.raw({ type: () => true, limit: max
     }
 });
 
-server.post("/api/run", async (request, response) => {
+server.post("/api/stream-ticket", (request, response) => {
     const requestId = randomUUID();
+    if (!requireAuth(request, response, requestId)) return;
+    const run = runInput(request.body);
+    if (!run) {
+        response.status(400).json({ error: `Input and session id are invalid. Input is limited to ${maxInputLength} characters.`, requestId });
+        return;
+    }
+    const publicApiOrigin = process.env.PUBLIC_API_ORIGIN;
+    if (!publicApiOrigin) {
+        response.status(503).json({ error: "The streaming endpoint is not configured.", requestId });
+        return;
+    }
+    const ticket = issueStreamTicket(run);
+    if (!ticket) {
+        response.status(503).json({ error: "Stream ticket signing is not configured.", requestId });
+        return;
+    }
+    response.json({ url: `${publicApiOrigin}/api/direct-run?ticket=${encodeURIComponent(ticket)}`, expires_in: streamTicketTtlMs / 1000 });
+});
+
+server.get("/api/direct-run", async (request, response) => {
+    const requestId = randomUUID();
+    if (!allowStreamOrigin(request, response)) {
+        response.status(403).json({ error: "Origin is not allowed.", requestId });
+        return;
+    }
+    const ticket = typeof request.query.ticket === "string" ? request.query.ticket : "";
+    const run = consumeStreamTicket(ticket);
+    if (!run) {
+        response.status(401).json({ error: "The stream ticket is invalid or expired.", requestId });
+        return;
+    }
+
     const startedAt = Date.now();
-    const principal = request.header("x-ms-client-principal");
-    console.log("Run request received", requestId, { authenticated: Boolean(principal) });
-    if (!principal) {
-        console.warn("Run request rejected: missing client principal", requestId);
-        response.status(401).json({ error: "Authentication is required.", requestId });
-        return;
-    }
-
-    const input = typeof request.body?.input === "string" ? request.body.input.trim() : "";
-    if (!input || input.length > maxInputLength) {
-        response.status(400).json({ error: `Input must contain between 1 and ${maxInputLength} characters.`, requestId });
-        return;
-    }
-    const sessionId = typeof request.body?.agent_session_id === "string" ? request.body.agent_session_id : "";
-    if (sessionId && !sessionIdPattern.test(sessionId)) {
-        response.status(400).json({ error: "Invalid session id.", requestId });
-        return;
-    }
-
-    const endpoint = process.env.FOUNDRY_AGENT_ENDPOINT;
-    if (!endpoint) {
-        response.status(503).json({ error: "The live agent is not configured.", requestId });
-        return;
-    }
-
     response.status(200);
     response.set({
-        "Cache-Control": "no-cache, no-store",
-        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-store, no-transform",
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "X-Accel-Buffering": "no",
+        "X-Content-Type-Options": "nosniff",
+        "X-Request-Id": requestId,
+    });
+    response.flushHeaders();
+    response.write(": proxy-connected\n\n");
+    await relayFoundry(run.input, run.sessionId, response, requestId, startedAt);
+});
+
+server.post("/api/run", async (request, response) => {
+    const requestId = randomUUID();
+    if (!requireAuth(request, response, requestId)) return;
+    const run = runInput(request.body);
+    if (!run) {
+        response.status(400).json({ error: `Input and session id are invalid. Input is limited to ${maxInputLength} characters.`, requestId });
+        return;
+    }
+    const startedAt = Date.now();
+    response.status(200);
+    response.set({
+        "Cache-Control": "no-cache, no-store, no-transform",
+        "Content-Type": "text/event-stream; charset=utf-8",
         "X-Accel-Buffering": "no",
         "X-Request-Id": requestId,
     });
     response.flushHeaders();
     response.write(": proxy-connected\n\n");
-
-    const heartbeat = setInterval(() => response.write(": proxy-waiting\n\n"), 10_000);
-    response.on("close", () => clearInterval(heartbeat));
-    try {
-        console.log("Acquiring Foundry token", requestId);
-        const token = await credential.getToken(scope);
-        console.log("Calling Foundry agent", requestId, { elapsedMs: Date.now() - startedAt });
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 60_000);
-        const upstream = await fetch(endpoint, {
-            signal: controller.signal,
-            method: "POST",
-            headers: {
-                Accept: "text/event-stream",
-                Authorization: `Bearer ${token.token}`,
-                "Content-Type": "application/json",
-                "x-ms-client-request-id": requestId,
-            },
-            body: JSON.stringify({ model: "strong-loop", input, stream: true, ...(sessionId ? { agent_session_id: sessionId } : {}) }),
-        });
-        clearTimeout(timeout);
-        clearInterval(heartbeat);
-        console.log("Foundry response received", requestId, {
-            elapsedMs: Date.now() - startedAt,
-            status: upstream.status,
-        });
-
-        if (!upstream.ok || !upstream.body) {
-            response.write(`event: error\ndata: ${JSON.stringify({ error: "The hosted agent could not start the run.", requestId })}\n\n`);
-            response.end();
-            return;
-        }
-
-        const reader = upstream.body.getReader();
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            response.write(Buffer.from(value));
-        }
-        response.end();
-        console.log("Run request completed", requestId, { elapsedMs: Date.now() - startedAt });
-    } catch (error) {
-        clearInterval(heartbeat);
-        response.write(`event: error\ndata: ${JSON.stringify({ error: "The hosted agent request failed.", requestId })}\n\n`);
-        response.end();
-        console.error("Foundry invocation failed", requestId, error);
-    }
+    await relayFoundry(run.input, run.sessionId, response, requestId, startedAt);
 });
 
 const port = Number(process.env.PORT ?? 8080);

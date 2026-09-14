@@ -38,7 +38,24 @@ deployment_output() {
 api_principal_id="$(deployment_output SERVICE_API_IDENTITY_PRINCIPAL_ID)"
 web_name="$(deployment_output SERVICE_WEB_NAME)"
 api_name="$(deployment_output SERVICE_API_NAME)"
+stream_api_name="$(deployment_output SERVICE_STREAM_API_NAME)"
+stream_api_uri="$(deployment_output SERVICE_STREAM_API_URI)"
 web_uri="$(deployment_output SERVICE_WEB_URI)"
+
+az webapp config appsettings set \
+  --resource-group "$resource_group" \
+  --name "$api_name" \
+  --settings APP_MODE=control PUBLIC_API_ORIGIN="$stream_api_uri" \
+  --only-show-errors \
+  --output none
+az webapp config appsettings set \
+  --resource-group "$resource_group" \
+  --name "$stream_api_name" \
+  --settings APP_MODE=stream PUBLIC_WEB_ORIGIN="$web_uri" \
+  --only-show-errors \
+  --output none
+az webapp restart --resource-group "$resource_group" --name "$api_name"
+az webapp restart --resource-group "$resource_group" --name "$stream_api_name"
 
 az role assignment create \
   --assignee-object-id "$api_principal_id" \
