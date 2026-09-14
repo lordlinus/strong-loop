@@ -83,9 +83,9 @@ the model's reasoning summaries and text, and the loop's own events as items nam
 `loop.iteration_end` (the tally `should_continue` read) and `loop.report` (the corrected
 report). No side channel, no parsing of prose.
 
-`docs/live.html` is a viewer for that stream. In production it calls the authenticated
-`/api/run` proxy. For local development, start the agent, open the page, and change the
-endpoint field to `http://localhost:8088/responses`:
+`docs/live.html` is a viewer for that stream. In production it asks the authenticated
+control API for a short-lived stream ticket, then reads SSE directly from the streaming App
+Service. For local development it calls `http://localhost:8088/responses` directly:
 
 ```bash
 azd ai agent run --no-client          # or: cd src/strong-loop && python main.py
@@ -115,10 +115,12 @@ The Static Web App preserves all three views as one customer journey:
 2. `/loop.html` — inspect the mechanism and its evidence trail.
 3. `/live.html` — sign in with Microsoft Entra ID and steer a fresh hosted-agent run.
 
-The live page never receives Azure credentials. Static Web Apps authentication protects
-both the page and `/api/*`; a linked Linux App Service uses managed identity to call the
-Foundry Responses endpoint and relays its stream. App Service is used because the subscription's
-storage policy disables public access required by Flex Consumption's OneDeploy path.
+The live page never receives Azure credentials. Static Web Apps authentication protects the
+page and linked control API, which creates sessions, uploads intake files, and issues a
+60-second signed ticket. A second, unlinked App Service validates that ticket and relays the
+Foundry SSE stream directly to the browser; this avoids buffering by the Static Web Apps API
+proxy. Both services use the same managed identity. App Service is used because the
+subscription's storage policy blocks Flex Consumption's OneDeploy path.
 
 Bootstrap and configure the production pipeline once:
 

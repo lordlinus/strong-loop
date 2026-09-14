@@ -40,8 +40,9 @@ Two invariants carry everything, and both are enforced by tests rather than docu
 - Stream contract (`LoopEventStream`), live viewer (`docs/live.html`), explainer page
   generated from a recorded run (`docs/loop.html`, `tools/make_loop_doc.py`, `docs/runs/`).
 - Customer deployment: Standard Static Web App with public replay/deep-dive pages,
-  Entra-protected live page, and a linked Linux App Service streaming proxy using managed
-  identity. GitHub Actions deploys agent, API, and site through environment-scoped OIDC.
+  Entra-protected live page, a linked control API, and a separate Linux App Service that
+  streams directly to the browser using short-lived signed tickets. Both APIs share the
+  same managed identity. GitHub Actions deploys agent, APIs, and site through OIDC.
 - 49 tests, no model or network. Both charters pass `check`.
 - Results: 2-iteration local run 16 hypotheses / 4 findings / 2 approved actions; deployed
   4-iteration run 34 hypotheses / 9 findings / 4 actions in ~150 s. Hosted agent version 6
@@ -59,7 +60,7 @@ Two invariants carry everything, and both are enforced by tests rather than docu
 | Models | APIM `apim-ssattiraju-01`; gateway + key from `~/.config/azure-apim/apim-ssattiraju-01.env` locally, azd env in the container. Default `gpt-5.6-luna`. |
 | azd environment | `strong-loop` (`.azure/strong-loop/.env`, gitignored) |
 | Customer site | `https://wonderful-smoke-0d5632100.3.azurestaticapps.net` (Standard, East Asia) |
-| Live API | `app-strong-loop-s56amuculonh4` linked behind SWA `/api/*`; UAMI holds **Foundry User** on the project |
+| Live APIs | `app-strong-loop-s56amuculonh4` handles authenticated control calls behind SWA; `app-strong-loop-s56amuculonh4-stream` relays SSE directly using 60-second signed tickets; shared UAMI holds **Foundry User** |
 | GitHub deployment | `https://github.com/lordlinus/strong-loop/actions/workflows/deploy.yml`, OIDC through environment `production` |
 
 ## 5. Verified platform gotchas (each cost real time; do not re-learn)
@@ -85,16 +86,20 @@ Two invariants carry everything, and both are enforced by tests rather than docu
 - A client that disconnects mid-run leaves a run folder without `report.json`; finalise did
   not run. §6.1 is the fix.
 - `azd ai agent files download` takes one path and writes into the azd project dir.
+- A Static Web Apps linked-backend request buffers SSE until completion even when the Node
+  backend flushes headers and writes heartbeats. Keep authentication/session setup on the
+  linked API, then stream from an unlinked App Service using a short-lived signed ticket.
 
 ## 6. Roadmap — next steps in order, each separately testable
 
 ### 6.0 Customer deployment — completed 2026-09-07
-GitHub Actions tests first, then deploys the Foundry hosted agent, linked API, and Static Web
-App in parallel. The live route is Entra-protected and the browser receives no Azure token.
-The API is App Service rather than Flex Consumption because the subscription policy
-`StorageAccount_PublicNetwork_Modify` forces deployment storage public access off, which
-made OneDeploy fail before code upload. App Service preserves streaming without weakening
-that policy.
+GitHub Actions tests first, then deploys the Foundry hosted agent, two App Service API
+surfaces, and Static Web App in parallel. The linked control API receives the trusted SWA
+principal, creates sessions/files, and issues 60-second HMAC-signed stream tickets. The browser
+uses a ticket to call the unlinked stream API directly, avoiding SWA response buffering without
+receiving an Azure token. Production timing proved 63 chunks arrived over 38.7 seconds rather
+than at completion. App Service is used instead of Flex Consumption because the subscription
+policy `StorageAccount_PublicNetwork_Modify` blocks its deployment package path.
 
 ### 6.1 Resilient runs (crash recovery + steering) — designed, not built
 Wrap the loop in `@task` from `azure.ai.agentserver.core.tasks` (works inside agent-framework's
