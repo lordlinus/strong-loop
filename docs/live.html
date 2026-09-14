@@ -129,7 +129,7 @@ const API = LOCAL
   ? {sessions: "http://localhost:8088/sessions", file: (id, p) => `http://localhost:8088/sessions/${id}/files/content?path=${encodeURIComponent(p)}`, run: "http://localhost:8088/responses"}
   : {sessions: "/api/sessions", file: (id, p) => `/api/sessions/${encodeURIComponent(id)}/files?path=${encodeURIComponent(p)}`, ticket: "/api/stream-ticket"};
 if (LOCAL) $("ratifier-row").hidden = false;
-let sessionId = null, settled = false;
+let sessionId = null, uploadTicket = null, settled = false;
 const tl = $("timeline"); const facts = {tested:0, sup:0, find:0, act:0, skill:0};
 const calls = new Map();          // call_id -> {name, args, li, right}
 let liveStamp = null;
@@ -262,14 +262,16 @@ function onIntake(out){
 }
 
 async function putFile(path, body){
-  const res = await fetch(API.file(sessionId, path), {method:"PUT", headers:{"Content-Type":"application/octet-stream"}, body});
+  const url = API.file(sessionId, path) + (uploadTicket ? `&ticket=${encodeURIComponent(uploadTicket)}` : "");
+  const res = await fetch(url, {method:"PUT", headers:{"Content-Type":"application/octet-stream"}, body});
   if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `upload ${path}: HTTP ${res.status}`); }
 }
 
 async function openSession(){
   const res = await fetch(API.sessions, {method:"POST"});
   if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `session: HTTP ${res.status}`); }
-  sessionId = (await res.json()).agent_session_id; settled = false;
+  const session = await res.json();
+  sessionId = session.agent_session_id; uploadTicket = session.upload_ticket || null; settled = false;
   $("session").textContent = `session ${sessionId.slice(0, 12)}…`;
 }
 
@@ -306,8 +308,7 @@ async function start(ev){
   finally { $("go").disabled = false; setLive(null); }
 }
 
-function reset(){ sessionId = null; settled = false; $("pairing").classList.remove("show"); $("asks").innerHTML = ""; $("go").disabled = true; $("again").hidden = true; $("session").textContent = ""; $("status").textContent = "idle"; }
-
+function reset(){ sessionId = null; uploadTicket = null; settled = false; $("pairing").classList.remove("show"); $("asks").innerHTML = ""; $("go").disabled = true; $("again").hidden = true; $("session").textContent = ""; $("status").textContent = "idle"; }
 // The option lists come from what the service actually ships (`python -m loop presets`)
 // plus charters written on /charters.html, which live only in this browser.
 function savedCharters(){ try { return JSON.parse(localStorage.getItem("strong-loop.charters") || "{}"); } catch { return {}; } }

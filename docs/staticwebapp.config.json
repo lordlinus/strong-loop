@@ -13,6 +13,14 @@
       "allowedRoles": ["authenticated"]
     },
     {
+      "route": "/api/sessions",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/sessions/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/api/*",
       "allowedRoles": ["authenticated"]
     }

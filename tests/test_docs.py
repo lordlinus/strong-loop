@@ -63,7 +63,7 @@ def test_static_web_app_customer_journey_is_complete():
     for route in ("/showcase.html", "/loop.html", "/charters.html", "/live.html"):
         assert route in index, route
     # the page speaks to the site's API for all three verbs, and renders the gate's answer
-    for needle in ('"/api/stream-ticket"', '"/api/sessions"', "/files?path=", "loop.intake", "intake/accept.json"):
+    for needle in ('"/api/stream-ticket"', '"/api/sessions"', "/files?path=", "upload_ticket", "loop.intake", "intake/accept.json"):
         assert needle in live, needle
     # option lists come from the manifest, never from hand-typed HTML
     assert 'fetch("/presets.json"' in live

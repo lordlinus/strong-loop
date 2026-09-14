@@ -7,6 +7,7 @@ const credential = new DefaultAzureCredential();
 const maxInputLength = 2_000;
 const scope = "https://ai.azure.com/.default";
 const streamTicketTtlMs = 60_000;
+const uploadTicketTtlMs = 15 * 60_000;
 
 // The session file API is the input channel: a client creates a session, PUTs its role,
 // data and answers into `intake/`, then invokes the agent pinned to that session. The
@@ -74,6 +75,32 @@ function issueStreamTicket(run: { input: string; sessionId: string }): string | 
     const payload = Buffer.from(JSON.stringify({ ...run, expiresAt: Date.now() + streamTicketTtlMs })).toString("base64url");
     const signature = createHmac("sha256", key).update(payload).digest("base64url");
     return `${payload}.${signature}`;
+}
+
+function issueUploadTicket(sessionId: string): string | null {
+    const key = process.env.STREAM_TICKET_KEY;
+    if (!key) return null;
+    const payload = Buffer.from(JSON.stringify({ sessionId, expiresAt: Date.now() + uploadTicketTtlMs })).toString("base64url");
+    const signature = createHmac("sha256", key).update(`upload.${payload}`).digest("base64url");
+    return `${payload}.${signature}`;
+}
+
+function consumeUploadTicket(ticket: string, sessionId: string): boolean {
+    const key = process.env.STREAM_TICKET_KEY;
+    const [payload, signature, extra] = ticket.split(".");
+    if (!key || !payload || !signature || extra) return false;
+    const expected = createHmac("sha256", key).update(`upload.${payload}`).digest("base64url");
+    const actualBytes = Buffer.from(signature);
+    const expectedBytes = Buffer.from(expected);
+    if (actualBytes.length !== expectedBytes.length || !timingSafeEqual(actualBytes, expectedBytes)) return false;
+    try {
+        const value = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+            sessionId?: unknown; expiresAt?: unknown;
+        };
+        return value.sessionId === sessionId && typeof value.expiresAt === "number" && value.expiresAt >= Date.now();
+    } catch {
+        return false;
+    }
 }
 
 function consumeStreamTicket(ticket: string): { input: string; sessionId: string } | null {
@@ -184,7 +211,12 @@ server.post("/api/sessions", async (request, response) => {
             return;
         }
         console.log("Session created", requestId, body.agent_session_id);
-        response.status(201).json({ agent_session_id: body.agent_session_id, expires_at: body.expires_at ?? null, requestId });
+        const uploadTicket = issueUploadTicket(body.agent_session_id);
+        if (!uploadTicket) {
+            response.status(503).json({ error: "Session upload signing is not configured.", requestId });
+            return;
+        }
+        response.status(201).json({ agent_session_id: body.agent_session_id, expires_at: body.expires_at ?? null, upload_ticket: uploadTicket, requestId });
     } catch (error) {
         console.error("Session create failed", requestId, error);
         response.status(502).json({ error: "The hosted agent could not open a session.", requestId });
@@ -193,10 +225,14 @@ server.post("/api/sessions", async (request, response) => {
 
 server.put("/api/sessions/:id/files", express.raw({ type: () => true, limit: maxUploadBytes }), async (request, response) => {
     const requestId = randomUUID();
-    const principal = requireAuth(request, response, requestId);
-    if (!principal) return;
+    const principal = request.header("x-ms-client-principal");
     const sessionId = String(request.params.id ?? "");
     const path = typeof request.query.path === "string" ? request.query.path : "";
+    const uploadTicket = typeof request.query.ticket === "string" ? request.query.ticket : "";
+    if (!principal && !consumeUploadTicket(uploadTicket, sessionId)) {
+        response.status(401).json({ error: "Authentication or a valid upload ticket is required.", requestId });
+        return;
+    }
     if (!sessionIdPattern.test(sessionId)) {
         response.status(400).json({ error: "Invalid session id.", requestId });
         return;
