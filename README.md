@@ -22,6 +22,7 @@ How to work on it: `AGENTS.md`.
 
 ```bash
 uv venv --python 3.13 && uv pip install -r src/strong-loop/requirements.txt pytest
+source .venv/bin/activate      # or `make venv && make test`, which uses .venv/bin/python directly
 python -m pytest tests -q
 
 cd src/strong-loop
@@ -48,6 +49,27 @@ azd up                                                        # deploy; tokens v
 azd ai agent invoke --new-session "go"
 ```
 
+**Deploying it from a fresh machine.** `azd up` assumes a machine that is already set up
+and an azd environment that already carries the gateway, the toolbox endpoint and the
+agent's role grant. `scripts/deploy.sh` is the handover path that assumes none of it:
+
+```bash
+./scripts/deploy.sh --check-only   # tooling, sign-in, permissions, gateway — changes nothing
+./scripts/deploy.sh                # the whole deployment
+./scripts/deploy.sh --smoke        # ...and invoke the deployed agent once at the end
+```
+
+It checks `az`/`azd` versions and installs the three Foundry azd extensions, signs both
+CLIs in, asks Azure (not a role name) whether the signed-in account holds the actions the
+deployment needs, registers the resource providers, and proves the APIM gateway answers
+for `LOOP_MODEL` before spending a deployment on it. Then it provisions the project,
+creates Application Insights and connects it so traces appear, publishes the four skills
+and the toolbox, deploys the agent, and grants the agent's managed identity **Foundry
+User** on the account — the grant without which reading a skill body fails. Every step is
+idempotent, and anything it cannot do itself (a missing role assignment permission, for
+instance) it prints as the exact command for someone who can. `make deploy` and
+`make deploy-check` are the same two entry points.
+
 **Every turn is one run.** The message you send is the human steer, and it is what every
 fresh-context iteration starts from. Conversation history is deliberately not fed to the
 agent (`history_source="agent"` in `main.py`): the ledger is its memory, and replaying a
@@ -72,9 +94,11 @@ For local development, start both the agent and the live UI with:
 make local-ui
 ```
 
-Then open `http://localhost:8000/live.html`. The Make target serves the UI on port 8000,
-starts the local agent on port 8088, and configures the page to use the local Responses
-endpoint automatically.
+Then open `http://localhost:8000/live.html`. The Make target creates `.venv` with uv if it
+is missing, serves the UI on port 8000, starts the local agent on port 8088, and configures
+the page to use the local Responses endpoint automatically. Every target runs
+`.venv/bin/python` explicitly — `make` uses `/bin/sh`, where a bare `python` is usually not
+on PATH.
 
 Everything a run does goes out on the Responses stream, so any client can render it:
 every tool call and its full output as `function_call` / `function_call_output` items,
