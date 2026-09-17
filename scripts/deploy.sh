@@ -106,7 +106,12 @@ step "Checking tooling"
 
 command -v az  >/dev/null 2>&1 || die "The Azure CLI is not installed. See https://aka.ms/azure-cli"
 command -v azd >/dev/null 2>&1 || die "The Azure Developer CLI is not installed. See https://aka.ms/azd-install"
-command -v python3 >/dev/null 2>&1 || die "python3 is required (this script uses it to read JSON)."
+
+# Windows' python.org installer puts `python` on PATH, not `python3`; try both.
+if command -v python3 >/dev/null 2>&1; then py=python3
+elif command -v python  >/dev/null 2>&1; then py=python
+else die "python 3 is required (this script uses it to read JSON)."
+fi
 
 az_version="$(az version --query '"azure-cli"' -o tsv 2>/dev/null || echo 0)"
 version_at_least "$az_version" "2.60.0" \
@@ -114,14 +119,14 @@ version_at_least "$az_version" "2.60.0" \
 ok "az $az_version"
 
 # azure.yaml pins the minimum azd; read it rather than repeating the number here.
-azd_required="$(python3 - <<'PY'
+azd_required="$("$py" - <<'PY'
 import re, pathlib
 text = pathlib.Path("azure.yaml").read_text()
 m = re.search(r"azd:\s*'?>=\s*([0-9][^'\s]*)'?", text)
 print(m.group(1) if m else "1.27.1")
 PY
 )"
-azd_version="$(azd version --output json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["azd"]["version"].split()[0])' 2>/dev/null || echo 0)"
+azd_version="$(azd version --output json 2>/dev/null | "$py" -c 'import json,sys; print(json.load(sys.stdin)["azd"]["version"].split()[0])' 2>/dev/null || echo 0)"
 version_at_least "$azd_version" "$azd_required" \
   || die "azd $azd_version is older than the $azd_required azure.yaml requires. Run: azd version upgrade"
 ok "azd $azd_version (azure.yaml requires >= $azd_required)"
@@ -129,7 +134,7 @@ ok "azd $azd_version (azure.yaml requires >= $azd_required)"
 # The Foundry work is done by azd extensions; a missing one fails much later and obscurely.
 for ext in azure.ai.agents azure.ai.skills azure.ai.toolboxes; do
   if azd extension list --output json 2>/dev/null \
-      | python3 -c 'import json,sys; want=sys.argv[1]; print(any(e.get("id")==want and e.get("installedVersion") for e in json.load(sys.stdin)))' "$ext" \
+      | "$py" -c 'import json,sys; want=sys.argv[1]; print(any(e.get("id")==want and e.get("installedVersion") for e in json.load(sys.stdin)))' "$ext" \
       | grep -q True; then
     ok "azd extension $ext"
   elif [[ $check_only -eq 1 ]]; then
@@ -184,7 +189,7 @@ az rest --method get \
   -o json >"$permissions_file" 2>/dev/null || printf '{"value":[]}' >"$permissions_file"
 
 check_action() {  # check_action ACTION -> prints "allow" or "deny"
-  python3 - "$permissions_file" "$1" <<'PYEOF'
+  "$py" - "$permissions_file" "$1" <<'PYEOF'
 import json, pathlib, re, sys
 perms = json.loads(pathlib.Path(sys.argv[1]).read_text() or '{"value":[]}').get("value", [])
 action = sys.argv[2].lower()
@@ -310,7 +315,7 @@ fi
 # ══════════════════════════════════════════════════════════════════════════════════════
 step "Preparing the azd environment '$azd_env_name'"
 
-if azd env list --output json | python3 -c 'import json,sys; print(any(e["Name"]==sys.argv[1] for e in json.load(sys.stdin)))' "$azd_env_name" | grep -q True; then
+if azd env list --output json | "$py" -c 'import json,sys; print(any(e["Name"]==sys.argv[1] for e in json.load(sys.stdin)))' "$azd_env_name" | grep -q True; then
   azd env select "$azd_env_name"
   ok "reusing $azd_env_name"
 else
@@ -407,7 +412,7 @@ else
     az rest --method put \
       --url "https://management.azure.com$account_id/connections/${appi_name}-traces?api-version=2025-06-01" \
       --headers 'Content-Type=application/json' \
-      --body "$(python3 - "$appi_id" "$connection_string" <<'PY'
+      --body "$("$py" - "$appi_id" "$connection_string" <<'PY'
 import json, sys
 resource_id, connection_string = sys.argv[1], sys.argv[2]
 print(json.dumps({"properties": {
@@ -448,11 +453,11 @@ else
   toolbox_var="TOOLBOX_$(printf '%s' "$toolbox_name" | tr 'a-z-' 'A-Z_')_MCP_ENDPOINT"
   if azd ai toolbox list -o json --project-endpoint "$project_endpoint" -e "$azd_env_name" 2>/dev/null \
       | json_tail \
-      | python3 -c 'import json,sys; print(any(t["name"]==sys.argv[1] for t in json.load(sys.stdin).get("toolboxes",[])))' "$toolbox_name" \
+      | "$py" -c 'import json,sys; print(any(t["name"]==sys.argv[1] for t in json.load(sys.stdin).get("toolboxes",[])))' "$toolbox_name" \
       | grep -q True; then
     toolbox_endpoint="$(azd ai toolbox show "$toolbox_name" -o json \
       --project-endpoint "$project_endpoint" -e "$azd_env_name" 2>/dev/null \
-      | json_tail | python3 -c 'import json,sys; print(json.load(sys.stdin).get("endpoint",""))')"
+      | json_tail | "$py" -c 'import json,sys; print(json.load(sys.stdin).get("endpoint",""))')"
     env_set "$toolbox_var" "$toolbox_endpoint"
     ok "toolbox $toolbox_name (existing)"
   else
