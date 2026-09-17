@@ -23,6 +23,7 @@ azd_env_name="${AZD_ENV_NAME:-strong-loop}"
 subscription_id="${AZURE_SUBSCRIPTION_ID:-}"
 location="${AZURE_LOCATION:-southeastasia}"
 apim_store="${APIM_STORE:-$HOME/.config/azure-apim/apim-ssattiraju-01.env}"
+azd_env_file=".azure/$azd_env_name/.env"
 toolbox_name="${TOOLBOX_NAME:-strong-loop-toolbox}"
 agent_name="strong-loop"
 
@@ -55,7 +56,7 @@ Flags
   -h, --help                Show this help.
 
 Environment it reads
-  APIM_GATEWAY_URL / APIM_SUBSCRIPTION_KEY   the model gateway (else read from APIM_STORE)
+  APIM_GATEWAY_URL / APIM_SUBSCRIPTION_KEY   the model gateway (else read from the selected azd env, then APIM_STORE)
   APIM_STORE                                 default: ~/.config/azure-apim/apim-ssattiraju-01.env
   LOOP_MODEL / LOOP_CHARTER / LOOP_DATA / LOOP_MAX_ITERATIONS   the agent's run defaults
 EOF
@@ -254,17 +255,27 @@ done
 # these two values the container starts and fails on the first turn, so check now.
 step "Checking the model gateway"
 
-if [[ -z "${APIM_GATEWAY_URL:-}" || -z "${APIM_SUBSCRIPTION_KEY:-}" ]] && [[ -f "$apim_store" ]]; then
-  info "reading $apim_store"
+load_gateway_values() {  # load_gateway_values FILE
+  local file="$1"
+  local supplied_gateway_url="${APIM_GATEWAY_URL:-}"
+  local supplied_subscription_key="${APIM_SUBSCRIPTION_KEY:-}"
+  [[ -f "$file" ]] || return 0
+
+  info "reading $file"
   set -a
   # shellcheck disable=SC1090
-  source "$apim_store"
+  source "$file"
   set +a
-fi
+  APIM_GATEWAY_URL="${supplied_gateway_url:-${APIM_GATEWAY_URL:-}}"
+  APIM_SUBSCRIPTION_KEY="${supplied_subscription_key:-${APIM_SUBSCRIPTION_KEY:-}}"
+}
+
+load_gateway_values "$azd_env_file"
+load_gateway_values "$apim_store"
 
 if [[ -z "${APIM_GATEWAY_URL:-}" || -z "${APIM_SUBSCRIPTION_KEY:-}" ]]; then
   if [[ $assume_yes -eq 1 || $check_only -eq 1 ]]; then
-    die "APIM_GATEWAY_URL and APIM_SUBSCRIPTION_KEY are not set and $apim_store does not have them.
+    die "APIM_GATEWAY_URL and APIM_SUBSCRIPTION_KEY are not set in the environment, $azd_env_file, or $apim_store.
   Export both, or point APIM_STORE at the env file that does."
   fi
   read -r -p "  APIM gateway URL: " APIM_GATEWAY_URL
