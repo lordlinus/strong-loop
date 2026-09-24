@@ -13,7 +13,7 @@ const uploadTicketTtlMs = 15 * 60_000;
 // data and answers into `intake/`, then invokes the agent pinned to that session. The
 // agent reads them from `$HOME` (see src/strong-loop/loop/inputs.py). Only these four
 // paths may be written; everything else in the session filesystem is the agent's.
-const allowedPaths = new Set(["intake/request.json", "intake/charter.yaml", "intake/data.csv", "intake/accept.json"]);
+const allowedPaths = new Set(["intake/request.json", "intake/charter.yaml", "intake/charter.md", "intake/data.csv", "intake/accept.json"]);
 const maxUploadBytes = 50 * 1024 * 1024;
 const sessionIdPattern = /^[A-Za-z0-9_-]{8,128}$/;
 

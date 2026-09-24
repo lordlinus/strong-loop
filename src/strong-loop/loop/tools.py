@@ -11,18 +11,20 @@ Nothing here knows an agent exists. `runner.py` wraps these methods as tools per
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 import pandas as pd
 
 from . import gates
 from .charter import RoleCharter, apply_authorisation, authorise_action
+from .derived import Derived, derive
 from .gates import GateContext, confidence_from
 from .ledger import Ledger, fingerprint
 from .types import Action, Decision, Evidence, Finding, Hypothesis, Question, Verdict
 
 
-def profile(data: pd.DataFrame, charter: RoleCharter) -> dict[str, Any]:
+def profile(data: pd.DataFrame, charter: RoleCharter, derived: Derived | None = None) -> dict[str, Any]:
     """What the data looks like, and the level of every accountability's metric today.
 
     Descriptive facts only: no verdict, nothing to overturn, nothing to self-certify.
@@ -30,12 +32,17 @@ def profile(data: pd.DataFrame, charter: RoleCharter) -> dict[str, Any]:
     each metric is here because the first question about any accountability is "what is
     the level today", and every gate needs a subgroup to compare against; without it the
     agent burns an iteration finding out.
+
+    `derived` (`loop.derived`) is what THIS data says may not be tested: constants and
+    duplicate columns leave the profile; a column that defines one metric stays, marked
+    `leaks`, because it may still drive another.
     """
     columns: dict[str, Any] = {}
     excluded: list[str] = []
     blocked = set(charter.constraints.forbidden_features)
+    dropped = derived.excluded() if derived is not None else {}
     for name in data.columns:
-        if gates.is_sensitive_column(name) or name in blocked:
+        if gates.is_sensitive_column(name) or name in blocked or name in dropped:
             excluded.append(name)
             continue
         series = data[name]
@@ -50,12 +57,20 @@ def profile(data: pd.DataFrame, charter: RoleCharter) -> dict[str, Any]:
             info["median"] = round(float(series.median()), 4)
         else:
             info["values"] = [str(v) for v in series.dropna().unique()[:8]]
+        if derived is not None:
+            if leaks := derived.leaks.get(name):
+                info["leaks"] = leaks          # refused as a rule for THESE metrics
+            if suspected := derived.suspected.get(name):
+                info["suspected"] = suspected  # allowed, but the evidence will carry a warning
         columns[name] = info
 
     measures: dict[str, Any] = {}
     for acc in charter.accountabilities:
         if acc.metric not in data.columns:
             measures[acc.metric] = {"status": "not in this data"}
+            continue
+        if derived is not None and acc.metric in derived.unmeasurable:
+            measures[acc.metric] = {"status": "unmeasurable", "reason": derived.unmeasurable[acc.metric]}
             continue
         numeric = pd.to_numeric(data[acc.metric], errors="coerce").dropna()
         if numeric.empty:
@@ -70,22 +85,36 @@ def profile(data: pd.DataFrame, charter: RoleCharter) -> dict[str, Any]:
                 "kind": "numeric", "mean": round(float(numeric.mean()), 4),
                 "median": round(float(numeric.median()), 4), "n": int(len(numeric)),
             }
-    return {
+    out = {
         "rows": int(len(data)),
         "columns": columns,
         "excluded_columns": excluded,
         "leakage_columns": list(charter.constraints.leakage_features),
         "accountability_measures": measures,
     }
+    if derived is not None:
+        out["derived_screens"] = [{"column": c, "reason": r} for c, r in derived.screened()]
+        if derived.warnings:
+            out["warnings"] = list(derived.warnings)
+    return out
+
+
+def _outcome_of(evidence: Evidence) -> str | None:
+    """The column an Evidence record is about, as the gate recorded it."""
+    return evidence.statistics.get("measure") or evidence.statistics.get("target")
 
 
 class Toolbelt:
     """The bound set of operations for one run."""
 
-    def __init__(self, charter: RoleCharter, data: pd.DataFrame, ledger: Ledger):
+    def __init__(self, charter: RoleCharter, data: pd.DataFrame, ledger: Ledger,
+                 derived: Derived | None = None):
         self.charter = charter
         self.data = data
         self.ledger = ledger
+        # What the data itself rules out. Computed once per run by the caller; derived
+        # here only so a Toolbelt built bare (tests, scripts) still has the screens.
+        self.derived = derived if derived is not None else derive(data, charter)
 
     def tools(self) -> list:
         from agent_framework import tool
@@ -102,6 +131,7 @@ class Toolbelt:
         return {
             "role": self.charter.role,
             "description": self.charter.description,
+            "glossary": dict(self.charter.glossary),
             "accountabilities": [a.model_dump() for a in self.charter.accountabilities],
             "decision_rights": [
                 {
@@ -117,7 +147,7 @@ class Toolbelt:
 
     def get_data_profile(self) -> dict[str, Any]:
         """The columns, their shapes, and today's level of each accountability metric."""
-        return profile(self.data, self.charter)
+        return profile(self.data, self.charter, self.derived)
 
     def list_gates(self) -> list[dict[str, Any]]:
         """The shapes of question this loop can settle, with each gate's spec schema.
@@ -164,6 +194,17 @@ class Toolbelt:
                 "message": "This exact test has already been run. Read get_progress() and "
                            "propose something genuinely different.",
             }
+        hypothesis.rows_hash = self._rows_hash(spec.get("where"))
+        if prior := self.ledger.same_rows(hypothesis):
+            return {
+                "status": "duplicate",
+                "message": (
+                    f"This rule selects exactly the same rows as {prior.id} "
+                    f"(where={prior.spec.get('where')!r}), already tested: the two spellings "
+                    f"are one experiment. Read get_progress() and propose a different group."
+                ),
+                "same_as": prior.id,
+            }
         self.ledger.append(hypothesis)
         evidence = gates.evaluate(hypothesis, self._gate_context(question_id))
         self.ledger.append(evidence)
@@ -182,16 +223,32 @@ class Toolbelt:
         }
 
     def _gate_context(self, question_id: str) -> GateContext:
+        target = self._metric_of(question_id)
+        return GateContext(
+            data=self.data, charter=self.charter,
+            standard=self.charter.evidence_standards,
+            target=self.data[target] if target else None, derived=self.derived,
+        )
+
+    def _metric_of(self, question_id: str) -> str | None:
         question = self.ledger.by_id(question_id)
-        target = None
         if isinstance(question, Question):
             acc = self.charter.accountability(question.accountability_id)
             if acc is not None and acc.metric in self.data.columns:
-                target = self.data[acc.metric]
-        return GateContext(
-            data=self.data, charter=self.charter,
-            standard=self.charter.evidence_standards, target=target,
-        )
+                return acc.metric
+        return None
+
+    def _rows_hash(self, where: Any) -> str | None:
+        """Hash of the rows a rule selects, or None when the rule will not screen — the
+        gate then refuses it with the proper reason."""
+        if not isinstance(where, str) or not where.strip():
+            return None
+        try:
+            gates.screen(where, self.data, self.charter, self.derived)
+            mask = gates._mask(self.data, where)
+        except Exception:
+            return None
+        return hashlib.sha1(mask.to_numpy().tobytes()).hexdigest()[:16]
 
     # ---- write ----------------------------------------------------------------------
     def record_finding(self, evidence_id: str, headline: str, interpretation: str) -> dict[str, Any]:
@@ -213,19 +270,31 @@ class Toolbelt:
         if blocked := self._unchallenged(evidence):
             return blocked
 
+        from . import suggest   # lazy: suggest imports this module
+
         hypothesis = self.ledger.by_id(evidence.hypothesis_id)
+        question_id = getattr(hypothesis, "question_id", "")
+        question = self.ledger.by_id(question_id)
+        accountability = (self.charter.accountability(question.accountability_id)
+                          if isinstance(question, Question) else None)
+        refusal, warnings = suggest.review_finding(evidence, hypothesis, accountability,
+                                                   headline, interpretation)
+        if refusal:
+            return {"status": "refused", "message": refusal}
         finding = Finding(
             hypothesis_id=evidence.hypothesis_id,
             evidence_id=evidence_id,
-            question_id=getattr(hypothesis, "question_id", ""),
+            question_id=question_id,
             headline=headline,
             interpretation=interpretation,
             confidence=confidence_from(evidence, self.charter.evidence_standards),
+            warnings=warnings,
         )
         self.ledger.append(finding)
         return {
             "status": "recorded", "finding_id": finding.id, "confidence": finding.confidence,
             "note": "confidence is derived from the evidence, not self-assessed",
+            **({"warnings": warnings} if warnings else {}),
         }
 
     def _unchallenged(self, evidence: Evidence) -> dict[str, Any] | None:
@@ -240,13 +309,21 @@ class Toolbelt:
             return None
         hypothesis = self.ledger.by_id(evidence.hypothesis_id)
         where = (getattr(hypothesis, "spec", {}) or {}).get("where")
-        if not where or evidence.gate == "driver_effect":
+        if not where:
             return None
+        outcome = _outcome_of(evidence)
 
+        # Only a challenge that actually ran counts, and only one about the SAME outcome:
+        # a REFUSED or INCONCLUSIVE driver_effect controlled for nothing, and a challenge of
+        # this rule against another metric says nothing about this one. Both were used live
+        # to clear the bar. A driver_effect record is its own challenge — so a subgroup its
+        # own statistics call a proxy cannot become a finding by being recorded directly.
         challenges = [
             e for e in self.ledger.all("evidence")
             if e.gate == "driver_effect"
+            and e.verdict in (Verdict.SUPPORTED, Verdict.REJECTED)
             and (getattr(self.ledger.by_id(e.hypothesis_id), "spec", {}) or {}).get("where") == where
+            and (outcome is None or _outcome_of(e) in (None, outcome))
         ]
         if not challenges:
             return {
@@ -295,9 +372,10 @@ class Toolbelt:
         `metric`. The authorisation reasoning is always returned, including on refusal, so
         a "no" can be fixed or accepted rather than retried blindly.
         """
-        if refused := self._untargeted(params, blast_radius, action_type):
-            return refused
         findings = [f for f in self.ledger.all("finding") if f.id in set(finding_ids)]
+        outcome = next((m for f in findings if (m := self._metric_of(f.question_id))), None)
+        if refused := self._untargeted(params, blast_radius, action_type, outcome):
+            return refused
         evidence_by_id = {e.id: e for e in self.ledger.all("evidence")}
         auth = authorise_action(
             charter=self.charter, action_type=action_type, findings=findings,
@@ -307,12 +385,20 @@ class Toolbelt:
         if not auth.granted:
             return {"status": "refused", "authorisation": auth.as_dict()}
 
+        from . import suggest
+
+        right = self.charter.right(action_type)
+        refusal, warnings = suggest.review_action(
+            recommendation, expected_effect, action_type, right.description if right else "",
+            params["where"], findings,
+        )
+        if refusal:
+            return {"status": "refused", "message": refusal}
         decision = Decision(
             finding_ids=[f.id for f in findings], recommendation=recommendation,
-            expected_effect=expected_effect,
+            expected_effect=expected_effect, warnings=warnings,
         )
         self.ledger.append(decision)
-        right = self.charter.right(action_type)
         # The group is counted by code, from the rule, so the report states how many the
         # action reaches rather than however many the model estimated.
         params = {**(params or {}),
@@ -328,9 +414,10 @@ class Toolbelt:
             "status": action.status, "action_id": action.id, "decision_id": decision.id,
             "autonomy_level": action.autonomy_level.value, "target_rows": params["target_rows"],
             "authorisation": auth.as_dict(),
+            **({"warnings": warnings} if warnings else {}),
         }
 
-    def _untargeted(self, params, blast_radius, action_type) -> dict[str, Any] | None:
+    def _untargeted(self, params, blast_radius, action_type, outcome: str | None = None) -> dict[str, Any] | None:
         """Refuse an action nobody could carry out. Returns None if it is fine.
 
         A person acting on this needs to know WHO it applies to and HOW MANY. The rule is
@@ -343,7 +430,7 @@ class Toolbelt:
                 "params.where is required: the pandas rule naming the group this action "
                 "applies to, normally the same `where` the supporting finding tested.")}
         try:
-            gates.screen(where, self.data, self.charter)
+            gates.screen(where, self.data, self.charter, self.derived, outcome=outcome)
         except gates.ScreenError as exc:
             return {"status": "refused", "message": f"params.where: {exc}"}
         if not gates._mask(self.data, where).any():

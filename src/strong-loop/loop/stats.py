@@ -140,3 +140,42 @@ def mde_lift(n: int, base_rate: float, power: float = 0.8, alpha: float = 0.05) 
     za, zb = 1.959963985, 0.8416212336
     delta = (za + zb) * math.sqrt(base_rate * (1 - base_rate) / n)
     return (base_rate + delta) / base_rate
+
+
+def stratified_mean_difference(
+    values: np.ndarray, mask: np.ndarray, strata: np.ndarray
+) -> tuple[float, float, int]:
+    """Inside-vs-outside mean difference pooled across strata: the continuous-outcome
+    counterpart of Mantel-Haenszel.
+
+    Within each stratum, Cohen's d from a Welch comparison; strata pooled by inverse
+    variance (var(d) ~ (n1+n2)/(n1 n2) + d^2 / 2(n1+n2)). Returns (p, pooled_d, strata
+    used). Strata with fewer than two rows on either side contribute nothing.
+    """
+    num = den = 0.0
+    used = 0
+    # A missing control value is not a stratum. Coerce to plain strings first: pandas'
+    # string dtype keeps NaN as a float, and `np.unique` cannot order float against str.
+    labels = np.array([None if (isinstance(v, float) and math.isnan(v)) or v is None else str(v)
+                       for v in strata], dtype=object)
+    for level in {v for v in labels if v is not None}:
+        sel = labels == level
+        x = values[sel & mask]
+        y = values[sel & ~mask]
+        x, y = x[~np.isnan(x)], y[~np.isnan(y)]
+        if len(x) < 2 or len(y) < 2:
+            continue
+        _, d = welch_t_test(x, y)
+        n1, n2 = len(x), len(y)
+        var = (n1 + n2) / (n1 * n2) + d * d / (2.0 * (n1 + n2))
+        if var <= 0:
+            continue
+        num += d / var
+        den += 1.0 / var
+        used += 1
+    if used == 0 or den == 0:
+        return 1.0, 0.0, used
+    pooled = num / den
+    z = pooled / math.sqrt(1.0 / den)
+    return 2.0 * norm_sf(abs(z)), pooled, used
+

@@ -1,0 +1,131 @@
+{
+  "role": "claims_analyst",
+  "run_dir": "/home/ssattiraju/strong-loop/docs/runs/claims_analyst-20260924-080719-63386c07",
+  "user_id": null,
+  "session_id": null,
+  "conversation_id": "63386c07-977c-4c65-b20c-115db13f2dac",
+  "status": "complete",
+  "iterations_run": 2,
+  "hypotheses_tested": 26,
+  "verdicts": {
+    "REJECTED": 17,
+    "SUPPORTED": 9
+  },
+  "findings": [
+    {
+      "headline": "Frequent prior claimants are independently associated with higher leakage",
+      "confidence": 0.767
+    },
+    {
+      "headline": "Broker-notified claims are independently associated with higher leakage",
+      "confidence": 0.864,
+      "warnings": [
+        "text may not match its evidence (TypeSafe: supports P=0.46)"
+      ]
+    },
+    {
+      "headline": "High-complexity claims are independently associated with higher leakage",
+      "confidence": 0.893
+    },
+    {
+      "headline": "High-complexity claims take substantially longer to settle independently of notification and prior-claim history",
+      "confidence": 0.95,
+      "warnings": [
+        "text claims causation (TypeSafe P=0.70); the gate measured an association"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "route_to_investigation",
+      "status": "approved",
+      "autonomy": "L2_act_reversible",
+      "what": "Send a defined group of claims to the special investigations queue.",
+      "recommendation": "Route claims with complexity_score >= 4 to the special investigations queue before settlement.",
+      "expected_effect": "Reduce leakage in the high-complexity segment through targeted investigation.",
+      "warnings": [],
+      "target": {
+        "where": "(complexity_score >= 4)",
+        "rows": 2824,
+        "unit": "claims",
+        "max_per_run": 200
+      },
+      "approval_from": null,
+      "observe": {
+        "lag_days": 60,
+        "metric": "leakage_flag",
+        "window_days": 90,
+        "compare_with": "\u540c\u671f overall leakage rate"
+      },
+      "evidence": [
+        {
+          "headline": "High-complexity claims are independently associated with higher leakage",
+          "confidence": 0.893
+        }
+      ]
+    },
+    {
+      "type": "route_to_investigation",
+      "status": "approved",
+      "autonomy": "L2_act_reversible",
+      "what": "Send a defined group of claims to the special investigations queue.",
+      "recommendation": "Route broker-notified claims to the special investigations queue before settlement.",
+      "expected_effect": "Reduce leakage in the broker-notified segment through targeted investigation.",
+      "warnings": [],
+      "target": {
+        "where": "(notification_channel == 'broker')",
+        "rows": 1337,
+        "unit": "claims",
+        "max_per_run": 200
+      },
+      "approval_from": null,
+      "observe": {
+        "lag_days": 60,
+        "metric": "leakage_flag",
+        "window_days": 90,
+        "compare_with": "\u540c\u671f overall leakage rate"
+      },
+      "evidence": [
+        {
+          "headline": "Broker-notified claims are independently associated with higher leakage",
+          "confidence": 0.864
+        }
+      ]
+    },
+    {
+      "type": "route_to_investigation",
+      "status": "approved",
+      "autonomy": "L2_act_reversible",
+      "what": "Send a defined group of claims to the special investigations queue.",
+      "recommendation": "Route claims with prior_claims >= 3 to the special investigations queue before settlement.",
+      "expected_effect": "Reduce leakage among this high-risk segment by subjecting it to targeted investigation.",
+      "warnings": [],
+      "target": {
+        "where": "(prior_claims >= 3)",
+        "rows": 321,
+        "unit": "claims",
+        "max_per_run": 200
+      },
+      "approval_from": null,
+      "observe": {
+        "lag_days": 60,
+        "metric": "leakage_flag",
+        "window_days": 90,
+        "compare_with": "\u540c\u671f overall leakage rate"
+      },
+      "evidence": [
+        {
+          "headline": "Frequent prior claimants are independently associated with higher leakage",
+          "confidence": 0.767
+        }
+      ]
+    }
+  ],
+  "demoted_by_multiple_testing": 0,
+  "withheld_questions": [],
+  "data_warnings": [],
+  "iteration_log": [
+    "iteration 1: tested 11, newly supported 6",
+    "iteration 2: tested 15, newly supported 3"
+  ]
+}

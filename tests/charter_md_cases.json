@@ -1,0 +1,230 @@
+{
+ "_doc": "Shared by loop/charter_md.py (tests/test_charter_md.py) and the charter page's JavaScript parser. Each case: `md` parses to exactly `raw`, or fails with an error containing `error`.",
+ "cases": [
+  {
+   "name": "every section and key",
+   "md": "---\nrole: retention_manager\nversion: 2\nextends: base_analyst\n---\n# Retention manager\nOwns subscriber retention\nand monthly revenue per subscriber.\n\n> commentary lines like this one are ignored\n\n## Glossary\n- **churn**: the subscriber cancelled service\n- ARPU: average revenue per user\n\n## Accountabilities\n### reduce_churn — Reduce the share of subscribers who cancel\n- metric: `Churn`\n- direction: decrease\n- horizon: 90 days\n- priority: 1\n- lead: month-to-month contracts\n- lead: fibre customers\n\n### grow_arpu - Increase monthly charges per subscriber\n- metric: MonthlyCharges\n- direction: increase\n\n## Decision rights\n### retention_offer — Send a defined group a retention offer\n- autonomy: L1_recommend\n- reversible: yes\n- cap: 500 subscribers per run\n- max value at risk: 25000\n- observe: `Churn` after 60 days\n- approval: head_of_retention\n\n### price_review\n- reversible: no\n- cap: 50 per run\n- observe: after 90 days\n\n## Evidence standard\n- min sample: 100\n- max p: 0.01\n- min effect: 1.2\n- correction: benjamini_hochberg\n### Override: price_review\n- min sample: 500\n- requires causal design: yes\n\n## Constraints\n- never use: `customerID`, `gender`\n- leaks the outcome: none\n- only use: `tenure`, `Contract`\n- sensitive columns: allowed\n- notes: routing on the  assessor\n",
+   "raw": {
+    "role": "retention_manager",
+    "version": 2,
+    "extends": "base_analyst",
+    "description": "Owns subscriber retention and monthly revenue per subscriber.",
+    "glossary": {
+     "churn": "the subscriber cancelled service",
+     "ARPU": "average revenue per user"
+    },
+    "accountabilities": [
+     {
+      "id": "reduce_churn",
+      "statement": "Reduce the share of subscribers who cancel",
+      "metric": "Churn",
+      "direction": "decrease",
+      "horizon_days": 90,
+      "priority": 1,
+      "leads": [
+       "month-to-month contracts",
+       "fibre customers"
+      ]
+     },
+     {
+      "id": "grow_arpu",
+      "statement": "Increase monthly charges per subscriber",
+      "metric": "MonthlyCharges",
+      "direction": "increase"
+     }
+    ],
+    "decision_rights": [
+     {
+      "action_type": "retention_offer",
+      "description": "Send a defined group a retention offer",
+      "autonomy_level": "L1_recommend",
+      "reversible": true,
+      "blast_radius": {
+       "max_per_run": 500,
+       "unit": "subscribers",
+       "max_value_at_risk": 25000.0
+      },
+      "observation_metric": "Churn",
+      "observation_lag_days": 60,
+      "requires_authority": "head_of_retention"
+     },
+     {
+      "action_type": "price_review",
+      "reversible": false,
+      "blast_radius": {
+       "max_per_run": 50
+      },
+      "observation_lag_days": 90
+     }
+    ],
+    "evidence_standards": {
+     "min_sample_size": 100,
+     "max_p_value": 0.01,
+     "min_effect_size": 1.2,
+     "multiple_testing_correction": "benjamini_hochberg"
+    },
+    "evidence_overrides": {
+     "price_review": {
+      "min_sample_size": 500,
+      "requires_causal_design": true
+     }
+    },
+    "constraints": {
+     "forbidden_features": [
+      "customerID",
+      "gender"
+     ],
+     "leakage_features": [],
+     "allowed_features": [
+      "tenure",
+      "Contract"
+     ],
+     "block_sensitive_columns": false,
+     "notes": "routing on the assessor"
+    }
+   }
+  },
+  {
+   "name": "minimal",
+   "md": "---\nrole: r\n---\n## Accountabilities\n### a — own it\n- metric: `m`\n- direction: increase\n",
+   "raw": {
+    "role": "r",
+    "accountabilities": [
+     {
+      "id": "a",
+      "statement": "own it",
+      "metric": "m",
+      "direction": "increase"
+     }
+    ]
+   }
+  },
+  {
+   "name": "blank lines before front matter",
+   "md": "\n\n---\nrole: r\n---\n",
+   "raw": {
+    "role": "r"
+   }
+  },
+  {
+   "name": "no front matter",
+   "md": "# Title\n",
+   "error": "line 1: a charter starts with front matter"
+  },
+  {
+   "name": "front matter never closed",
+   "md": "---\nrole: r\n",
+   "error": "front matter is never closed"
+  },
+  {
+   "name": "unknown front matter key",
+   "md": "---\nrole: r\nowner: me\n---\n",
+   "error": "line 3: front matter takes"
+  },
+  {
+   "name": "front matter without role",
+   "md": "---\nversion: 1\n---\n",
+   "error": "must name the `role`"
+  },
+  {
+   "name": "version is not a number",
+   "md": "---\nrole: r\nversion: one\n---\n",
+   "error": "line 3: `version` must be a whole number"
+  },
+  {
+   "name": "unknown section",
+   "md": "---\nrole: r\n---\n## Workflow\n",
+   "error": "line 4: unknown section 'Workflow'"
+  },
+  {
+   "name": "section twice",
+   "md": "---\nrole: r\n---\n## Constraints\n## Constraints\n",
+   "error": "line 5: section `## Constraints` appears twice"
+  },
+  {
+   "name": "unknown accountability key",
+   "md": "---\nrole: r\n---\n## Accountabilities\n### a — own it\n- owner: me\n",
+   "error": "line 6: an accountability takes"
+  },
+  {
+   "name": "bullet before its item",
+   "md": "---\nrole: r\n---\n## Accountabilities\n- metric: m\n",
+   "error": "line 5: start each accountability with"
+  },
+  {
+   "name": "prose inside a section",
+   "md": "---\nrole: r\n---\n## Accountabilities\n### a — own it\nthis explains it\n",
+   "error": "line 6: inside `## Accountabilities` every line"
+  },
+  {
+   "name": "key given twice",
+   "md": "---\nrole: r\n---\n## Accountabilities\n### a — own it\n- metric: a\n- metric: b\n",
+   "error": "line 7: `metric` is given twice"
+  },
+  {
+   "name": "id defined twice",
+   "md": "---\nrole: r\n---\n## Accountabilities\n### a — own it\n### a — again\n",
+   "error": "line 6: 'a' is defined twice"
+  },
+  {
+   "name": "horizon not in days",
+   "md": "---\nrole: r\n---\n## Accountabilities\n### a — own it\n- horizon: a quarter\n",
+   "error": "line 6: `horizon` is a number of days"
+  },
+  {
+   "name": "bad yes/no",
+   "md": "---\nrole: r\n---\n## Decision rights\n### act\n- reversible: maybe\n",
+   "error": "line 6: `reversible` must be yes or no"
+  },
+  {
+   "name": "cap without per run",
+   "md": "---\nrole: r\n---\n## Decision rights\n### act\n- cap: 500\n",
+   "error": "line 6: `cap` is `<number> <unit> per run`"
+  },
+  {
+   "name": "bad observe",
+   "md": "---\nrole: r\n---\n## Decision rights\n### act\n- observe: next quarter please\n",
+   "error": "line 6: `observe` is"
+  },
+  {
+   "name": "override heading malformed",
+   "md": "---\nrole: r\n---\n## Evidence standard\n### stricter\n",
+   "error": "line 5: under `## Evidence standard`"
+  },
+  {
+   "name": "unknown standard key",
+   "md": "---\nrole: r\n---\n## Evidence standard\n- confidence: high\n",
+   "error": "line 5: an evidence standard takes"
+  },
+  {
+   "name": "item under glossary",
+   "md": "---\nrole: r\n---\n## Glossary\n### term\n",
+   "error": "line 5: a `### <id> — <statement>` item belongs"
+  },
+  {
+   "name": "glossary line without meaning",
+   "md": "---\nrole: r\n---\n## Glossary\n- **churn**:\n",
+   "error": "line 5: a glossary line is"
+  },
+  {
+   "name": "sensitive columns bad value",
+   "md": "---\nrole: r\n---\n## Constraints\n- sensitive columns: sometimes\n",
+   "error": "line 5: `sensitive columns` is `blocked` or `allowed`"
+  },
+  {
+   "name": "unknown constraint",
+   "md": "---\nrole: r\n---\n## Constraints\n- max rows: 5\n",
+   "error": "line 5: constraints take"
+  },
+  {
+   "name": "title after a section",
+   "md": "---\nrole: r\n---\n## Glossary\n# Title\n",
+   "error": "line 5: a `# title` belongs at the top"
+  },
+  {
+   "name": "deeper heading",
+   "md": "---\nrole: r\n---\n## Accountabilities\n### a — own it\n#### detail\n",
+   "error": "line 6: unexpected heading"
+  }
+ ]
+}

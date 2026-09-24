@@ -61,12 +61,22 @@ details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:va
 .accept input,.accept textarea{font:inherit;font-family:var(--mono);font-size:.82rem;width:100%;padding:.45rem .6rem;border:1px solid var(--rule);border-radius:3px;background:#fff}
 button.ghost{background:transparent;color:var(--code);border:1px solid var(--code)}
 @media (max-width:720px){li.rec{grid-template-columns:1fr}.rail{display:none}.lane.code{border-left:2px solid var(--code);padding-left:.9rem}.intake,.pairing.show{grid-template-columns:1fr}}
-</style></head>
+.site-nav .n{display:inline-block;width:1.35em;height:1.35em;line-height:1.35em;text-align:center;border-radius:50%;background:var(--code);color:#fff;margin-right:.35em;font-size:.9em}
+.site-nav a[aria-current]{color:var(--ink)} .site-nav .out{margin-left:auto}
+.watch{width:min(1480px,calc(100vw - 48px));margin:1.2rem 0 0 calc(50% - min(740px, 50vw - 24px));border-top:1px solid var(--rule);padding-top:.8rem}
+.watch-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem}
+.watch-head h2{font-family:var(--display);font-size:1.3rem;margin:0}
+#stage{height:min(80vh,820px);min-height:600px;margin-top:.5rem}
+.report-box{margin:1.2rem 0;border:1px solid var(--rule);border-left:4px solid var(--code);background:var(--paper-2);padding:1rem 1.2rem;border-radius:0 4px 4px 0}
+.report-box h2{font-family:var(--display);font-size:1.3rem;margin:0 0 .4rem}
+details.log{margin-top:1.2rem;border-top:1px solid var(--rule);padding-top:.6rem} details.log>summary{cursor:pointer;font:600 .8rem var(--mono);color:var(--code);margin-bottom:.6rem}
+</style>
+<link rel="stylesheet" href="/wheel.css"></head>
 <body>
-<nav class="site-nav" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html">Understand it</a><a href="/charters.html">Charters</a><a href="/live.html" aria-current="page">Try it live</a><a href="/.auth/logout">Sign out</a></nav>
+<nav class="site-nav" aria-label="three steps"><a href="/"><span class="n">1</span>How it works</a><a href="/charters.html"><span class="n">2</span>Write a charter</a><a href="/live.html" aria-current="page"><span class="n">3</span>Run it</a><a class="out" href="/.auth/logout">Sign out</a></nav>
 <header>
-  <div><p class="status" id="status">idle</p><h1>The agent proposes. <span style="color:var(--code)">Code disposes.</span> Live.</h1></div>
-  <p class="muted" style="max-width:44ch;margin:0;font-size:.92rem">Pick a role and a dataset, check that they pair, answer anything the platform cannot decide for you, then start. No model runs until you have.</p>
+  <div><p class="status" id="status">idle</p><h1>Run it</h1></div>
+  <p class="muted" style="max-width:52ch;margin:0;font-size:.92rem">Pick a charter and a dataset, check that they pair, answer anything the platform cannot decide for you, then start and watch the same wheel as <a href="/">How it works</a> — live. No model runs until you press start.</p>
 </header>
 <main>
   <form class="intake" id="intake">
@@ -75,9 +85,9 @@ button.ghost{background:transparent;color:var(--code);border:1px solid var(--cod
       <label for="charter-preset">a shipped role, or one you saved</label>
       <select id="charter-preset"></select>
       <p class="or">— or —</p>
-      <label for="charter-file">your own charter (YAML)</label>
-      <input type="file" id="charter-file" accept=".yaml,.yml,text/yaml">
-      <p class="hint">What the role is accountable for, what it may do, and what it may never use. Uploads win over the preset. <a href="/charters.html">Write a new charter →</a></p>
+      <label for="charter-file">your own charter (Markdown or YAML)</label>
+      <input type="file" id="charter-file" accept=".md,.markdown,.yaml,.yml,text/markdown,text/yaml">
+      <p class="hint">What the role is accountable for, what it may do, and what it may never use. Uploads win over the preset. <a href="/charters.html">Write one →</a></p>
     </div>
     <div class="step">
       <h2><span class="n">2</span>Data</h2>
@@ -110,6 +120,13 @@ button.ghost{background:transparent;color:var(--code);border:1px solid var(--cod
       <button id="again" type="button" class="ghost" hidden>New pairing</button>
     </form>
   </section>
+  <section class="watch" id="watch" hidden>
+    <div class="watch-head"><h2>The run, live</h2><div class="wheel-legend"><span class="who who-model">model</span><span>proposes · outside</span><span class="sep"></span><span class="who who-code">code</span><span>decides · inside</span><span class="sep"></span><span class="who who-human">human</span><span>signed the charter</span></div></div>
+    <p class="wheel-caption" id="caption" aria-live="polite"></p>
+    <div id="stage"></div>
+  </section>
+  <section class="report-box" id="report" hidden></section>
+  <details class="log" id="log"><summary>Event log — every item on the stream, in order</summary>
   <dl class="facts" id="facts">
     <div><dt>iteration</dt><dd id="f-iter">—</dd></div>
     <div><dt>hypotheses tested</dt><dd id="f-tested">0</dd></div>
@@ -119,7 +136,9 @@ button.ghost{background:transparent;color:var(--code);border:1px solid var(--cod
     <div><dt>skills loaded</dt><dd id="f-skill">0</dd></div>
   </dl>
   <ol class="timeline" id="timeline"><li class="empty">Check a pairing, then start. Every tool call, its output, the model's reasoning summary and the loop's own events arrive on one Responses stream. For local development, start the agent with <span class="mono">azd ai agent run --no-client</span> and open this page from <span class="mono">localhost</span>.</li></ol>
+  </details>
 </main>
+<script src="/wheel.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 // Two backends, one page. Hosted: the site's API creates the Foundry session, writes files
@@ -133,6 +152,14 @@ let sessionId = null, uploadTicket = null, settled = false;
 const tl = $("timeline"); const facts = {tested:0, sup:0, find:0, act:0, skill:0};
 const calls = new Map();          // call_id -> {name, args, li, right}
 let liveStamp = null;
+// The wheel: the same component and the same events as How it works, fed by this stream.
+let wheel = null, toWheel = Wheel.adapter(), t0 = null;
+function ensureWheel(){ if (!wheel) wheel = Wheel.mount($("stage"), {onOpen: () => { $("log").open = true; $("log").scrollIntoView({behavior: "smooth"}); }}); return wheel; }
+function onWheelItem(item){
+  const ev = toWheel(item); if (!ev || !wheel) return;
+  if (t0 != null && window.firstWheelEventMs == null) window.firstWheelEventMs = Math.round(performance.now() - t0);
+  wheel.apply(ev); Wheel.caption($("caption"), Wheel.narrate(ev));
+}
 
 function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function el(html){ const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
@@ -195,9 +222,11 @@ function onLoopEvent(name, args, out){
     add(el(`<li class="tally"><span class="mono">${esc(out.line || "")}</span> — read from the ledger by should_continue; stagnant ${out.stagnant}, idle ${out.idle}</li>`));
   } else if (name === "loop.report") {
     setLive(null);
-    const f = (out.findings || []).map(x => `<li>${esc(x.headline)} <span class="mono muted">${esc(x.confidence)}</span></li>`).join("");
+    const f = (out.findings || []).map(x => `<li>${esc(x.headline)} <span class="mono muted">${esc(x.confidence)}</span>${(x.warnings || []).map(w => `<br><span class="reason">⚠ ${esc(w)}</span>`).join("")}</li>`).join("");
     const a = (out.actions || []).map(actionCard).join("");
-    add(el(`<li class="report"><h2>Report — ${esc(out.iterations_run)} iterations, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2><p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p><strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>What to do next</strong><ol class="todo">${a || "<li>nothing was authorised — see the findings and the ledger</li>"}</ol><details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details></li>`));
+    const box = $("report"); box.hidden = false;
+    box.innerHTML = `<h2>Report — ${esc(out.iterations_run)} rounds, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2><p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p><strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>What to do next</strong><ol class="todo">${a || "<li>nothing was authorised — see the findings and the event log</li>"}</ol>${(out.withheld_questions || []).length ? `<p class="muted">Not covered: ${out.withheld_questions.map(esc).join(" · ")}</p>` : ""}<details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details>`;
+    add(el(`<li class="tally"><span class="mono">report written</span> — shown above the log</li>`));
     $("status").textContent = "complete";
   } else if (name === "loop.intake") {
     onIntake(out);
@@ -221,6 +250,7 @@ function actionCard(x){
       <dt>to whom</dt><dd>${rows} where <span class="mono">${esc(t.where || "—")}</span>${cap}</dd>
       <dt>who</dt><dd>${who}</dd>
       ${x.expected_effect ? `<dt>expect</dt><dd>${esc(x.expected_effect)}</dd>` : ""}
+      ${(x.warnings || []).length ? `<dt>warning</dt><dd>${x.warnings.map(esc).join("<br>")}</dd>` : ""}
       <dt>check</dt><dd>${o.metric ? `<span class="mono">${esc(o.metric)}</span> ${when}` : "—"}${o.baseline != null ? ` · baseline ${esc(typeof o.baseline === "object" ? JSON.stringify(o.baseline) : o.baseline)}` : ""}</dd>
       <dt>because</dt><dd>${ev || "—"}</dd>
     </dl></li>`;
@@ -232,8 +262,14 @@ function fmtMeasure(m){
   if (m.kind === "rate") return `rate ${(m.base_rate * 100).toFixed(1)}% (${m.positives?.toLocaleString?.() ?? m.positives} of ${m.n?.toLocaleString?.() ?? m.n})`;
   return `mean ${round(m.mean)} · median ${round(m.median)} · n ${m.n?.toLocaleString?.() ?? m.n}`;
 }
+let lastReport = null;
+function wheelInput(r){
+  return {role: r.role, accountabilities: (r.accountabilities || []).filter(a => a.status === "ok"),
+          dataset: {name: (r.source && r.source.data) || "data", rows: r.rows}, questions: (r.questions || []).length};
+}
 function onIntake(out){
   const r = out.report || {}; const status = out.status || "refused";
+  if (out.report) lastReport = {...r, source: out.source};
   const box = $("pairing-report"); $("pairing").classList.add("show");
   let html = `<h2>${esc(r.role || "pairing")}${r.version ? ` v${esc(r.version)}` : ""} <span class="mono muted">${esc(out.source?.charter || "")} · ${esc(out.source?.data || "")}${r.rows ? ` · ${r.rows.toLocaleString()} rows` : ""}</span></h2>`;
   const problems = [...new Set([...(out.problems || []), ...(r.problems || [])])];
@@ -244,6 +280,8 @@ function onIntake(out){
       `<tr><td>${esc(a.statement)}<br><span class="mono muted">${esc(a.id)}</span></td><td class="mono">${esc(a.metric)}</td><td>${a.status === "ok" ? `<span class="ok">✓</span> <span class="mono muted">${esc(fmtMeasure(a.measure))}</span>` : `<span class="problem">${a.status === "unmeasurable" ? "not numeric or 0/1" : "not a column"}</span>`}</td></tr>`).join("") + `</table>`;
     html += `<p class="stats muted">analysable: ${(r.analysable_columns || []).map(esc).join(", ") || "none"}</p>`;
     if (r.screened && r.screened.length) html += `<p class="stats muted">screened out: ${r.screened.map(s => `${esc(s.column)} <span style="opacity:.7">(${esc(s.reason)})</span>`).join(", ")}</p>`;
+    const recoded = Object.entries(r.recoded || {});
+    if (recoded.length) html += `<p class="stats muted">values read as numbers: ${recoded.map(([c, how]) => `${esc(c)} <span style="opacity:.7">(${esc(how)})</span>`).join(", ")}</p>`;
     const probes = [r.gate_probe, r.screen_probe].filter(Boolean).map(p => `${esc(p.gate)} on <span class="mono">${esc(p.where)}</span> → <span class="verdict v-${esc(p.verdict)}">${esc(p.verdict)}</span>`);
     if (probes.length) html += `<p class="stats muted">probes — the gate and the screens, exercised on this data before anything runs: ${probes.join(" · ")}</p>`;
     if (r.questions) html += `<details><summary>${r.questions.length} question(s) the agent will pursue — derived from the charter, not for you to answer</summary><ul>${r.questions.map(q => `<li>${esc(q)}</li>`).join("")}</ul></details>`;
@@ -283,8 +321,8 @@ async function check(ev){
     const charterFile = $("charter-file").files[0], dataFile = $("data-file").files[0];
     const request = {};
     const chosen = $("charter-preset").value;
-    if (charterFile) await putFile("intake/charter.yaml", charterFile);
-    else if (chosen.startsWith("mine:")) await putFile("intake/charter.yaml", savedCharters()[chosen.slice(5)] ?? "");
+    if (charterFile) await putFile(/\.(md|markdown)$/i.test(charterFile.name) ? "intake/charter.md" : "intake/charter.yaml", charterFile);
+    else if (chosen.startsWith("mine:")) { const text = savedCharters()[chosen.slice(5)] ?? ""; await putFile(/^\s*---/.test(text) ? "intake/charter.md" : "intake/charter.yaml", text); }
     else request.charter = chosen;
     if (dataFile) await putFile("intake/data.csv", dataFile); else request.data = $("data-preset").value;
     await putFile("intake/request.json", JSON.stringify(request));
@@ -302,6 +340,11 @@ async function start(ev){
   try {
     if (!settled) await putFile("intake/accept.json", JSON.stringify(accept));
     tl.innerHTML = ""; calls.clear(); Object.keys(facts).forEach(k => facts[k] = 0); refresh(); $("f-iter").textContent = "—"; endText();
+    $("report").hidden = true; $("watch").hidden = false; ensureWheel().reset(); toWheel = Wheel.adapter();
+    if (lastReport) wheel.setInput(wheelInput(lastReport));
+    Wheel.caption($("caption"), {who: "human", tone: "", text: "You started the run. The first round begins with an empty context…"});
+    requestAnimationFrame(() => { wheel.layout(); $("watch").scrollIntoView({behavior: "smooth", block: "start"}); });
+    t0 = performance.now(); window.firstWheelEventMs = null;
     await stream($("steer").value);
     if ($("status").textContent === "complete") settled = true;   // a settled session re-runs the same pairing
   } catch (e) { $("status").textContent = "failed: " + e.message; }
@@ -387,6 +430,7 @@ function handle(block){
       if (it.type === "function_call") onCall(it);
       else if (it.type === "function_call_output") onOutput(it);
       else if (it.type === "message") endText();
+      onWheelItem(it);
       break;
     }
     case "response.output_text.delta": onTextDelta(data.delta); break;

@@ -3,8 +3,8 @@
 Operational guide for agents working on this repo. Short on purpose.
 
 **Read first:** `PLAN.md` — the decisions and why, the deployment coordinates, the platform
-gotchas already paid for, and the roadmap. `README.md` — how to run it. `docs/loop.html` —
-the loop explained from a recorded run. When a roadmap step lands, update `PLAN.md` §3 and §6.
+gotchas already paid for, and the roadmap. `README.md` — how to run it. `docs/index.html` —
+the loop on one wheel, replayed from a recorded run. When a roadmap step lands, update `PLAN.md` §3 and §6.
 
 ## Commands
 
@@ -18,15 +18,17 @@ python -m loop check --charter charters/<c>.yaml --data data/<d>.csv     # pairi
 python -m loop questions --charter charters/<c>.yaml
 python -m loop run --charter charters/<c>.yaml --data data/<d>.csv --iterations 3   # the loop; needs a model
 python -m loop sign charters/<c>.yaml --by <you>            # ratify a charter's content
+python -m loop render charters/<c>.yaml                     # the same charter as standard Markdown (or back)
 
 cd ../..
 azd ai agent run --no-client                                # the hosted agent, locally, on :8088
 azd ai agent invoke --local "Focus on ..."                 # every turn is one run; history is not replayed
 azd up && azd ai agent invoke "go"                          # deploy, then invoke the deployed agent
 
-# the explainer page, regenerated from a recorded run (every number on it comes from the run)
+# page 1 ("How it works"), regenerated from a recorded run (every number on it comes from the run);
+# keep one run in docs/runs — tests check docs/index.html was built from it
 python -m loop run --charter charters/claims_analyst.yaml --data data/claims.csv --iterations 2 --run-dir ../../docs/runs
-python ../../tools/make_loop_doc.py ../../docs/runs/<run>        # -> docs/loop.html
+python ../../tools/make_showcase.py ../../docs/runs/<run>        # -> docs/index.html
 ```
 
 ## The two rules that must never be broken
@@ -51,8 +53,10 @@ python -m loop check --charter charters/claims_analyst.yaml    --data data/claim
 | Adding... | Goes in |
 |---|---|
 | a new **shape of question** | a new gate in `loop/gates.py`, via `@register` |
-| a new **role** | a YAML in `src/strong-loop/charters/` — never code |
+| a new **role** | a YAML in `src/strong-loop/charters/` (or a standard-Markdown charter uploaded) — never code |
+| a new **charter key** | the model in `loop/charter.py`, `parse`/`render` in `loop/charter_md.py`, and a case in `tests/charter_md_cases.json` (the page's JS parser runs the same cases) |
 | a new **safety rule** | `screen()` in `loop/gates.py` |
+| a new **data-driven screen** (something the DATA proves may not be tested: a copy of the metric, a constant, an alias) | a rule in `loop/derived.py` — never a list in a charter |
 | a new **model** | nothing: set `LOOP_MODEL`. `claude-*` routes to the Anthropic API, else `/openai/v1` |
 | a new **tool** that certifies or touches the data | a method on `Toolbelt` in `loop/tools.py`, added to `tools()` |
 | a new **reference tool or skill** (safe for every role) | `toolbox.yaml` / `src/strong-loop/skills/`, then `azd ai toolbox create` — never `code_interpreter` |
@@ -80,7 +84,9 @@ go through `_safe()`. A finished run is never resumed by a later turn (`state_fo
 `LoopEventStream` (outermost agent middleware) interleaves `loop.*` items into the Responses
 stream from `RunState.pending`, which `RunScope.trace()` fills. Add a loop-level event by
 calling `trace()`; it reaches `trace.log` and the stream in one step. Tool calls are NOT
-re-emitted — they are already native items. `docs/live.html` renders the stream.
+re-emitted — they are already native items. `docs/live.html` renders the stream on the wheel
+(`docs/wheel.js`, shared with page 1: add a new event kind to `Wheel.adapter`, `apply` and
+`narrate` together, or the replay and the live page will disagree).
 
 ## Conventions
 

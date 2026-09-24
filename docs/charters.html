@@ -1,426 +1,240 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>strong-loop — charters</title>
+<title>strong-loop — write a charter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--paper:#EFF2F4;--paper-2:#F7F9FA;--ink:#15181D;--graphite:#59626E;--rule:#C7CED6;--code:#1F3A93;--human:#8A5A00;--supported:#0B7A55;--rejected:#B42318;--inconclusive:#B26A00;
+:root{--paper:#EFF2F4;--paper-2:#F7F9FA;--ink:#15181D;--graphite:#59626E;--rule:#C7CED6;--code:#1F3A93;--model:#5B4B9E;--human:#8A5A00;--ok:#0B7A55;--bad:#B42318;--warn:#B26A00;
 --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",Consolas,monospace}
-*{box-sizing:border-box} html{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body)} body{margin:0;padding:0 24px 80px}
-h1{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:clamp(1.8rem,4vw,2.6rem);margin:0}
-h2{font-family:var(--display);font-weight:700;font-size:1.05rem;margin:0 0 .6rem;letter-spacing:-.01em}
-.mono{font-family:var(--mono);font-size:.85em} .muted{color:var(--graphite)}
-.site-nav{max-width:1240px;margin:0 auto;padding:1rem 0 0;display:flex;gap:1.2rem;font:600 .75rem var(--mono);text-transform:uppercase;letter-spacing:.05em}.site-nav a{color:var(--code);text-decoration:none}.site-nav a:hover{text-decoration:underline}
-header{max-width:1240px;margin:0 auto;padding:1rem 0;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:end;justify-content:space-between;border-bottom:1px solid var(--rule)}
-header p{margin:.3rem 0 0;max-width:60ch}
-main{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.6rem;padding-top:1.2rem}
+*{box-sizing:border-box} html{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body)} body{margin:0;padding:0 24px 60px}
+a{color:var(--code)} .mono{font-family:var(--mono)} .muted{color:var(--graphite)}
+.site-nav{max-width:1320px;margin:0 auto;padding:1rem 0 0;display:flex;gap:1.1rem;font:600 .75rem var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.site-nav a{color:var(--code);text-decoration:none}.site-nav a:hover{text-decoration:underline}.site-nav a[aria-current]{color:var(--ink)}
+.site-nav .n{display:inline-block;width:1.35em;height:1.35em;line-height:1.35em;text-align:center;border-radius:50%;background:var(--code);color:#fff;margin-right:.35em;font-size:.9em}
+.site-nav .out{margin-left:auto}
+header{max-width:1320px;margin:0 auto;padding:.8rem 0 1rem;border-bottom:1px solid var(--rule)}
+h1{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:2.2rem;line-height:1;margin:.2rem 0 .5rem}
+.lede{margin:0;max-width:86ch;color:var(--graphite)} .lede b{color:var(--ink)}
+main{max-width:1320px;margin:1rem auto 0;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:1.5rem;align-items:start}
 @media (max-width:980px){main{grid-template-columns:1fr}}
-.library{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.9rem 1rem;background:var(--paper-2);border:1px solid var(--rule);border-radius:4px}
-.library .grow{flex:1 1 auto}
-input,select,textarea{font:inherit;font-family:var(--mono);font-size:.82rem;padding:.45rem .6rem;border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);color:var(--ink);max-width:100%}
-textarea{width:100%;min-height:3.6rem;resize:vertical;font-family:var(--body);font-size:.92rem}
-label{display:flex;flex-direction:column;gap:.25rem;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)}
-label>input,label>select{font-size:.82rem;text-transform:none;letter-spacing:0}
-label.check{flex-direction:row;align-items:center;gap:.5rem;text-transform:none;letter-spacing:0;font-size:.8rem}
-button{font-family:var(--mono);font-size:.82rem;font-weight:600;padding:.5rem .9rem;border:0;border-radius:3px;background:var(--code);color:#fff;cursor:pointer} button[disabled]{opacity:.5;cursor:default}
-button.ghost{background:transparent;color:var(--code);border:1px solid var(--code)} button.danger{background:transparent;color:var(--rejected);border:1px solid var(--rejected)} button.small{padding:.3rem .6rem;font-size:.72rem}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--code);outline-offset:2px}
-section.block{padding:1rem 0;border-bottom:1px solid var(--rule)}
-section.block>p.help{margin:-.3rem 0 .8rem;font-size:.88rem;color:var(--graphite)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.7rem .9rem}
-.grid .wide{grid-column:1/-1}
-.card{border:1px solid var(--rule);border-radius:4px;padding:.8rem;margin:0 0 .7rem;background:var(--paper-2);position:relative}
-.card .rm{position:absolute;top:.6rem;right:.6rem}
-.card h3{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);margin:0 0 .6rem}
-details.sub{margin:.6rem 0 0}details.sub summary{cursor:pointer;font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)}
-.preview{position:sticky;top:1rem;align-self:start}
-pre.yaml{font-family:var(--mono);font-size:.78rem;line-height:1.5;background:#fff;border:1px solid var(--rule);border-radius:4px;padding:1rem;overflow:auto;max-height:70vh;margin:0;white-space:pre}
-ul.problems{margin:.6rem 0 0;padding-left:1.1rem;font-size:.88rem} ul.problems li{color:var(--rejected)} ul.problems li.ok{color:var(--supported)}
-.actions{display:flex;flex-wrap:wrap;gap:.6rem;margin:.8rem 0}
-.pill{display:inline-block;font-family:var(--mono);font-size:.68rem;padding:.1rem .45rem;border-radius:2px;border:1px solid var(--rule);color:var(--graphite);margin-left:.4rem}
-.pill.signed{color:var(--supported);border-color:var(--supported)}
-.columns{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem}.columns span{font-family:var(--mono);font-size:.7rem;padding:.1rem .4rem;background:#fff;border:1px solid var(--rule);border-radius:2px}
-.columns span.numeric{border-color:var(--supported)}
-</style></head><body>
-<nav class="site-nav" aria-label="customer journey"><a href="/">Overview</a><a href="/showcase.html">See it</a><a href="/loop.html">Understand it</a><a href="/charters.html" aria-current="page">Charters</a><a href="/live.html">Try it live</a><a href="/.auth/logout">Sign out</a></nav>
+.tools{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .5rem;font:.78rem var(--mono)}
+select,button,input[type=file]{font:600 .78rem var(--mono)}
+select{padding:.35rem .4rem;border:1px solid var(--rule);border-radius:3px;background:#fff}
+button{padding:.4rem .75rem;border:1.5px solid var(--code);border-radius:3px;background:var(--code);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--code)} button[disabled]{opacity:.45;cursor:default}
+.editor{display:grid;grid-template-columns:auto 1fr;border:1px solid var(--rule);border-radius:4px;background:#fff;height:calc(100vh - 16rem);min-height:520px;overflow:hidden}
+.gutter{font:13px/1.55 var(--mono);color:#98A2B3;text-align:right;padding:.6rem .5rem;background:var(--paper-2);border-right:1px solid var(--rule);user-select:none;overflow:hidden;white-space:pre}
+.gutter .bad{color:#fff;background:var(--bad);border-radius:2px}
+textarea{font:13px/1.55 var(--mono);border:0;padding:.6rem .7rem;resize:none;outline:none;width:100%;height:100%;white-space:pre;overflow:auto;tab-size:2;color:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem;align-items:center}
+.status{border:1px solid var(--rule);border-left:4px solid var(--ok);border-radius:0 4px 4px 0;background:var(--paper-2);padding:.6rem .8rem;margin:0 0 1rem}
+.status.bad{border-left-color:var(--bad)} .status.warn{border-left-color:var(--warn)}
+.status h2{font:700 1.05rem var(--display);margin:0 0 .2rem} .status p,.status li{margin:.15rem 0;font-size:.92rem}
+.status ul{margin:.2rem 0 0;padding-left:1.1rem} .status .goto{font:600 .75rem var(--mono);margin-left:.4rem;cursor:pointer;color:var(--code);text-decoration:underline;background:none;border:0;padding:0}
+.preview h2{font:700 1.1rem var(--display);margin:1.1rem 0 .35rem;display:flex;gap:.5rem;align-items:baseline}
+.preview h2 small{font:.7rem var(--mono);color:var(--graphite);text-transform:uppercase;letter-spacing:.05em;font-weight:400}
+.preview table{width:100%;border-collapse:collapse;font-size:.9rem} .preview th{text-align:left;font:600 .68rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);border-bottom:1px solid var(--rule);padding:.25rem .5rem .25rem 0}
+.preview td{border-bottom:1px solid var(--rule);padding:.35rem .5rem .35rem 0;vertical-align:top} .preview td.mono{font-size:.8rem}
+.preview .desc{color:var(--graphite);margin:.2rem 0 0}
+.chip{display:inline-block;font:.72rem var(--mono);padding:.1rem .4rem;border:1px solid var(--rule);border-radius:3px;background:#fff;margin:.1rem .15rem .1rem 0;cursor:pointer}
+.chip.hit{border-color:var(--ok);color:var(--ok)} .chip.miss{border-color:var(--bad);color:var(--bad)}
+details.format{margin-top:1.2rem;border-top:1px solid var(--rule);padding-top:.6rem} details.format summary{cursor:pointer;font:600 .8rem var(--mono);color:var(--code)}
+details.format table{font-size:.85rem} details.format code{font:.8rem var(--mono)}
+.who{font:600 .68rem var(--mono);padding:.1em .45em;border-radius:2px;color:#fff;text-transform:uppercase;letter-spacing:.05em} .who-human{background:var(--human)} .who-code{background:var(--code)}
+</style></head>
+<body>
+<nav class="site-nav" aria-label="three steps"><a href="/"><span class="n">1</span>How it works</a><a href="/charters.html" aria-current="page"><span class="n">2</span>Write a charter</a><a href="/live.html"><span class="n">3</span>Run it</a><a class="out" href="/.auth/logout">Sign out</a></nav>
 <header>
-  <div>
-    <h1>Write a role charter</h1>
-    <p class="muted">A charter is a <em>job</em>, not a workflow: what the role is accountable for, what it may do, and what counts as proof. The loop derives the questions. Saved charters appear in the Role list on <a href="/live.html">Try it live</a>.</p>
-  </div>
-  <div class="status" id="status">unsaved</div>
+  <h1>Write a charter</h1>
+  <p class="lede"><b>A charter is the contract a role runs under: what it is accountable for, what it may do, the proof it needs, and what it must never touch.</b> Write it as Markdown in the standard shape below — the loop reads it by fixed rules, never by a model. It cannot list questions or steps: those are derived from the charter and your data. Everything here stays in your browser until you run it.</p>
 </header>
-
 <main>
-  <div class="library" id="library">
-    <label>Start from<select id="start"><option value="">blank</option></select></label>
-    <button type="button" class="ghost" id="load">Load</button>
-    <span class="grow"></span>
-    <label>Import YAML<input type="file" id="import" accept=".yaml,.yml"></label>
-    <label>Columns from CSV <span class="muted" style="text-transform:none">(optional, stays in your browser)</span><input type="file" id="csv" accept=".csv"></label>
-  </div>
-
-  <form id="editor" autocomplete="off">
-    <section class="block">
-      <h2>Role</h2>
-      <div class="grid">
-        <label>role<input id="role" required pattern="[a-z][a-z0-9_]*" placeholder="claims_analyst"></label>
-        <label>version<input id="version" type="number" min="1" value="1"></label>
-        <label>extends <span class="muted" style="text-transform:none">(shipped role)</span><select id="extends"><option value="">—</option></select></label>
-        <label class="wide">description<textarea id="description" placeholder="What this role exists to do, in one or two sentences."></textarea></label>
-      </div>
-    </section>
-
-    <section class="block">
-      <h2>Accountabilities</h2>
-      <p class="help">Each one names a <strong>metric column</strong> in the data — numeric or 0/1 — and the direction that counts as success. The loop only asks questions that could move one of these.</p>
-      <div id="accountabilities"></div>
-      <button type="button" class="ghost small" data-add="acc">+ accountability</button>
-    </section>
-
-    <section class="block">
-      <h2>Decision rights</h2>
-      <p class="help">What the role may do about a finding, and how far it may go without a human. New action types should start at <span class="mono">L1_recommend</span>.</p>
-      <div id="rights"></div>
-      <button type="button" class="ghost small" data-add="right">+ decision right</button>
-    </section>
-
-    <section class="block">
-      <h2>Evidence standards</h2>
-      <p class="help">The bar every finding must clear before it becomes evidence. The gate applies this; the model cannot lower it.</p>
-      <div class="grid" id="evidence"></div>
-      <details class="sub"><summary>Per-action overrides</summary>
-        <p class="help" style="margin-top:.5rem">A stricter (or looser) bar for one action type, e.g. requiring a holdout before anything irreversible.</p>
-        <div id="overrides"></div>
-        <button type="button" class="ghost small" data-add="override">+ override</button>
-      </details>
-    </section>
-
-    <section class="block">
-      <h2>Constraints</h2>
-      <p class="help">Comma-separated column names. <strong>Leakage</strong> columns encode the outcome itself; <strong>forbidden</strong> columns may not be used as features at all.</p>
-      <div class="grid">
-        <label class="wide">leakage_features<input id="leakage_features" list="cols" placeholder="lapse_flag, churned_at"></label>
-        <label class="wide">forbidden_features<input id="forbidden_features" list="cols" placeholder="Age, Gender"></label>
-        <label class="wide">allowed_features <span class="muted" style="text-transform:none">(leave empty = all except the above)</span><input id="allowed_features" list="cols"></label>
-        <label class="check"><input type="checkbox" id="block_sensitive_columns" checked> block_sensitive_columns</label>
-        <label class="wide">notes<textarea id="notes"></textarea></label>
-      </div>
-      <div class="columns" id="columns"></div>
-    </section>
-  </form>
-
-  <aside class="preview">
-    <h2>charter.yaml <span class="pill" id="sig">DRAFT</span></h2>
-    <pre class="yaml" id="yaml"></pre>
-    <ul class="problems" id="problems"></ul>
-    <div class="actions">
-      <button type="button" id="save">Save to this browser</button>
-      <button type="button" class="ghost" id="download">Download .yaml</button>
-      <button type="button" class="ghost" id="use" title="Open Try it live with this charter selected">Use in a run →</button>
-      <button type="button" class="danger" id="delete" hidden>Delete saved</button>
+  <section>
+    <div class="tools">
+      <label for="start">start from</label>
+      <select id="start"><option value="template">the annotated template</option></select>
+      <label for="csv" style="margin-left:.8rem">your CSV's columns</label>
+      <input type="file" id="csv" accept=".csv,text/csv" title="read in this browser only; never uploaded from this page">
     </div>
-    <p class="muted" style="font-size:.85rem;margin:0">Signing happens server-side (<span class="mono">python -m loop sign</span>, or the ratifier on the live page). Editing a signed charter here clears its signature on purpose.</p>
-  </aside>
+    <div class="editor"><div class="gutter" id="gutter" aria-hidden="true"></div><textarea id="md" spellcheck="false" aria-label="charter in Markdown"></textarea></div>
+    <div class="actions">
+      <button id="run" title="save it in this browser and open Run it with this charter selected">Check it with data →</button>
+      <button class="ghost" id="download">Download .md</button>
+      <button class="ghost" id="save">Save in this browser</button>
+      <span class="muted mono" id="saved" style="font-size:.75rem"></span>
+    </div>
+  </section>
+  <section class="preview" aria-live="polite">
+    <div class="status" id="status"></div>
+    <div id="columns"></div>
+    <div id="summary"></div>
+    <details class="format">
+      <summary>The standard shape, key by key</summary>
+      <table>
+        <tr><th>where</th><th>line</th><th>means</th></tr>
+        <tr><td>front matter</td><td><code>role: claims_analyst</code>, <code>version: 1</code>, <code>extends: base</code></td><td>between two <code>---</code> lines at the top</td></tr>
+        <tr><td>after the title</td><td>a paragraph</td><td>the role's description</td></tr>
+        <tr><td><code>## Glossary</code></td><td><code>- **term**: meaning</code></td><td>what a word means in this business</td></tr>
+        <tr><td><code>## Accountabilities</code></td><td><code>### id — statement</code></td><td>an outcome the role owns</td></tr>
+        <tr><td></td><td><code>- metric: `column`</code> · <code>- direction: increase | decrease | stabilise</code> · <code>- horizon: 90 days</code> · <code>- priority: 1</code> · <code>- lead: …</code></td><td>the column that measures it, which way is better, over how long; leads are where to look first</td></tr>
+        <tr><td><code>## Decision rights</code></td><td><code>### action_type — description</code></td><td>something the role may do; nothing else is permitted</td></tr>
+        <tr><td></td><td><code>- autonomy: L0_observe … L4_act</code> · <code>- reversible: yes</code> · <code>- cap: 200 claims per run</code> · <code>- observe: `metric` after 60 days</code> · <code>- approval: chief_actuary</code> · <code>- max value at risk: 10000</code></td><td>how much rope, how many at once, how the result is checked, who signs off</td></tr>
+        <tr><td><code>## Evidence standard</code></td><td><code>- min sample: 150</code> · <code>- max p: 0.01</code> · <code>- min effect: 1.25</code> · <code>- correction: benjamini_hochberg</code> · <code>- requires causal design / holdout / confound control: yes</code></td><td>the bar a result must clear; <code>### Override: action_type</code> sets a stricter bar for one action</td></tr>
+        <tr><td><code>## Constraints</code></td><td><code>- never use: `a`, `b`</code> · <code>- leaks the outcome: `x`</code> · <code>- only use: …</code> · <code>- sensitive columns: blocked</code> · <code>- notes: …</code></td><td>what may never appear in a test or an action</td></tr>
+        <tr><td>anywhere</td><td><code>&gt; a note</code></td><td>commentary for people; ignored</td></tr>
+      </table>
+      <p class="muted" style="font-size:.85rem">Unknown sections or keys are errors, not ignored — a constraint that is silently dropped is a permission nobody granted. The same rules run in <span class="mono">loop/charter_md.py</span> on the server, which reads the charter again before anyone signs it.</p>
+    </details>
+  </section>
 </main>
-<datalist id="cols"></datalist>
-<datalist id="metric-cols"></datalist>
-
-<script src="/vendor/js-yaml.min.js"></script>
+<script src="/charter-md.js"></script>
 <script>
-"use strict";
-const $ = id => document.getElementById(id);
-const STORE = "strong-loop.charters";        // { name: yamlText }
-const AUTONOMY = ["L0_observe","L1_recommend","L2_act_reversible","L3_act_report","L4_act"];
-const DIRECTIONS = ["increase","decrease","stabilise"];
-const CORRECTIONS = ["benjamini_hochberg","bonferroni","none"];
-const SMELLS = new Set(["questions","workflow","workflows","steps","screens","pages","dashboards","analyses","reports","segments","cohorts","campaigns","playbook","sql"]);
-const EVIDENCE_DEFAULTS = {min_sample_size:100,max_p_value:0.05,min_effect_size:1.2,multiple_testing_correction:"benjamini_hochberg",requires_causal_design:false,requires_holdout:false,requires_confound_control:true};
-
-let presets = {charters:[], data:[]};
-let columns = {};                 // name -> "numeric" | "binary" | "text"
-let loadedName = null;            // saved charter currently being edited
-let signature = null;             // {status, ratified_by, ratified_at, content_hash} if loaded signed
-
-// ---------- storage ----------
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const STORE = "strong-loop.charters";   // { name: charter text } — read by /live.html
+const DRAFT = "strong-loop.draft";
 const saved = () => { try { return JSON.parse(localStorage.getItem(STORE) || "{}"); } catch { return {}; } };
-const persist = obj => localStorage.setItem(STORE, JSON.stringify(obj));
+let examples = {}, columns = null, current = null;
 
-// ---------- builders ----------
-function field(label, el, cls="") { const l = document.createElement("label"); if (cls) l.className = cls; l.append(label, el); return l; }
-function input(name, value, attrs={}) { const i = document.createElement("input"); i.dataset.k = name; for (const [k,v] of Object.entries(attrs)) i.setAttribute(k, v); if (value !== undefined && value !== null) i.value = value; return i; }
-function select(name, options, value) { const s = document.createElement("select"); s.dataset.k = name; for (const o of options) { const op = document.createElement("option"); op.value = o; op.textContent = o; s.append(op); } if (value) s.value = value; return s; }
-function check(name, value) { const l = document.createElement("label"); l.className = "check"; const i = document.createElement("input"); i.type = "checkbox"; i.dataset.k = name; i.checked = !!value; l.append(i, name); return l; }
-function removeButton() { const b = document.createElement("button"); b.type = "button"; b.className = "ghost small rm"; b.textContent = "remove"; b.addEventListener("click", () => { b.closest(".card").remove(); render(); }); return b; }
-
-function addAccountability(a={}) {
-  const card = document.createElement("div"); card.className = "card"; card.dataset.kind = "acc";
-  const grid = document.createElement("div"); grid.className = "grid";
-  grid.append(
-    field("id", input("id", a.id, {required:"", pattern:"[a-z][a-z0-9_]*", placeholder:"reduce_lapse"})),
-    field("metric (column)", input("metric", a.metric, {required:"", list:"metric-cols", pattern:"\\S+", placeholder:"lapse_flag"})),
-    field("direction", select("direction", DIRECTIONS, a.direction || "decrease")),
-    field("horizon_days", input("horizon_days", a.horizon_days ?? 90, {type:"number", min:1})),
-    field("priority (1 = highest)", input("priority", a.priority ?? 5, {type:"number", min:1, max:9})),
-    field("statement", (() => { const t = document.createElement("textarea"); t.dataset.k = "statement"; t.required = true; t.value = a.statement || ""; t.placeholder = "Reduce the share of policies that lapse within 90 days."; return t; })(), "wide"),
-  );
-  card.append(removeButton(), grid); $("accountabilities").append(card);
+function gutter(badLine){
+  const n = $("md").value.split("\n").length;
+  $("gutter").innerHTML = Array.from({length: n}, (_, i) => i + 1 === badLine ? `<span class="bad">${i + 1}</span>` : String(i + 1)).join("\n");
+  $("gutter").scrollTop = $("md").scrollTop;
+}
+function gotoLine(line){
+  const lines = $("md").value.split("\n"); let start = 0;
+  for (let i = 0; i < line - 1 && i < lines.length; i++) start += lines[i].length + 1;
+  const ta = $("md"); ta.focus(); ta.setSelectionRange(start, start + (lines[line - 1] || "").length);
+  ta.scrollTop = Math.max(0, (line - 4) * 20.15);
 }
 
-function blastRadius(br={}) {
-  const d = document.createElement("details"); d.className = "sub"; d.dataset.k = "blast_radius";
-  const s = document.createElement("summary"); s.textContent = "blast radius"; d.append(s);
-  const g = document.createElement("div"); g.className = "grid"; g.style.marginTop = ".5rem";
-  g.append(
-    field("unit", input("unit", br.unit || "records")),
-    field("max_per_run", input("max_per_run", br.max_per_run ?? 100, {type:"number", min:1})),
-    field("max_value_at_risk (optional)", input("max_value_at_risk", br.max_value_at_risk, {type:"number", min:0, step:"any"})),
-  );
-  d.append(g); return d;
-}
-
-function addRight(r={}) {
-  const card = document.createElement("div"); card.className = "card"; card.dataset.kind = "right";
-  const grid = document.createElement("div"); grid.className = "grid";
-  grid.append(
-    field("action_type", input("action_type", r.action_type, {required:"", pattern:"[a-z][a-z0-9_]*", placeholder:"flag_for_retention_call"})),
-    field("autonomy_level", select("autonomy_level", AUTONOMY, r.autonomy_level || "L1_recommend")),
-    field("requires_authority (optional)", input("requires_authority", r.requires_authority, {placeholder:"underwriting_lead"})),
-    field("observation_metric (optional)", input("observation_metric", r.observation_metric, {list:"metric-cols"})),
-    field("observation_lag_days", input("observation_lag_days", r.observation_lag_days ?? 30, {type:"number", min:0})),
-    check("reversible", r.reversible ?? true),
-    field("description", (() => { const t = document.createElement("textarea"); t.dataset.k = "description"; t.value = r.description || ""; return t; })(), "wide"),
-  );
-  card.append(removeButton(), grid, blastRadius(r.blast_radius)); $("rights").append(card);
-}
-
-function evidenceGrid(container, e={}, withDefaults=true) {
-  const v = withDefaults ? {...EVIDENCE_DEFAULTS, ...e} : e;
-  container.append(
-    field("min_sample_size", input("min_sample_size", v.min_sample_size, {type:"number", min:1})),
-    field("max_p_value", input("max_p_value", v.max_p_value, {type:"number", min:0, max:1, step:"any"})),
-    field("min_effect_size", input("min_effect_size", v.min_effect_size, {type:"number", min:1, step:"any"})),
-    field("multiple_testing_correction", select("multiple_testing_correction", CORRECTIONS, v.multiple_testing_correction)),
-    check("requires_causal_design", v.requires_causal_design),
-    check("requires_holdout", v.requires_holdout),
-    check("requires_confound_control", v.requires_confound_control),
-  );
-}
-
-function addOverride(action_type="", e={}) {
-  const card = document.createElement("div"); card.className = "card"; card.dataset.kind = "override";
-  const grid = document.createElement("div"); grid.className = "grid";
-  grid.append(field("action_type (must match a decision right)", input("action_type", action_type, {required:"", placeholder:"raise_engineering_ticket"}), "wide"));
-  evidenceGrid(grid, e);
-  card.append(removeButton(), grid); $("overrides").append(card);
-}
-
-// ---------- collect ----------
-const num = v => (v === "" || v === null || v === undefined) ? undefined : Number(v);
-const str = v => (v ?? "").trim() || undefined;
-const list = v => (v ?? "").split(",").map(s => s.trim()).filter(Boolean);
-function read(container) {
-  const out = {};
-  for (const el of container.querySelectorAll(":scope [data-k]")) {
-    const owner = el.parentElement.closest("details[data-k]");
-    if (owner && owner !== container && container.contains(owner)) continue; // read() recurses into it below
-    const k = el.dataset.k;
-    if (el.tagName === "DETAILS") { out[k] = read(el); continue; }
-    if (el.type === "checkbox") out[k] = el.checked;
-    else if (el.type === "number") { const n = num(el.value); if (n !== undefined) out[k] = n; }
-    else { const s = str(el.value); if (s !== undefined) out[k] = s; }
+function render(){
+  const text = $("md").value; localStorage.setItem(DRAFT, text);
+  let raw = null, err = null;
+  try { raw = CharterMd.parse(text); } catch (e) { err = e; }
+  gutter(err && err.line);
+  const st = $("status");
+  if (err) {
+    current = null; st.className = "status bad";
+    st.innerHTML = `<h2>Not a charter yet</h2><p>${esc(err.message)}<button class="goto" data-line="${err.line || 1}">show line ${err.line || 1}</button></p>`;
+    $("summary").innerHTML = ""; renderColumns(null); buttons(false); return;
   }
-  return out;
-}
-function collect() {
-  const c = { role: str($("role").value), version: num($("version").value) ?? 1 };
-  if (str($("description").value)) c.description = $("description").value.trim();
-  if ($("extends").value) c.extends = $("extends").value;
-  c.accountabilities = [...$("accountabilities").querySelectorAll(".card")].map(read);
-  c.decision_rights = [...$("rights").querySelectorAll(".card")].map(read);
-  c.evidence_standards = read($("evidence"));
-  const overrides = {};
-  for (const card of $("overrides").querySelectorAll(".card")) { const o = read(card); const k = o.action_type; delete o.action_type; if (k) overrides[k] = o; }
-  if (Object.keys(overrides).length) c.evidence_overrides = overrides;
-  c.constraints = {};
-  const lf = list($("leakage_features").value), ff = list($("forbidden_features").value), af = list($("allowed_features").value);
-  if (ff.length) c.constraints.forbidden_features = ff;
-  if (lf.length) c.constraints.leakage_features = lf;
-  if (af.length) c.constraints.allowed_features = af;
-  c.constraints.block_sensitive_columns = $("block_sensitive_columns").checked;
-  if (str($("notes").value)) c.constraints.notes = $("notes").value.trim();
-  if (signature) Object.assign(c, signature);
-  return c;
-}
-
-// ---------- validate (mirrors loop/charter.py + loop/intake.py) ----------
-function problems(c) {
-  const p = [];
-  if (!c.role) p.push("role is required");
-  else if (!/^[a-z][a-z0-9_]*$/.test(c.role)) p.push("role must be a lowercase identifier (a-z, 0-9, _)");
-  if (!c.accountabilities.length) p.push("at least one accountability — otherwise the loop has nothing to ask about");
-  const ids = new Set();
-  for (const a of c.accountabilities) {
-    if (!a.id) p.push("an accountability is missing its id");
-    else if (ids.has(a.id)) p.push(`duplicate accountability id ${a.id}`); else ids.add(a.id);
-    if (!a.metric) p.push(`accountability ${a.id || "?"} needs a metric column`);
-    else if (/\s/.test(a.metric)) p.push(`metric ${a.metric} contains whitespace — it must be a column name`);
-    else if (Object.keys(columns).length) {
-      if (!(a.metric in columns)) p.push(`metric ${a.metric} is not a column of the CSV you loaded`);
-      else if (columns[a.metric] === "text") p.push(`metric ${a.metric} is not numeric or 0/1 in the CSV — derive a flag column`);
-    }
-    if (!a.statement) p.push(`accountability ${a.id || "?"} needs a statement`);
-    if (a.metric && !(c.constraints.leakage_features || []).includes(a.metric)) p.push(`hint: ${a.metric} is an outcome — consider listing it under leakage_features so it is never used as a feature`);
+  current = raw;
+  const problems = CharterMd.check(raw);
+  const metrics = (raw.accountabilities || []).map(a => a.metric).filter(Boolean);
+  const missing = columns ? metrics.filter(m => !columns.includes(m)) : [];
+  if (problems.length) {
+    st.className = "status bad";
+    st.innerHTML = `<h2>Reads as a charter, but the loop would refuse it</h2><ul>${problems.map(p => `<li>${esc(p)}</li>`).join("")}</ul>`;
+  } else if (missing.length) {
+    st.className = "status warn";
+    st.innerHTML = `<h2>A valid charter — but your CSV has no column for ${missing.map(m => `<span class="mono">${esc(m)}</span>`).join(", ")}</h2><p>Run it will ask which column measures it, from a closed list, before anything starts. Or rename the metric to one of the columns below.</p>`;
+  } else {
+    st.className = "status";
+    st.innerHTML = `<h2>A valid charter</h2><p>${columns ? "Every metric is a column of your CSV. " : ""}Run it will read it again on the server, pair it with data, and show you what it can and cannot measure before anything runs.</p>`;
   }
-  const types = new Set();
-  for (const r of c.decision_rights) {
-    if (!r.action_type) p.push("a decision right is missing its action_type");
-    else if (types.has(r.action_type)) p.push(`duplicate action_type ${r.action_type}`); else types.add(r.action_type);
-    if (!r.reversible && ["L2_act_reversible"].includes(r.autonomy_level)) p.push(`${r.action_type}: L2_act_reversible on an irreversible action — the authoriser will refuse it`);
-    if (["L3_act_report","L4_act"].includes(r.autonomy_level) && !r.requires_authority) p.push(`hint: ${r.action_type} is ${r.autonomy_level} with no requires_authority — is that intended?`);
+  renderColumns(metrics);
+  renderSummary(raw);
+  buttons(!problems.length);
+}
+function buttons(ok){ $("run").disabled = !ok; $("save").disabled = !ok; $("download").disabled = !current; }
+
+function renderColumns(metrics){
+  if (!columns) { $("columns").innerHTML = ""; return; }
+  const used = new Set(metrics || []);
+  $("columns").innerHTML = `<h2 style="font:700 1.1rem var(--display);margin:0 0 .35rem">Your CSV <small class="mono muted" style="font-size:.7rem">${columns.length} columns · click to insert</small></h2>` +
+    columns.map(c => `<span class="chip ${used.has(c) ? "hit" : ""}" data-col="${esc(c)}">${esc(c)}</span>`).join("") +
+    (metrics || []).filter(m => !columns.includes(m)).map(m => `<span class="chip miss" title="a metric with no column of that name">${esc(m)} ✗</span>`).join("");
+}
+
+function renderSummary(r){
+  const s = r.evidence_standards || {}, c = r.constraints || {};
+  const acc = (r.accountabilities || []).map(a => `<tr><td class="mono">${esc(a.id)}</td><td>${esc(a.statement || "")}${(a.leads || []).length ? `<div class="desc">leads: ${a.leads.map(esc).join(" · ")}</div>` : ""}</td><td class="mono">${esc(a.metric || "?")}</td><td class="mono">${esc(a.direction || "?")}${a.horizon_days ? ` · ${a.horizon_days}d` : ""}</td></tr>`).join("");
+  const rights = (r.decision_rights || []).map(d => { const b = d.blast_radius || {}; return `<tr><td class="mono">${esc(d.action_type)}</td><td>${esc(d.description || "")}</td><td class="mono">${esc(d.autonomy_level || "L1_recommend")}${d.reversible === false ? " · irreversible" : ""}</td><td class="mono">${b.max_per_run ?? 100} ${esc(b.unit || "records")}</td><td class="mono">${d.observation_metric ? esc(d.observation_metric) + " · " : ""}${d.observation_lag_days ?? 30}d${d.requires_authority ? `<br>sign-off: ${esc(d.requires_authority)}` : ""}</td></tr>`; }).join("");
+  const std = (x) => `n ≥ ${x.min_sample_size ?? 100} · p &lt; ${x.max_p_value ?? 0.05} · effect ≥ ${x.min_effect_size ?? 1.2}× · ${esc(x.multiple_testing_correction || "benjamini_hochberg")}${x.requires_causal_design ? " · causal design" : ""}${x.requires_holdout ? " · holdout" : ""}${x.requires_confound_control === false ? " · no confound challenge" : ""}`;
+  const overrides = Object.entries(r.evidence_overrides || {}).map(([k, v]) => `<p class="mono" style="font-size:.82rem;margin:.2rem 0">${esc(k)}: ${std(v)}</p>`).join("");
+  const list = (xs) => (xs || []).length ? xs.map(x => `<span class="mono">${esc(x)}</span>`).join(", ") : "none";
+  $("summary").innerHTML = `
+    <h2>${esc(r.role)} <small>v${esc(r.version ?? 1)}${r.extends ? ` · extends ${esc(r.extends)}` : ""}</small></h2>
+    ${r.description ? `<p class="desc">${esc(r.description)}</p>` : ""}
+    ${Object.keys(r.glossary || {}).length ? `<p class="desc">${Object.entries(r.glossary).map(([t, m]) => `<b>${esc(t)}</b>: ${esc(m)}`).join(" · ")}</p>` : ""}
+    <h2>Accountable for <small>becomes one question each</small></h2>
+    <table><tr><th>id</th><th>statement</th><th>metric</th><th>better is</th></tr>${acc || `<tr><td colspan=4 class="muted">none yet</td></tr>`}</table>
+    <h2>May do <small>nothing else is permitted</small></h2>
+    <table><tr><th>action</th><th>what</th><th>autonomy</th><th>cap per run</th><th>checked by</th></tr>${rights || `<tr><td colspan=5 class="muted">no decision rights — the role may find, never act</td></tr>`}</table>
+    <h2>Counts as proof <small>for every finding</small></h2>
+    <p class="mono" style="font-size:.85rem;margin:.2rem 0">${std(s)}</p>${overrides}
+    <h2>Must never use</h2>
+    <p style="font-size:.92rem;margin:.2rem 0">forbidden: ${list(c.forbidden_features)} · leaks the outcome: ${list(c.leakage_features)}${c.allowed_features ? ` · only: ${list(c.allowed_features)}` : ""} · sensitive columns: ${c.block_sensitive_columns === false ? "<b>allowed</b>" : "blocked"}</p>`;
+}
+
+function csvHeader(text){
+  const line = text.split(/\r?\n/, 1)[0].replace(/^\uFEFF/, "");
+  const out = []; let cur = "", q = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+    else if (ch === '"') q = true; else if (ch === ",") { out.push(cur.trim()); cur = ""; } else cur += ch;
   }
-  for (const k of Object.keys(c.evidence_overrides || {})) if (!types.has(k)) p.push(`evidence override for ${k} matches no decision right`);
-  if (c.evidence_standards.max_p_value !== undefined && !(c.evidence_standards.max_p_value > 0 && c.evidence_standards.max_p_value < 1)) p.push("max_p_value must be between 0 and 1");
-  return p;
+  out.push(cur.trim()); return out.filter(Boolean);
 }
-
-// ---------- render ----------
-function toYaml(c) {
-  return jsyaml.dump(c, {noRefs:true, lineWidth:100, sortKeys:false});
-}
-function render() {
-  const c = collect();
-  $("yaml").textContent = toYaml(c);
-  const ps = problems(c);
-  const ul = $("problems"); ul.innerHTML = "";
-  const hard = ps.filter(x => !x.startsWith("hint:"));
-  if (!ps.length) { const li = document.createElement("li"); li.className = "ok"; li.textContent = "shape is valid — save, then pair it with data on the live page"; ul.append(li); }
-  for (const x of ps) { const li = document.createElement("li"); if (x.startsWith("hint:")) li.style.color = "var(--inconclusive)"; li.textContent = x; ul.append(li); }
-  $("save").disabled = $("download").disabled = $("use").disabled = hard.length > 0;
-  $("sig").textContent = signature ? "SIGNED" : "DRAFT"; $("sig").className = "pill" + (signature ? " signed" : "");
-  $("delete").hidden = !(loadedName && saved()[loadedName]);
-}
-
-// ---------- populate from an object ----------
-function populate(c) {
-  $("role").value = c.role || ""; $("version").value = c.version ?? 1; $("description").value = c.description || ""; $("extends").value = c.extends || "";
-  $("accountabilities").innerHTML = ""; (c.accountabilities || []).forEach(addAccountability);
-  $("rights").innerHTML = ""; (c.decision_rights || []).forEach(addRight);
-  $("evidence").innerHTML = ""; evidenceGrid($("evidence"), c.evidence_standards || {});
-  $("overrides").innerHTML = ""; for (const [k, v] of Object.entries(c.evidence_overrides || {})) addOverride(k, v);
-  const cons = c.constraints || {};
-  $("leakage_features").value = (cons.leakage_features || []).join(", ");
-  $("forbidden_features").value = (cons.forbidden_features || []).join(", ");
-  $("allowed_features").value = (cons.allowed_features || []).join(", ");
-  $("block_sensitive_columns").checked = cons.block_sensitive_columns ?? true;
-  $("notes").value = cons.notes || "";
-  signature = c.content_hash ? {status:c.status, ratified_by:c.ratified_by, ratified_at:c.ratified_at, content_hash:c.content_hash} : null;
-  render();
-}
-function fromYaml(text) {
-  const c = jsyaml.load(text);
-  if (!c || typeof c !== "object") throw new Error("not a charter mapping");
-  const smells = Object.keys(c).filter(k => SMELLS.has(k.toLowerCase()));
-  if (smells.length) throw new Error(`charter defines ${smells.join(", ")} — that is a solution detail the platform derives, not an input`);
-  return c;
-}
-
-// ---------- CSV columns ----------
-function inferColumns(text) {
-  const lines = text.split(/\r?\n/).filter(Boolean).slice(0, 400);
-  if (!lines.length) return {};
-  const split = l => { const out = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if (ch === "," && !q) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map(s => s.trim()); };
-  const header = split(lines[0]); const rows = lines.slice(1).map(split);
-  const kinds = {};
-  header.forEach((h, i) => {
-    const vals = rows.map(r => r[i]).filter(v => v !== undefined && v !== "");
-    const nums = vals.filter(v => v !== "" && !isNaN(Number(v)));
-    if (vals.length && nums.length === vals.length) kinds[h] = new Set(nums.map(Number)).size <= 2 && nums.every(v => v === "0" || v === "1" || v === "0.0" || v === "1.0") ? "binary" : "numeric";
-    else kinds[h] = "text";
-  });
-  return kinds;
-}
-function showColumns() {
-  const wrap = $("columns"); wrap.innerHTML = "";
-  for (const dl of [$("cols"), $("metric-cols")]) dl.innerHTML = "";
-  for (const [name, kind] of Object.entries(columns)) {
-    const s = document.createElement("span"); s.textContent = `${name} · ${kind}`; if (kind !== "text") s.className = "numeric"; wrap.append(s);
-    const o = document.createElement("option"); o.value = name; $("cols").append(o);
-    if (kind !== "text") $("metric-cols").append(o.cloneNode());
-  }
-}
-
-// ---------- library ----------
-function refreshLibrary() {
-  const sel = $("start"); const cur = sel.value; sel.innerHTML = '<option value="">blank</option>';
-  const mine = saved();
-  if (Object.keys(mine).length) { const g = document.createElement("optgroup"); g.label = "saved in this browser"; for (const n of Object.keys(mine).sort()) { const o = document.createElement("option"); o.value = "mine:" + n; o.textContent = n; g.append(o); } sel.append(g); }
-  if (presets.charters.length) { const g = document.createElement("optgroup"); g.label = "shipped"; for (const c of presets.charters) { const o = document.createElement("option"); o.value = "preset:" + c.name; o.textContent = `${c.name} — ${c.accountabilities.length} accountabilit${c.accountabilities.length === 1 ? "y" : "ies"}`; g.append(o); } sel.append(g); }
-  sel.value = cur;
-  const ex = $("extends"); const exCur = ex.value; ex.innerHTML = '<option value="">—</option>';
-  for (const c of presets.charters) { const o = document.createElement("option"); o.value = c.name; o.textContent = c.name; ex.append(o); }
-  ex.value = exCur;
-}
-function load() {
-  const v = $("start").value;
-  if (!v) { loadedName = null; populate({version:1, accountabilities:[{}], decision_rights:[{}]}); $("status").textContent = "new charter"; return; }
-  const [kind, name] = [v.slice(0, v.indexOf(":")), v.slice(v.indexOf(":") + 1)];
-  const text = kind === "mine" ? saved()[name] : presets.charters.find(c => c.name === name)?.yaml;
-  if (!text) return;
-  try { populate(fromYaml(text)); } catch (e) { alert(e.message); return; }
-  loadedName = kind === "mine" ? name : null;
-  $("status").textContent = kind === "mine" ? `editing saved: ${name}` : `copy of shipped: ${name} — rename before saving`;
-  if (kind === "preset") { $("role").value = ""; $("version").value = 1; signature = null; render(); }
-}
-
-// ---------- events ----------
-document.addEventListener("input", ev => {
-  if (!$("editor").contains(ev.target)) return;
-  if (signature) { signature = null; $("status").textContent = "edited — signature cleared"; }
+$("csv").addEventListener("change", async () => {
+  const f = $("csv").files[0]; if (!f) return;
+  columns = csvHeader(await f.slice(0, 65536).text());
   render();
 });
-document.addEventListener("click", ev => {
-  const add = ev.target.closest("[data-add]"); if (!add) return;
-  if (add.dataset.add === "acc") addAccountability(); else if (add.dataset.add === "right") addRight(); else addOverride();
+$("columns").addEventListener("click", (e) => {
+  const col = e.target.closest("[data-col]"); if (!col) return;
+  const ta = $("md"); const ins = "`" + col.dataset.col + "`";
+  ta.setRangeText(ins, ta.selectionStart, ta.selectionEnd, "end"); ta.focus(); render();
+});
+$("status").addEventListener("click", (e) => { const b = e.target.closest(".goto"); if (b) gotoLine(Number(b.dataset.line)); });
+$("md").addEventListener("input", render);
+$("md").addEventListener("scroll", () => { $("gutter").scrollTop = $("md").scrollTop; });
+$("md").addEventListener("keydown", (e) => { if (e.key === "Tab") { e.preventDefault(); $("md").setRangeText("  ", $("md").selectionStart, $("md").selectionEnd, "end"); render(); } });
+
+function load(key){
+  if (key === "template") $("md").value = CharterMd.TEMPLATE;
+  else if (key.startsWith("mine:")) $("md").value = saved()[key.slice(5)] ?? "";
+  else if (examples[key]) $("md").value = examples[key];
   render();
+}
+$("start").addEventListener("change", () => {
+  const dirty = current && $("md").value !== localStorage.getItem("strong-loop.loaded");
+  if (dirty && !confirm("Replace what is in the editor?")) return;
+  load($("start").value); localStorage.setItem("strong-loop.loaded", $("md").value);
 });
-$("load").addEventListener("click", load);
-$("start").addEventListener("change", load);
-$("import").addEventListener("change", async ev => {
-  const f = ev.target.files[0]; if (!f) return;
-  try { populate(fromYaml(await f.text())); loadedName = null; $("status").textContent = `imported ${f.name}`; } catch (e) { alert("could not import: " + e.message); }
-  ev.target.value = "";
-});
-$("csv").addEventListener("change", async ev => {
-  const f = ev.target.files[0]; if (!f) return;
-  columns = inferColumns(await f.text()); showColumns(); render();
-});
-$("save").addEventListener("click", () => {
-  const c = collect(); const all = saved();
-  if (loadedName && loadedName !== c.role) delete all[loadedName];
-  all[c.role] = toYaml(c); persist(all); loadedName = c.role;
-  refreshLibrary(); $("start").value = "mine:" + c.role; $("status").textContent = `saved: ${c.role}`; render();
-});
-$("delete").addEventListener("click", () => {
-  if (!loadedName || !confirm(`Delete saved charter ${loadedName}?`)) return;
-  const all = saved(); delete all[loadedName]; persist(all); loadedName = null; refreshLibrary(); $("start").value = ""; $("status").textContent = "deleted"; render();
-});
+
+function name(){ return current && current.role ? current.role : "charter"; }
+function save(){
+  const all = saved(); all[name()] = $("md").value; localStorage.setItem(STORE, JSON.stringify(all));
+  $("saved").textContent = `saved as “${name()}” in this browser`; fillStart();
+}
+$("save").addEventListener("click", save);
+$("run").addEventListener("click", () => { save(); location.href = `/live.html?charter=${encodeURIComponent("mine:" + name())}`; });
 $("download").addEventListener("click", () => {
-  const c = collect(); const blob = new Blob([toYaml(c)], {type:"application/yaml"});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${c.role}.yaml`; a.click(); URL.revokeObjectURL(a.href);
-});
-$("use").addEventListener("click", () => {
-  const c = collect(); const all = saved(); all[c.role] = toYaml(c); persist(all); loadedName = c.role;
-  location.href = `/live.html?charter=${encodeURIComponent("mine:" + c.role)}`;
+  const url = URL.createObjectURL(new Blob([$("md").value], {type: "text/markdown"}));
+  const a = document.createElement("a"); a.href = url; a.download = `${name()}.md`; a.click(); URL.revokeObjectURL(url);
 });
 
-// ---------- boot ----------
+function fillStart(){
+  const sel = $("start"); const keep = sel.value;
+  sel.innerHTML = `<option value="template">the annotated template</option>`;
+  const group = (label, items) => { if (!items.length) return; const g = document.createElement("optgroup"); g.label = label; for (const [v, t] of items) { const o = document.createElement("option"); o.value = v; o.textContent = t; g.append(o); } sel.append(g); };
+  group("worked examples (shipped roles)", Object.keys(examples).map(n => [n, n]));
+  group("saved in this browser", Object.keys(saved()).sort().map(n => ["mine:" + n, n]));
+  if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+}
 (async () => {
-  try { presets = await (await fetch("/presets.json", {cache:"no-store"})).json(); } catch { presets = {charters:[], data:[]}; }
-  refreshLibrary();
-  const want = new URLSearchParams(location.search).get("charter");
-  if (want && [...$("start").options].some(o => o.value === want)) { $("start").value = want; load(); }
-  else load();
+  try {
+    const presets = await (await fetch("/presets.json", {cache: "no-store"})).json();
+    for (const c of presets.charters || []) if (c.markdown) examples[c.name] = c.markdown;
+  } catch { /* the template still works */ }
+  fillStart();
+  const want = new URLSearchParams(location.search).get("start");
+  const draft = localStorage.getItem(DRAFT);
+  if (want) { $("start").value = want; load(want); } else if (draft) { $("md").value = draft; render(); } else load("template");
+  localStorage.setItem("strong-loop.loaded", $("md").value);
 })();
 </script>
 </body></html>

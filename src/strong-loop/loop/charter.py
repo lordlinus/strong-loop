@@ -24,8 +24,9 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
+from . import charter_md
 from .types import Action, AutonomyLevel, Evidence, Finding, Verdict
 
 
@@ -42,6 +43,9 @@ class Accountability(BaseModel):
     metric: str
     direction: Literal["increase", "decrease", "stabilise"]
     horizon_days: int = 90
+    # Where the role would look first: the addressable population, the suspected driver.
+    # Leads shape the first hypotheses and nothing else — the gate still decides.
+    leads: list[str] = Field(default_factory=list)
     priority: int = 5
 
     @field_validator("metric")
@@ -124,6 +128,10 @@ class RoleCharter(BaseModel):
     version: int = 1
     description: str = ""
     extends: str | None = None
+    # The role's vocabulary: term -> what it means HERE. Every domain has one; the loop
+    # carries it verbatim to the model and to the intake step that decides which column
+    # measures which concept. No term is interpreted by code.
+    glossary: dict[str, str] = Field(default_factory=dict)
     accountabilities: list[Accountability]
     decision_rights: list[DecisionRight] = Field(default_factory=list)
     evidence_standards: EvidenceStandard = Field(default_factory=EvidenceStandard)
@@ -133,11 +141,18 @@ class RoleCharter(BaseModel):
 
     # ---- signature ------------------------------------------------------------------
     # An unsigned charter loads and runs; a signed one is also checked for tampering.
-    # `sign()` fills these in; nothing else writes them.
-    status: Literal["DRAFT", "SIGNED"] = "SIGNED"
+    # `sign()` fills these in; nothing else writes them. SIGNED means a hash exists to
+    # check — a charter that merely says so in its YAML is still a draft.
+    status: Literal["DRAFT", "SIGNED"] = "DRAFT"
     ratified_by: str | None = None
     ratified_at: str | None = None
     content_hash: str | None = None
+
+    @model_validator(mode="after")
+    def _signed_needs_a_hash(self) -> "RoleCharter":
+        if self.status == "SIGNED" and not self.content_hash:
+            self.status = "DRAFT"
+        return self
 
     # ---- lookups -------------------------------------------------------------------
     def right(self, action_type: str) -> DecisionRight | None:
@@ -200,15 +215,23 @@ def validate_charter_shape(raw: dict[str, Any]) -> list[str]:
     return problems
 
 
+def _read_raw(path: pathlib.Path) -> Any:
+    """The raw mapping from either authoring format; everything after this is shared."""
+    if path.suffix.lower() == ".md":
+        return charter_md.parse(path.read_text(encoding="utf-8"))
+    return yaml.safe_load(path.read_text())
+
+
 def load_charter(path: str | pathlib.Path, *, verify: bool = True) -> RoleCharter:
-    """Load and validate a charter from YAML, applying `extends` inheritance.
+    """Load and validate a charter from YAML or standard Markdown (`loop.charter_md`),
+    applying `extends` inheritance.
 
     `verify=False` is for the one caller that legitimately needs to read a charter whose
     signature no longer matches: `python -m loop sign`, which exists to produce a new one.
     Everything that *acts* on a charter must leave it True.
     """
     path = pathlib.Path(path)
-    raw = yaml.safe_load(path.read_text())
+    raw = _read_raw(path)
     if not isinstance(raw, dict):
         raise ValueError(f"{path} does not contain a charter mapping")
 
@@ -218,10 +241,11 @@ def load_charter(path: str | pathlib.Path, *, verify: bool = True) -> RoleCharte
 
     parent_name = raw.get("extends")
     if parent_name:
-        parent_path = path.parent / f"{parent_name}.yaml"
+        parent_path = next((p for p in (path.parent / f"{parent_name}.yaml", path.parent / f"{parent_name}.md")
+                            if p.exists()), path.parent / f"{parent_name}.yaml")
         if not parent_path.exists():
             raise FileNotFoundError(f"charter {path.name} extends missing base {parent_path}")
-        parent_raw = yaml.safe_load(parent_path.read_text())
+        parent_raw = _read_raw(parent_path)
         raw = _merge_charter(parent_raw, raw)
 
     charter = RoleCharter.model_validate(raw)
@@ -280,6 +304,13 @@ def sign(charter: RoleCharter, ratified_by: str) -> RoleCharter:
 def write_charter(charter: RoleCharter, path: str | pathlib.Path) -> pathlib.Path:
     path = pathlib.Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.suffix.lower() == ".md":
+        if charter.content_hash and charter_md.through_markdown(charter).fingerprint() != charter.content_hash:
+            raise ValueError(
+                f"{charter.role}'s signature does not survive conversion to Markdown (its text "
+                f"whitespace changes the hash). Write it unsigned, then `python -m loop sign {path}`.")
+        path.write_text(charter_md.render(charter), encoding="utf-8")
+        return path
     payload = charter.model_dump(mode="json", exclude_none=True)
     path.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True), encoding="utf-8")
     return path

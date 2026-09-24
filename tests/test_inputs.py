@@ -1,13 +1,17 @@
-"""The session's `intake/` folder decides whether a model runs, with no model.
+"""The session's `intake/` folder decides whether a model runs, with a model ONLY when
+pairing genuinely needs one.
 
 What these pin down:
 
 1. A session that brought nothing runs the defaults, untouched — the CLI path.
-2. A role and data with no acceptance yields the intake report and NO model call.
+2. A role and data with no acceptance yields the intake report and NO TypeSafe call, so
+   long as the mismatch is lexically resolvable or there is none.
 3. Answers are picks from the offered list; anything else is refused with a reason,
    and a remap without a ratifier is refused — nobody's name, no run.
 4. An accepted pairing is written to the session and the next turn runs it directly.
 5. The gate short-circuits the agent pipeline: `call_next` is never reached until settled.
+6. A metric with NO lexical candidate is reviewed by a model automatically — not behind
+   an opt-in flag — before the human ever sees the intake report.
 """
 
 from __future__ import annotations
@@ -39,7 +43,7 @@ def _write(inputs: Inputs, name: str, payload) -> None:
 
 
 def test_nothing_brought_runs_the_defaults(tmp_path):
-    out = settle(Inputs(tmp_path), _defaults())
+    out = asyncio.run(settle(Inputs(tmp_path), _defaults()))
     assert out.status == "run"
     assert out.settled.charter.role == "claims_analyst" and out.source["charter"] == "default"
     assert not (tmp_path / "intake").exists(), "settling the defaults writes nothing"
@@ -49,14 +53,14 @@ def test_presets_are_offered_by_name_never_by_path(tmp_path):
     assert set(presets()["charters"]) >= {"claims_analyst", "portfolio_analyst"}
     inputs = Inputs(tmp_path)
     _write(inputs, "request.json", {"charter": "../../etc/passwd", "data": "claims"})
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "refused" and "unknown charters preset" in out.problems[0]
 
 
 def test_matching_pairing_awaits_acceptance_with_a_clean_report(tmp_path):
     inputs = Inputs(tmp_path)
     _write(inputs, "request.json", {"charter": "portfolio_analyst", "data": "customers"})
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "awaiting"
     assert out.report.ok and not out.report.clarifications
     assert out.source == {"charter": "preset:portfolio_analyst", "data": "preset:customers"}
@@ -69,23 +73,23 @@ def test_mismatch_asks_and_refuses_answers_off_the_menu(tmp_path):
     data.to_csv(inputs.data_path, index=False)
     _write(inputs, "request.json", {"charter": "claims_analyst"})
 
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "awaiting"
     [ask] = out.report.clarifications
     assert "leakage_indicator" in ask.candidates and ask.candidates[-1] == NOTHING_MEASURES_IT
 
     _write(inputs, "accept.json", {"answers": {ask.accountability_id: "settled_amount_x"}, "ratified_by": "sunil"})
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "refused" and "not one of the offered candidates" in out.problems[0]
     assert not inputs.pairing_path.exists()
 
     _write(inputs, "accept.json", {"answers": {ask.accountability_id: "leakage_indicator"}})
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "refused" and "ratified_by" in out.problems[0], "a remap needs a name"
 
     _write(inputs, "accept.json", {"answers": {ask.accountability_id: "leakage_indicator"},
                                    "ratified_by": "sunil", "iterations": 2})
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "run"
     assert out.settled.charter.status == "SIGNED" and out.settled.charter.ratified_by == "sunil"
     assert out.settled.charter.accountability(ask.accountability_id).metric == "leakage_indicator"
@@ -95,7 +99,7 @@ def test_mismatch_asks_and_refuses_answers_off_the_menu(tmp_path):
     assert load_charter(inputs.signed_path).content_hash, "the signed charter re-loads and verifies"
 
     # Next turn: settled already, no questions, same charter.
-    again = settle(inputs, _defaults())
+    again = asyncio.run(settle(inputs, _defaults()))
     assert again.status == "run" and again.settled.charter.ratified_by == "sunil"
 
 
@@ -104,10 +108,10 @@ def test_opt_out_drops_the_accountability(tmp_path):
     data = pd.read_csv(SERVICE / "data" / "claims.csv").rename(columns={"days_to_settle": "cycle_days"})
     inputs.dir.mkdir()
     data.to_csv(inputs.data_path, index=False)
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     [ask] = out.report.clarifications
     _write(inputs, "accept.json", {"answers": {ask.accountability_id: NOTHING_MEASURES_IT}, "ratified_by": "sunil"})
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "run"
     assert out.settled.charter.accountability(ask.accountability_id) is None
     assert len(out.report.questions) == 2
@@ -116,8 +120,54 @@ def test_opt_out_drops_the_accountability(tmp_path):
 def test_unreadable_upload_is_refused_not_raised(tmp_path):
     inputs = Inputs(tmp_path)
     _write(inputs, "charter.yaml", "role: [not a charter")
-    out = settle(inputs, _defaults())
+    out = asyncio.run(settle(inputs, _defaults()))
     assert out.status == "refused" and out.problems[0].startswith("charter:")
+
+
+def test_a_genuinely_unresolved_metric_is_reviewed_by_typesafe_automatically(tmp_path, monkeypatch):
+    """No opt-in: when `pair()` leaves a metric with zero lexical candidates, `settle()`
+    calls TypeSafe itself, unprompted, and the resulting clarification is already in
+    the awaiting report — a client never has to ask for a second pass."""
+    async def fake_ask(columns, accountabilities, model, glossary=None):
+        [acc] = accountabilities
+        assert acc["metric"] == "capability_coverage_pct"
+        return {
+            acc["id"]: {
+                "choice": "pillars_met",
+                "confidence": 0.88,
+                "probabilities": {"pillars_met": 0.88, "none_of_the_above": 0.12},
+            }
+        }
+
+    monkeypatch.setattr("loop.suggest._ask", fake_ask)
+
+    inputs = Inputs(tmp_path)
+    inputs.dir.mkdir()
+    inputs.charter_path.write_text(
+        "role: r\nstatus: DRAFT\naccountabilities:\n"
+        "  - id: a0\n    statement: own it\n    metric: capability_coverage_pct\n"
+        "    direction: increase\n"
+    )
+    pd.DataFrame({"customer_id": ["a", "b"], "pillars_met": [1, 2], "region": ["x", "y"]}
+                 ).to_csv(inputs.data_path, index=False)
+
+    out = asyncio.run(settle(inputs, _defaults()))
+    assert out.status == "awaiting"
+    suggested = [c for c in out.report.clarifications if "TypeSafe" in c.question]
+    assert suggested and "pillars_met" in suggested[0].candidates
+
+
+def test_typesafe_review_is_skipped_when_nothing_is_unresolved(tmp_path, monkeypatch):
+    """The common case — a clean pairing, or one lexical matching already resolved —
+    must call the model zero times."""
+    def fail_if_called(*a, **kw):
+        raise AssertionError("TypeSafe must not be called when there is nothing to review")
+
+    monkeypatch.setattr("loop.suggest._ask", fail_if_called)
+    inputs = Inputs(tmp_path)
+    _write(inputs, "request.json", {"charter": "claims_analyst", "data": "claims"})
+    out = asyncio.run(settle(inputs, _defaults()))
+    assert out.status == "awaiting" and out.report.ok
 
 
 # --- the middleware ------------------------------------------------------------------

@@ -76,7 +76,7 @@ def _local_session_routes():
     from starlette.routing import Route
 
     # Only the files the loop reads; a client cannot write anywhere else.
-    ALLOWED = {"intake/request.json", "intake/charter.yaml", "intake/data.csv", "intake/accept.json"}
+    ALLOWED = {"intake/request.json", "intake/charter.yaml", "intake/charter.md", "intake/data.csv", "intake/accept.json"}
     MAX_BYTES = 50 * 1024 * 1024
 
     async def create(request: Request) -> Response:

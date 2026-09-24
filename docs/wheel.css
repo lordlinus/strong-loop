@@ -1,0 +1,62 @@
+/* wheel.css — the loop on one ring. Mounted by index.html (recorded run) and live.html
+   (the Responses stream) through wheel.js; scoped under .wheel so it sits in any page. */
+.wheel{--chip-w:150px;--paper:#EFF2F4;--paper-2:#F7F9FA;--ink:#15181D;--graphite:#59626E;--rule:#C7CED6;--code:#1F3A93;--model:#5B4B9E;--human:#8A5A00;
+  --supported:#0B7A55;--rejected:#B42318;--inconclusive:#B26A00;--refused:#475467;
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",Consolas,monospace;
+  --label-w:min(16.7em,17vw);
+  position:relative;min-height:0;font-family:var(--body);font-size:clamp(11px,1.5vh,15px);line-height:1.4;color:var(--ink)}
+.wheel button{font:inherit;cursor:pointer;color:var(--ink);border-radius:0;letter-spacing:normal}
+.wheel .orbit{position:absolute;overflow:visible}
+.wheel .orbit .ring{fill:none;stroke:var(--code);stroke-width:3}
+.wheel .orbit .spoke{stroke:var(--code);stroke-width:1.5;fill:none;opacity:.75} .wheel .orbit .spoke.read{stroke-dasharray:3 4;opacity:.6} .wheel .orbit .spoke.out{stroke-dasharray:3 4}
+.wheel .orbit .chev{fill:var(--code)}
+.wheel .orbit .io{stroke-width:1.6;fill:none} .wheel .orbit .io.in{stroke:var(--human)} .wheel .orbit .io.out{stroke:var(--code)}
+.wheel .orbit .io-t{font-family:var(--mono);font-weight:600;letter-spacing:.06em;text-transform:uppercase} .wheel .orbit .io-t.in{fill:var(--human)} .wheel .orbit .io-t.out{fill:var(--code)}
+.wheel .pill{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:.7em;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--code);background:var(--paper);border:2px solid var(--code);border-radius:999px;padding:.22em .7em;line-height:1.2;z-index:3}
+.wheel .pill.active{animation:wheel-pulse 1.1s ease-in-out infinite;background:var(--code);color:#fff}
+@keyframes wheel-pulse{0%,100%{box-shadow:0 0 0 0 rgba(31,58,147,.35)}50%{box-shadow:0 0 0 10px rgba(31,58,147,0)}}
+@media (prefers-reduced-motion:reduce){.wheel .pill.active{animation:none}}
+.wheel .outside{position:absolute;width:var(--label-w);z-index:2;border:0;background:none;text-align:left;padding:0;color:var(--ink)}
+.wheel .outside.center{width:min(22.7em,26vw);text-align:center} .wheel .outside.right{text-align:right}
+.wheel .outside .role{font-family:var(--mono);font-size:.72em;letter-spacing:.04em;text-transform:uppercase;color:var(--model);margin:0 0 .15em;font-weight:600}
+.wheel .outside .say{margin:0;font-size:.9em;line-height:1.3} .wheel .outside .say em{color:var(--graphite);font-style:normal}
+.wheel .outside .quote{margin:.2em 0 0;font-size:.86em;line-height:1.3;font-style:italic;height:3.9em;overflow:hidden}
+.wheel .outside.center .quote{height:2.6em}
+.wheel .outside:hover .role,.wheel .outside:focus-visible .role{text-decoration:underline} .wheel .outside:focus-visible{outline:2px solid var(--model);outline-offset:4px;border-radius:2px}
+.wheel .inside{position:absolute;transform:translate(-50%,-50%);z-index:2;background:var(--paper-2);border:1px solid var(--rule);border-radius:4px;padding:.3em .5em;width:var(--chip-w);text-align:center}
+.wheel .inside .mech{font-family:var(--mono);font-size:.6em;letter-spacing:.05em;text-transform:uppercase;color:var(--code);margin:0 0 .25em;line-height:1.25}
+.wheel .inside .val{font-family:var(--mono);font-size:.68em;margin:0;display:flex;flex-direction:column;gap:.15em;align-items:center}
+.wheel .inside .val span{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.2em}
+.wheel .inside.refused{border-color:var(--rejected);box-shadow:0 0 0 2px rgba(180,35,24,.15)}
+.verdict{display:inline-block;font-family:"IBM Plex Mono",Consolas,monospace;font-size:.66em;font-weight:700;letter-spacing:.06em;padding:.12em .45em;border-radius:2px;color:#fff;background:#475467}
+.v-supported,.v-recorded,.v-approved{background:#0B7A55} .v-rejected{background:#B42318} .v-inconclusive{background:#B26A00} .v-refused,.v-read,.v-duplicate,.v-error{background:#475467} .v-proposed,.v-iteration,.v-skill{background:#1F3A93}
+
+.wheel .ledger{position:absolute;color:var(--ink);left:50%;top:50%;transform:translate(-50%,-50%);width:13.2em;z-index:4;background:var(--paper-2);border:1.5px solid var(--code);border-radius:6px;padding:.6em .8em .55em;text-align:center;font-family:var(--mono);font-size:13.5px}
+.wheel .ledger h2{font-family:var(--display);font-weight:800;letter-spacing:.02em;font-size:1.15em;margin:0;color:var(--code)}
+.wheel .ledger .sub{font-size:.66em;letter-spacing:.05em;text-transform:uppercase;color:var(--graphite);margin:.05em 0 .5em}
+.wheel .ledger dl{display:grid;grid-template-columns:1fr 1fr;gap:.3em .5em;margin:0}
+.wheel .ledger dl div{display:flex;flex-direction:column} .wheel .ledger dt{font-size:.64em;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)}
+.wheel .ledger dd{margin:0;font-family:var(--display);font-weight:800;font-size:1.65em;line-height:1.05}
+.wheel .ledger .foot{margin:.5em 0 0;padding-top:.4em;border-top:1px solid var(--rule);font-size:.7em;color:var(--graphite);display:flex;justify-content:space-between}
+.wheel .ledger .foot b{color:var(--ink);font-weight:600}
+
+.wheel .side{position:absolute;top:50%;transform:translateY(-50%);width:min(21em,22vw);z-index:5;font-size:.8em;line-height:1.35}
+.wheel .side.l{left:0} .wheel .side.r{right:0}
+.wheel .card{display:block;width:100%;text-align:left;border:0;background:var(--paper-2);border-left:3px solid var(--rule);border-radius:0 4px 4px 0;padding:.5em .7em .55em;color:var(--ink)}
+.wheel .card:hover,.wheel .card:focus-visible{background:#fff} .wheel .card:focus-visible{outline:2px solid var(--code)}
+.wheel .card.human{border-left-color:var(--human)} .wheel .card.code{border-left-color:var(--code)}
+.wheel .card .eyebrow{display:flex;gap:.45em;align-items:baseline;font-family:var(--mono);font-size:.8em;letter-spacing:.05em;text-transform:uppercase;color:var(--graphite);margin:0 0 .3em}
+.wheel .card .eyebrow .io{font-family:var(--display);font-weight:800;font-size:1.25em;color:var(--ink);letter-spacing:.04em}
+.wheel .card h3{font-family:var(--display);font-weight:700;font-size:1.25em;margin:0 0 .2em;letter-spacing:-.01em}
+.wheel .card p{margin:0 0 .15em} .wheel .card ul{margin:.2em 0 0;padding:0;list-style:none} .wheel .card li{margin:0 0 .12em;display:flex;gap:.45em;align-items:baseline}
+.wheel .card li .k{font-family:var(--mono);font-size:.85em;color:var(--graphite);white-space:nowrap} .wheel .card li .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.wheel .card .std{font-family:var(--mono);font-size:.85em;margin-top:.3em;line-height:1.4} .wheel .card .std b{color:var(--code);font-weight:600} .wheel .card .std.human b{color:var(--human)}
+.wheel .card.dim{opacity:.55}
+.who{padding:.12em .5em;border-radius:2px;color:#fff;font-weight:600} .who-code{background:#1F3A93} .who-model{background:#5B4B9E} .who-human{background:#8A5A00}
+
+/* the caption: one sentence per event, so nobody has to explain the ring */
+.wheel-caption{font:1rem/1.45 "Source Serif 4",Georgia,serif;color:#15181D;background:#F7F9FA;border:1px solid #C7CED6;border-left:4px solid #1F3A93;border-radius:0 4px 4px 0;padding:.55rem .8rem;min-height:3.2em;margin:0}
+.wheel-caption.refused{border-left-color:#B42318} .wheel-caption.supported{border-left-color:#0B7A55} .wheel-caption.warn{border-left-color:#B26A00}
+.wheel-caption .who{font:600 .7rem "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.05em;margin-right:.4em;vertical-align:.1em}
+.wheel-legend{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;font:.72rem "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.05em;color:#59626E}
+.wheel-legend .sep{width:1px;height:1em;background:#C7CED6}

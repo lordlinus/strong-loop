@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 
 from loop.charter import Accountability, Constraints, RoleCharter, load_charter, sign
-from loop.intake import NOTHING_MEASURES_IT, _plausible_columns, pair, resolve
+from loop.intake import NOTHING_MEASURES_IT, _plausible_columns, normalize_columns, pair, resolve
 
 SERVICE = pathlib.Path(__file__).resolve().parent.parent / "src" / "strong-loop"
 
@@ -151,3 +151,129 @@ def test_resolve_keeps_good_answers_beside_a_bad_one(data):
     res = resolve(charter, r, {"a0": "Attrition", "a1": "tenure_years"})
     assert res.remapped == {"a0": "Attrition"}
     assert len(res.refused) == 1
+
+
+# ---- normalize_columns ------------------------------------------------------------------
+
+def test_normalize_leaves_existing_identifiers_untouched():
+    """`Attrition`, `attrition_flag`, camelCase headers: already-working pairings must
+    see exactly the same columns after normalization as before it."""
+    df = pd.DataFrame({"Attrition": [1], "attrition_flag": [0], "JobSatisfaction": [3]})
+    out, labels = normalize_columns(df)
+    assert list(out.columns) == list(df.columns)
+    assert labels == {}
+
+
+def test_normalize_makes_raw_exports_matchable():
+    """Real headers carry spaces, punctuation and leading digits — none of which is a
+    valid identifier, so no gate expression or metric match could ever use them as-is."""
+    df = pd.DataFrame({
+        "Foundry Adopted": [1], "# Pillars Met": [2], "Tools & IQ ACR": [3], "TPID": [4],
+    })
+    out, labels = normalize_columns(df)
+    assert all(c.isidentifier() for c in out.columns)
+    assert out.columns[3] == "TPID"                       # already clean, untouched
+    assert labels["foundry_adopted"] == "Foundry Adopted"
+    assert labels["pillars_met"] == "# Pillars Met"
+    assert labels["tools_iq_acr"] == "Tools & IQ ACR"
+
+
+def test_normalize_dedupes_collisions():
+    df = pd.DataFrame({"Foundry Adopted": [1], "foundry_adopted": [2]})
+    out, labels = normalize_columns(df)
+    assert len(set(out.columns)) == 2
+    assert "foundry_adopted" in out.columns and "foundry_adopted_2" in out.columns
+
+
+def test_normalized_raw_export_yields_candidates_pair_would_otherwise_refuse():
+    """The bug this guards: `_plausible_columns` requires `column.isidentifier()`, so a
+    raw header with no chance to normalize offers zero candidates no matter how good the
+    semantic match is. After normalization, the same data yields a real menu."""
+    charter = charter_for("foundry_adopted_flag")
+    raw = pd.DataFrame({"Foundry Adopted": [1, 0, 1], "TPID": [1, 2, 3]})
+    data, labels = normalize_columns(raw)
+    r = pair(charter, data, labels)
+    assert not r.ok
+    (c,) = r.clarifications
+    assert "foundry_adopted" in c.candidates
+
+
+# ------------------------------------------------------------------ derived screens
+def test_a_constant_metric_withholds_its_question_and_the_run_proceeds(data):
+    """Seen live: `product_adopted_flag` was all zeros and intake said [ok]."""
+    charter = charter_for("Attrition", "flat")
+    r = pair(charter, data.assign(flat=0))
+    flat = next(a for a in r.accountabilities if a.metric == "flat")
+    assert flat.status == "unmeasurable" and "constant" in flat.measure["reason"]
+    assert r.ok, "one dead metric must not refuse the run"
+    assert len(r.questions) == 1 and len(r.withheld) == 1 and "flat" in r.withheld[0]
+
+
+def test_every_metric_dead_is_a_problem(data):
+    r = pair(charter_for("flat"), data.assign(flat=0))
+    assert not r.ok
+    assert any("no accountability can be measured" in p for p in r.problems)
+
+
+def test_columns_that_define_a_metric_are_reported_and_the_probe_avoids_them(data):
+    d = data.assign(attrition_x10=data["Attrition"] * 10, dup_channel=data["channel"])
+    r = pair(charter_for("Attrition"), d)
+    reasons = {s.column: s.reason for s in r.derived}
+    assert "attrition_x10" in reasons and "Attrition" in reasons["attrition_x10"]
+    assert "dup_channel" in {s.column for s in r.screened}, "an alias is never offered"
+    assert r.gate_probe is not None and "attrition_x10" not in r.gate_probe.where
+    assert r.ok
+
+
+# ---- normalize_values: text that is really a number ------------------------------------
+
+def test_yes_no_outcome_is_read_as_0_1_and_reported():
+    """Seen on a churn export: `Churn` in Yes/No was coerced to all-missing then all-zero,
+    reported unmeasurable, and the probe claimed every row had `Churn == 0`."""
+    raw = pd.DataFrame({"Churn": ["Yes", "No", " no", "YES", "No", "Yes"] * 60,
+                        "tenure": list(range(360))})
+    data, _ = normalize_columns(raw)
+    assert data["Churn"].tolist()[:4] == [1, 0, 0, 1]
+    assert "YES/Yes read as 1" in data.attrs["recoded"]["Churn"]
+    r = pair(charter_for("Churn"), data)
+    assert r.accountabilities[0].status == "ok" and "Churn" in r.recoded
+    assert r.gate_probe is not None and r.gate_probe.verdict != "REFUSED"
+    assert raw["Churn"].iloc[0] == "Yes" and "recoded" not in raw.attrs, "input untouched"
+
+
+def test_ambiguous_text_is_left_as_text():
+    """No safe 0/1 reading: two non-yes/no labels, a single answer, leading-zero codes,
+    and anything with a non-number in it."""
+    raw = pd.DataFrame({
+        "tier": ["Gold", "Silver"] * 3,
+        "only_no": ["No"] * 6,
+        "postcode": ["02134", "10001"] * 3,
+        "amount": ["$5", "6"] * 3,
+    })
+    data, _ = normalize_columns(raw)
+    assert data.attrs["recoded"] == {}
+    for col in raw.columns:
+        assert data[col].tolist() == raw[col].tolist()
+
+
+def test_numbers_stored_as_text_become_numbers_and_blanks_missing():
+    raw = pd.DataFrame({"TotalCharges": ["29.85", " ", "1889.5", "108.15"]})
+    data, _ = normalize_columns(raw)
+    assert pd.api.types.is_float_dtype(data["TotalCharges"])
+    assert data["TotalCharges"].isna().tolist() == [False, True, False, False]
+    assert "1 blank" in data.attrs["recoded"]["TotalCharges"]
+
+
+def test_a_text_metric_gets_no_probe_rather_than_a_coerced_verdict(data):
+    r = pair(charter_for("tier"), data.assign(tier=["Gold", "Silver"] * 200))
+    assert r.gate_probe is None
+    assert any("not numeric or 0/1" in p for p in r.problems)
+
+
+# ---- signature status --------------------------------------------------------------------
+
+def test_an_unsigned_charter_is_a_draft_even_if_its_yaml_says_signed(tmp_path):
+    assert charter_for("x").status == "DRAFT"
+    assert RoleCharter.model_validate({**charter_for("x").model_dump(), "status": "SIGNED"}).status == "DRAFT"
+    assert sign(charter_for("x"), "alice").status == "SIGNED"
+    assert load_charter(SERVICE / "charters" / "claims_analyst.yaml").status == "DRAFT"

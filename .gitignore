@@ -20,3 +20,8 @@ graphify-out/
 runs/
 !docs/runs/
 src/strong-loop/data/*
+src/strong-loop/charters/*_specialist.yaml
+
+# Local-only sanitization tooling and its key/mapping outputs — never committed.
+tools/sanitize_data.py
+tests/test_sanitize_data.py

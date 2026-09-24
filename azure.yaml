@@ -52,6 +52,11 @@ services:
         value: ${LOOP_DATA}
       - name: LOOP_MAX_ITERATIONS
         value: ${LOOP_MAX_ITERATIONS}
+      # Optional closed-set intake mapping. Empty means lexical-only intake.
+      - name: TYPESAFE_API_KEY
+        value: ${TYPESAFE_API_KEY}
+      - name: TYPESAFE_DEFAULT_MODEL
+        value: ${TYPESAFE_DEFAULT_MODEL}
       # Written by `azd ai toolbox create strong-loop-toolbox --from-file toolbox.yaml`.
       # Empty when no toolbox exists, in which case the agent runs on its bound tools alone.
       - name: TOOLBOX_ENDPOINT

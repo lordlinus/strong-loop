@@ -93,6 +93,15 @@ class Ledger:
         return next((obj for _, obj in self._load() if getattr(obj, "id", None) == record_id), None)
 
     # ---- the views the loop actually needs -----------------------------------------
+    def same_rows(self, hypothesis: Hypothesis) -> Hypothesis | None:
+        """An earlier hypothesis of the same kind and parameters whose rule selected
+        exactly the same rows — `Acquired == 1` and `pillars_met >= 2` were one test."""
+        if not hypothesis.rows_hash:
+            return None
+        key = rows_fingerprint(hypothesis)
+        return next((h for h in self.all("hypothesis")
+                     if h.rows_hash and rows_fingerprint(h) == key), None)
+
     def tried_specs(self) -> set[str]:
         """Canonical fingerprints of everything already tested.
 
@@ -172,3 +181,10 @@ def fingerprint(hypothesis: Hypothesis) -> str:
     """
     spec = json.dumps(hypothesis.spec, sort_keys=True, default=str)
     return f"{hypothesis.kind}::{spec}"
+
+
+def rows_fingerprint(hypothesis: Hypothesis) -> str:
+    """Like `fingerprint`, with the rule replaced by the rows it selected."""
+    spec = {k: v for k, v in hypothesis.spec.items() if k != "where"}
+    spec["rows"] = hypothesis.rows_hash
+    return f"{hypothesis.kind}::{json.dumps(spec, sort_keys=True, default=str)}"

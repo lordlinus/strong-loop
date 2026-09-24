@@ -28,13 +28,58 @@ python -m pytest tests -q
 cd src/strong-loop
 python -m loop check --charter charters/claims_analyst.yaml --data data/claims.csv
 python -m loop run   --charter charters/claims_analyst.yaml --data data/claims.csv --iterations 3
+
+# a charter whose metric the export carries under another name: pick from the closed list
+# `check` offers (no free text, no derivation script), and put a name to the remapping
+python -m loop run --charter charters/<role>.yaml --data data/<export>.csv \
+    --map <accountability_id>=<column> --ratified-by <you>
+
+# write a charter as Markdown instead: every command above takes a .md charter too
+python -m loop render charters/claims_analyst.yaml > my_role.md    # a worked example to edit
+python -m loop check --charter my_role.md --data data/claims.csv
 ```
+
+A Markdown charter has one standard shape — flat front matter (`role`, `version`,
+`extends`), then fixed sections `## Glossary`, `## Accountabilities`, `## Decision rights`,
+`## Evidence standard`, `## Constraints`, each a list of `- key: value` bullets under
+`### <id> — <text>` items (the shape is documented at the top of `loop/charter_md.py`). It
+is read by fixed rules, not a model, into the same charter as the YAML, so signing and every
+screen work unchanged. An unknown heading or key is an error with its line number; lines
+starting with `>` are commentary. Shipped charters stay YAML.
+
+What may be tested is worked out from the data, per run, by `loop/derived.py` — not from a
+list in the charter. A column that is a copy, rescaling, threshold or component of a metric
+is refused for hypotheses about that metric and left alone for the others; constants and
+duplicate columns are never offered; a metric that cannot move withholds its question and
+the run proceeds. `check` prints all of it under `derived screens:`. Each gate additionally
+refuses a rule that partitions its outcome exactly, and only ever tests the question's own
+metric.
 
 Models come through the APIM gateway. On a laptop `loop/models.py` reads the gateway and
 key from `~/.config/azure-apim/apim-ssattiraju-01.env` if present; otherwise copy
 `.env.example` to `.env`. Swap models with one variable — `LOOP_MODEL=claude-sonnet-4-6`
 routes to the Anthropic API, anything else to `/openai/v1`. `python -m loop models` proves
 a model works before you spend a run on it.
+
+TypeSafe is optional and serves three narrow purposes, none of which sends a row or sample
+value. The frontier model does the reasoning — hypotheses, confounds, interpretation;
+TypeSafe answers the small closed questions around it. When an uploaded charter metric has
+no lexical match in an uploaded dataset, one batched `Choice` request ranks the
+already-screened columns and may select `none_of_the_above`; a person still chooses and
+ratifies the mapping. A second tier of the derived screens asks, from schema metadata, per
+column and metric whether the NAMES say one is a copy, component or consequence of the
+other, and per column whether it is an identifier or a protected attribute or proxy (a
+senior-citizen flag the word list cannot know): P≥0.70 refuses, 0.35–0.70 warns, and the
+data-driven tier always wins. And the model's finding and action prose is read against the
+ledger record it cites: a headline that contradicts its evidence, or a "recommendation" that
+is only a study, is refused at P≥0.80; a causal claim or a recommendation reaching beyond its
+findings is recorded with a warning the report shows. Set `TYPESAFE_API_KEY` in
+`src/strong-loop/.env`. TypeSafe never creates evidence, findings, or actions, and
+everything falls back to the code-only behaviour if it is unconfigured or unavailable.
+
+Yes/No-style text columns (`Yes`/`No`, `Y`/`N`, `True`/`False`, both answers present) and
+numbers stored as text are read as numbers at load; `check` and the pairing report list
+every column read this way. Anything more ambiguous stays text.
 
 ## As a Foundry hosted agent
 
@@ -107,7 +152,8 @@ the model's reasoning summaries and text, and the loop's own events as items nam
 `loop.iteration_end` (the tally `should_continue` read) and `loop.report` (the corrected
 report). No side channel, no parsing of prose.
 
-`docs/live.html` is a viewer for that stream. In production it asks the authenticated
+`docs/live.html` ("Run it") renders that stream as the wheel below, with the raw items in a
+folded event log. In production it asks the authenticated
 control API for a short-lived stream ticket, then reads SSE directly from the streaming App
 Service. For local development it calls `http://localhost:8088/responses` directly:
 
@@ -116,28 +162,26 @@ azd ai agent run --no-client          # or: cd src/strong-loop && python main.py
 open docs/live.html
 ```
 
-## Read the loop in detail
+## The site: three pages, one wheel
 
-`docs/loop.html` walks the whole mechanism on one page, built from a recorded run in
-`docs/runs/`: the charter as loaded, the data profile, the compiled questions, the exact
-context each iteration received, every tool call joined to the ledger record it left, the
-gate and screen source, the confound challenge, the authorisation checks and the corrected
-report. Regenerate it with `tools/make_loop_doc.py` after any engine change; it has no
-hand-written numbers.
+1. `/` — **How it works** (public). A recorded run replayed on the wheel: the charter in on
+   the left, six stations on a ring (the model proposes outside it, code decides inside it),
+   the ledger in the centre, the report out on the right. A one-line caption says who did
+   what at every step; step through it, or click any station for the records behind it.
+   Built by `tools/make_showcase.py docs/runs/<run>` from `tools/index.template.html`; every
+   number comes from the run. Re-record after an engine change (commands in `AGENTS.md`).
+2. `/charters.html` — **Write a charter** (signed in). Markdown in the standard shape with
+   instant, line-numbered checks (`docs/charter-md.js`, the JavaScript twin of
+   `loop/charter_md.py`; both pass `tests/charter_md_cases.json`), the shipped charters as
+   worked examples, your CSV's columns checked against the metrics in the browser, then
+   "Check it with data →".
+3. `/live.html` — **Run it** (signed in). Upload or pick a charter and a dataset, check the
+   pairing, answer its closed-list questions, start, and watch the same wheel driven by the
+   live stream (`docs/wheel.js` renders both). The report opens below it.
 
-`docs/showcase.html` is the same run on one non-scrolling screen: the loop as a ring around
-the ledger, the model's moves outside it, code's verdicts inside it, the charter as input on
-the left and report.json as output on the right. Press ▶ to replay the recorded trace through
-the ring, or ● live to drive it from a running agent; click any station for the record behind
-it. Built by `tools/make_showcase.py` from the same run directory.
+`/showcase.html` and `/loop.html` redirect to `/`.
 
 ## Customer site and deployment
-
-The Static Web App preserves all three views as one customer journey:
-
-1. `/showcase.html` — replay the outcome on one screen.
-2. `/loop.html` — inspect the mechanism and its evidence trail.
-3. `/live.html` — sign in with Microsoft Entra ID and steer a fresh hosted-agent run.
 
 The live page never receives Azure credentials. Static Web Apps authentication protects the
 page and linked control API. The control API creates sessions and returns a short-lived,
@@ -190,9 +234,11 @@ self-contained. Locally, export the endpoint from the azd env; in the container,
 | `src/strong-loop/loop/` | |
 |---|---|
 | `types.py` | the contracts: Question → Hypothesis → Evidence → Finding → Decision → Action |
-| `gates.py` | screens (PII, leakage, forbidden columns, code injection), three gates, BH correction. **The only place an Evidence is made.** |
+| `gates.py` | screens (PII, leakage, forbidden columns, code injection, circular rules), three gates, BH correction. **The only place an Evidence is made.** |
+| `derived.py` | what THIS data says may not be tested: constants, copies, functional dependencies, aliases — per (column, metric), per run |
 | `stats.py` | the tests, no scipy |
-| `charter.py` | the role as a contract, plus `authorise_action`, the only door to an Action |
+| `charter.py` | the role as a contract — accountabilities with `leads`, decision rights, evidence standards, a `glossary` — plus `authorise_action`, the only door to an Action |
+| `charter_md.py` | the same charter as standard Markdown: `parse` (strict, line-numbered errors) and `render` |
 | `ledger.py` | append-only JSONL; `summary()` is what a fresh iteration reads |
 | `questions.py` | one question per accountability |
 | `tools.py` | eight bound operations; three of them certify |

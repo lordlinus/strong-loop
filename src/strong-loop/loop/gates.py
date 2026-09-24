@@ -35,7 +35,7 @@ import ast
 import math
 import re
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 import numpy as np
 import pandas as pd
@@ -46,10 +46,14 @@ from .stats import (
     benjamini_hochberg,
     mann_whitney_p,
     mde_lift,
+    stratified_mean_difference,
     two_proportion_test,
     welch_t_test,
 )
 from .types import Evidence, Hypothesis, Verdict
+
+if TYPE_CHECKING:  # derived.py imports this module; only the annotation is needed here
+    from .derived import Derived
 
 # ======================================================================================
 # 1. SCREENS
@@ -123,11 +127,18 @@ def _looks_like_sql(expr: str) -> bool:
     return bool(_SQLISM.search(expr)) or "&&" in expr or "||" in expr
 
 
-def screen(expr: str, df: pd.DataFrame, charter: RoleCharter) -> set[str]:
+def screen(
+    expr: str, df: pd.DataFrame, charter: RoleCharter,
+    derived: "Derived | None" = None, outcome: str | None = None,
+) -> set[str]:
     """Parse and vet a boolean expression. Returns referenced columns or raises.
 
     Blocking Call/Attribute/Subscript is what stops `df.eval` from becoming an arbitrary
     code execution path — this is a sandbox, not a linter.
+
+    `derived` carries what THIS data says may not be tested (`loop.derived`): constant
+    and duplicate columns are refused outright; a column that defines `outcome` is refused
+    for a hypothesis about that outcome and left alone for every other one.
     """
     if not expr or not expr.strip():
         raise ScreenError("empty expression")
@@ -168,7 +179,76 @@ def screen(expr: str, df: pd.DataFrame, charter: RoleCharter) -> set[str]:
         raise ScreenError(f"references target-leaking columns: {hit}")
     if c.allowed_features is not None and (out := sorted(names - set(c.allowed_features))):
         raise ScreenError(f"references columns outside the charter's scope: {out}")
+    if derived is not None:
+        excluded = derived.excluded()
+        if hit := sorted(n for n in names if n in excluded):
+            raise ScreenError("references excluded columns — "
+                              + "; ".join(f"{n}: {excluded[n]}" for n in hit))
+        if outcome and (hit := [(n, derived.leak_reason(n, outcome)) for n in sorted(names)
+                                if derived.leak_reason(n, outcome)]):
+            raise ScreenError(
+                f"circular: references columns that define the outcome {outcome!r} — "
+                + "; ".join(f"{n}: {r}" for n, r in hit)
+                + ". A rule built from the metric's own definition is not a driver; choose "
+                  "an attribute that varies independently of the outcome."
+            )
     return names
+
+
+def _suspicions(names: set[str], derived: "Derived | None", outcome: str | None) -> list[str]:
+    """Warnings for columns the data suggests, but cannot prove, leak the outcome."""
+    if derived is None or not outcome:
+        return []
+    return [f"{n!r} is suspected of leaking {outcome!r}: {r}"
+            for n in sorted(names) if (r := derived.suspect_reason(n, outcome))]
+
+
+def _circular(inside: np.ndarray, outside: np.ndarray, outcome: str, standard: EvidenceStandard) -> None:
+    """Refuse a rule that partitions the outcome exactly.
+
+    Intake catches columns that define a metric; this catches the RULE that does — a
+    compound expression, a threshold nobody listed. When every row on one side of the rule
+    has the same outcome, and that side is big enough to be a finding, the rule is the
+    metric's own definition and a gate would only be confirming it.
+    """
+    if len(inside) == 0 or len(outside) == 0:
+        return
+    for side, label in ((inside, "inside"), (outside, "outside")):
+        clean = side[~np.isnan(side)] if side.dtype.kind == "f" else side
+        if len(clean) >= standard.min_sample_size and len(np.unique(clean)) == 1:
+            raise ScreenError(
+                f"circular: every one of the {len(clean)} rows {label} the rule has "
+                f"{outcome} == {clean[0]!r}. The rule partitions {outcome!r} exactly, so it is "
+                f"the metric's own definition rather than a driver. Choose an attribute that "
+                f"varies independently of the outcome."
+            )
+
+
+def _is_binary(values: pd.Series) -> bool:
+    numeric = pd.to_numeric(values, errors="coerce").dropna()
+    return set(np.unique(numeric.to_numpy())).issubset({0, 1})
+
+
+def _outcome(spec: dict, ctx: "GateContext", gate: str) -> pd.Series:
+    """The column a hypothesis is about: the question's metric, never a substitute.
+
+    A model whose metric is continuous will otherwise reach for any binary column so a
+    binary gate accepts the spec — and then write findings about the metric it never
+    tested. That happened. So `spec.target` may only restate the question's metric.
+    """
+    name = spec.get("target")
+    if ctx.target is not None:
+        if name and name != ctx.target.name:
+            raise ScreenError(
+                f"target must be the question's metric {ctx.target.name!r}, not {name!r}. A "
+                f"hypothesis about a different outcome belongs to a different question."
+            )
+        return ctx.target
+    if name:
+        if name not in ctx.data.columns:
+            raise ScreenError(f"target column {name!r} not in data")
+        return ctx.data[name]
+    raise ScreenError(f"{gate}: no target supplied and no accountability measure resolved")
 
 
 # ======================================================================================
@@ -189,6 +269,8 @@ class GateContext:
     charter: RoleCharter
     standard: EvidenceStandard
     target: pd.Series | None = None
+    # What the data itself says may not be tested (`loop.derived`). None in unit tests.
+    derived: "Derived | None" = None
     meta: dict[str, Any] = field(default_factory=dict)
 
 
@@ -256,18 +338,18 @@ class ProportionLiftGate:
     question_shape = "Does subgroup `where` show a higher rate of binary `target`?"
     spec_schema = {
         "where": "REQUIRED. pandas boolean expression, parenthesised comparisons joined by & | ~ — e.g. \"(premium > 1000) & (status == 'active')\". NOT SQL: AND/OR/&&/= are refused.",
-        "target": "OPTIONAL. Binary column. Defaults to the accountability's measure.",
+        "target": "Not settable: always the question's own metric. A claim about another outcome belongs under that outcome's question.",
     }
 
     def run(self, h: Hypothesis, ctx: GateContext) -> Evidence:
         where = h.spec.get("where")
         if not where:
             raise ScreenError("spec.where is required")
-        screen(where, ctx.data, ctx.charter)
-
         df, target = ctx.data, self._target(h.spec, ctx)
+        names = screen(where, df, ctx.charter, ctx.derived, outcome=target.name)
+
         mask = _mask(df, where)
-        n, warnings = int(mask.sum()), []
+        n, warnings = int(mask.sum()), _suspicions(names, ctx.derived, target.name)
         base = float(target.mean())
 
         if n == 0 or n == len(df):
@@ -276,6 +358,7 @@ class ProportionLiftGate:
                 sample_size=n, statistics={"where": where, "base_rate": base},
                 warnings=["rule selects everyone or no one — it separates nothing"],
             )
+        _circular(target[mask].to_numpy(), target[~mask].to_numpy(), str(target.name), ctx.standard)
 
         hits = int(target[mask].sum())
         rate = hits / n
@@ -307,7 +390,8 @@ class ProportionLiftGate:
             effect_size=round(float(lift), 4) if np.isfinite(lift) else None,
             p_value=float(p),
             statistics={
-                "where": where, "test": test, "subgroup_rate": round(rate, 5),
+                "where": where, "target": str(target.name), "test": test,
+                "subgroup_rate": round(rate, 5),
                 "base_rate": round(base, 5), "coverage": round(n / len(df), 4),
                 "min_detectable_lift": round(float(detectable), 4)
                 if np.isfinite(detectable) else None,
@@ -318,23 +402,14 @@ class ProportionLiftGate:
 
     @staticmethod
     def _target(spec: dict, ctx: GateContext) -> pd.Series:
-        name = spec.get("target")
-        if name:
-            if name not in ctx.data.columns:
-                raise ScreenError(f"target column {name!r} not in data")
-            series = ctx.data[name]
-        elif ctx.target is not None:
-            series = ctx.target
-        else:
-            raise ScreenError("no target supplied and no accountability measure resolved")
-
+        series = _outcome(spec, ctx, "proportion_lift")
         numeric = pd.to_numeric(series, errors="coerce").fillna(0)
         if not set(np.unique(numeric.to_numpy())).issubset({0, 1}):
             raise ScreenError(
-                f"proportion_lift needs a binary target; {name or 'target'} is not. "
+                f"proportion_lift needs a binary target; {series.name!r} is not. "
                 f"Use the mean_shift gate instead."
             )
-        return numeric.astype(int)
+        return numeric.astype(int).rename(series.name)
 
 
 @register
@@ -350,7 +425,7 @@ class MeanShiftGate:
     question_shape = "Is the mean of `measure` different inside subgroup `where`?"
     spec_schema = {
         "where": "REQUIRED. pandas boolean expression, parenthesised comparisons joined by & | ~ — e.g. \"(premium > 1000) & (status == 'active')\". NOT SQL: AND/OR/&&/= are refused.",
-        "measure": "REQUIRED. Numeric column to compare inside vs outside.",
+        "measure": "REQUIRED. The question's own metric (a numeric column); any other column is refused.",
     }
 
     def run(self, h: Hypothesis, ctx: GateContext) -> Evidence:
@@ -359,17 +434,22 @@ class MeanShiftGate:
             raise ScreenError("spec.where is required")
         if not measure:
             raise ScreenError("spec.measure is required")
-        screen(where, ctx.data, ctx.charter)
         if measure not in ctx.data.columns:
             raise ScreenError(f"measure column {measure!r} not in data")
+        if ctx.target is not None and measure != ctx.target.name:
+            raise ScreenError(
+                f"measure must be the question's metric {ctx.target.name!r}, not {measure!r}. "
+                f"A claim about a different outcome belongs to a different question."
+            )
         if measure in (ctx.charter.constraints.forbidden_features or []):
             raise ScreenError(f"measure {measure!r} is forbidden by the charter")
+        names = screen(where, ctx.data, ctx.charter, ctx.derived, outcome=measure)
 
         mask = _mask(ctx.data, where)
         values = pd.to_numeric(ctx.data[measure], errors="coerce")
         inside = values[mask].dropna().to_numpy(float)
         outside = values[~mask].dropna().to_numpy(float)
-        n, warnings = len(inside), []
+        n, warnings = len(inside), _suspicions(names, ctx.derived, measure)
 
         if n == 0 or len(outside) == 0:
             return Evidence(
@@ -377,6 +457,7 @@ class MeanShiftGate:
                 sample_size=n, statistics={"where": where, "measure": measure},
                 warnings=["rule selects everyone or no one — nothing to compare"],
             )
+        _circular(inside, outside, measure, ctx.standard)
 
         p, cohens_d = welch_t_test(inside, outside)
         rank_p = mann_whitney_p(inside, outside)
@@ -488,7 +569,7 @@ def confidence_from(evidence: Evidence, standard: EvidenceStandard) -> float:
 
 @register
 class DriverEffectGate:
-    """Does `where` still associate with the target once `control` is held constant?
+    """Does `where` still associate with the outcome once `control` is held constant?
 
     This is a different SHAPE of question from the two subgroup gates, not a variation on
     them. `proportion_lift` asks whether a group differs. This asks whether it differs
@@ -504,20 +585,23 @@ class DriverEffectGate:
     Acting on the proxy instead of the cause is not a small error. It spends the whole
     intervention budget on something that was never driving the outcome.
 
-    Method: stratify on `control`, compute the association inside each stratum, and pool
-    with Mantel-Haenszel. The verdict is decided on the ADJUSTED effect, never the crude
-    one. When the two diverge the gate says so loudly — that divergence IS the finding,
-    and it is the case a single-variable scan reports as a triumph.
+    Method: stratify on `control`, compute the association inside each stratum, and pool.
+    A binary outcome pools odds ratios with Mantel-Haenszel; a continuous one pools
+    within-stratum mean differences by inverse variance — so a role whose metric is a
+    share or an amount can still be made to challenge its own findings, rather than reach
+    for some other binary column so the gate will accept the spec. The verdict is decided
+    on the ADJUSTED effect, never the crude one. When the two diverge the gate says so
+    loudly — that divergence IS the finding.
     """
 
     name = "driver_effect"
     question_shape = (
-        "Does subgroup `where` still shift binary `target` after stratifying on `control`?"
+        "Does subgroup `where` still shift the question's metric after stratifying on `control`?"
     )
     spec_schema = {
         "where": "REQUIRED. pandas boolean expression selecting the candidate driver, parenthesised comparisons joined by & | ~. NOT SQL.",
         "control": "REQUIRED. Column to hold constant — the suspected confound.",
-        "target": "OPTIONAL. Binary column. Defaults to the accountability's measure.",
+        "target": "Not settable: always the question's own metric (binary or continuous).",
         "bins": "OPTIONAL. Number of quantile strata for a numeric control. Default 4.",
     }
 
@@ -529,18 +613,21 @@ class DriverEffectGate:
         if not control:
             raise ScreenError(
                 "spec.control is required — this gate exists to hold a confound constant. "
-                "To test a plain subgroup difference, use proportion_lift."
+                "To test a plain subgroup difference, use proportion_lift or mean_shift."
             )
-        screen(where, ctx.data, ctx.charter)
+        outcome = _outcome(h.spec, ctx, self.name)
+        name = str(outcome.name)
+        if control == name:
+            raise ScreenError(f"control must not be the outcome {name!r} itself")
+        names = screen(where, ctx.data, ctx.charter, ctx.derived, outcome=name)
         # The control is a column reference, so screen it as one: a confound may not be a
-        # sensitive attribute either.
-        screen(control, ctx.data, ctx.charter)
+        # sensitive attribute, and may not be the metric's own definition either.
+        names |= screen(control, ctx.data, ctx.charter, ctx.derived, outcome=name)
 
         df = ctx.data
-        target = ProportionLiftGate._target(h.spec, ctx)
         mask = _mask(df, where)
         n = int(mask.sum())
-        warnings: list[str] = []
+        warnings = _suspicions(names, ctx.derived, name)
 
         if n == 0 or n == len(df):
             return Evidence(
@@ -550,13 +637,21 @@ class DriverEffectGate:
             )
 
         strata = self._strata(df[control], int(h.spec.get("bins", 4) or 4))
+        values = pd.to_numeric(outcome, errors="coerce")
+        if _is_binary(values):
+            return self._binary(h, ctx, where, control, mask, values.fillna(0).astype(int), strata, warnings)
+        return self._continuous(h, ctx, where, control, mask, values, strata, warnings)
+
+    # ---- binary outcome: Mantel-Haenszel over odds ratios -------------------------
+    def _binary(self, h, ctx, where, control, mask, target, strata, warnings) -> Evidence:
+        df, n = ctx.data, int(mask.sum())
+        _circular(target[mask].to_numpy(), target[~mask].to_numpy(), str(target.name), ctx.standard)
 
         crude = self._odds_ratio(
             a=int(target[mask].sum()), b=int((~target.astype(bool))[mask].sum()),
             c=int(target[~mask].sum()), d=int((~target.astype(bool))[~mask].sum()),
         )
 
-        # Mantel-Haenszel pooling across strata.
         num = den = 0.0
         chi_num = chi_den = 0.0
         used = 0
@@ -585,15 +680,7 @@ class DriverEffectGate:
             chi_den += variance
 
         if used < 2:
-            return Evidence(
-                hypothesis_id=h.id, gate=self.name, verdict=Verdict.INCONCLUSIVE,
-                sample_size=n,
-                statistics={"where": where, "control": control, "usable_strata": used},
-                warnings=[
-                    f"only {used} usable stratum of {control!r}; nothing was actually "
-                    f"controlled for. Choose a control with more variation."
-                ],
-            )
+            return self._uncontrolled(h, where, control, n, used)
 
         adjusted = (num / den) if den > 0 else float("inf")
         chi2 = (abs(chi_num) - 0.5) ** 2 / chi_den if chi_den > 0 else 0.0
@@ -604,18 +691,8 @@ class DriverEffectGate:
         if math.isfinite(crude) and math.isfinite(adjusted) and crude > 0:
             shrink = (crude - adjusted) / (crude - 1.0) if abs(crude - 1.0) > 1e-9 else 0.0
             explained = round(float(max(0.0, min(1.0, shrink))), 3)
-            if explained >= 0.5:
-                warnings.append(
-                    f"{control!r} explains ~{explained:.0%} of the crude association "
-                    f"(crude OR {crude:.2f} -> adjusted {adjusted:.2f}). The subgroup is "
-                    f"substantially a proxy for {control!r}; acting on it acts on the proxy."
-                )
-            if (crude > 1.0) != (adjusted > 1.0):
-                warnings.append(
-                    f"direction REVERSES after controlling for {control!r} "
-                    f"(crude {crude:.2f} -> adjusted {adjusted:.2f}) — Simpson's paradox. "
-                    f"The unadjusted reading is not merely weaker, it is backwards."
-                )
+            self._warn(warnings, control, explained, f"crude OR {crude:.2f} -> adjusted {adjusted:.2f}",
+                       reversed_=(crude > 1.0) != (adjusted > 1.0))
 
         effect = float(adjusted) if math.isfinite(adjusted) else None
         return Evidence(
@@ -631,6 +708,7 @@ class DriverEffectGate:
             statistics={
                 "where": where,
                 "control": control,
+                "target": str(target.name),
                 "test": "mantel_haenszel",
                 "crude_odds_ratio": round(float(crude), 4) if math.isfinite(crude) else None,
                 "adjusted_odds_ratio": round(effect, 4) if effect is not None else None,
@@ -640,6 +718,71 @@ class DriverEffectGate:
             },
             warnings=warnings,
         )
+
+    # ---- continuous outcome: stratified mean difference ---------------------------
+    def _continuous(self, h, ctx, where, control, mask, values, strata, warnings) -> Evidence:
+        df, n = ctx.data, int(mask.sum())
+        name = str(values.name)
+        inside = values[mask].dropna().to_numpy(float)
+        outside = values[~mask].dropna().to_numpy(float)
+        _circular(inside, outside, name, ctx.standard)
+
+        _, crude_d = welch_t_test(inside, outside)
+        p, adjusted_d, used = stratified_mean_difference(
+            values.to_numpy(float), mask.to_numpy(), strata.astype(str).to_numpy()
+        )
+        if used < 2:
+            return self._uncontrolled(h, where, control, n, used)
+
+        explained = None
+        if abs(crude_d) > 1e-9:
+            explained = round(float(max(0.0, min(1.0, (abs(crude_d) - abs(adjusted_d)) / abs(crude_d)))), 3)
+            self._warn(warnings, control, explained, f"crude d {crude_d:.2f} -> adjusted {adjusted_d:.2f}",
+                       reversed_=(crude_d > 0) != (adjusted_d > 0) and abs(adjusted_d) > 1e-9)
+
+        # Same scale MeanShiftGate reports on, so one charter threshold governs both.
+        effect = 1.0 + abs(adjusted_d)
+        return Evidence(
+            hypothesis_id=h.id, gate=self.name,
+            verdict=decide(n=n, p=p, effect=effect, standard=ctx.standard, warnings=warnings),
+            sample_size=n, effect_size=round(effect, 4), p_value=float(p),
+            statistics={
+                "where": where,
+                "control": control,
+                "measure": name,
+                "test": "stratified_welch",
+                "crude_cohens_d": round(float(crude_d), 4),
+                "adjusted_cohens_d": round(float(adjusted_d), 4),
+                "confound_explains_fraction": explained,
+                "usable_strata": used,
+                "coverage": round(n / len(df), 4),
+            },
+            warnings=warnings,
+        )
+
+    def _uncontrolled(self, h, where, control, n, used) -> Evidence:
+        return Evidence(
+            hypothesis_id=h.id, gate=self.name, verdict=Verdict.INCONCLUSIVE,
+            sample_size=n,
+            statistics={"where": where, "control": control, "usable_strata": used},
+            warnings=[
+                f"only {used} usable stratum of {control!r}; nothing was actually "
+                f"controlled for. Choose a control with more variation."
+            ],
+        )
+
+    @staticmethod
+    def _warn(warnings: list[str], control: str, explained: float, change: str, *, reversed_: bool) -> None:
+        if explained >= 0.5:
+            warnings.append(
+                f"{control!r} explains ~{explained:.0%} of the crude association ({change}). "
+                f"The subgroup is substantially a proxy for {control!r}; acting on it acts on the proxy."
+            )
+        if reversed_:
+            warnings.append(
+                f"direction REVERSES after controlling for {control!r} ({change}) — Simpson's "
+                f"paradox. The unadjusted reading is not merely weaker, it is backwards."
+            )
 
     @staticmethod
     def _strata(series: pd.Series, bins: int) -> pd.Series:

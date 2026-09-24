@@ -7,15 +7,20 @@ forward). The client puts files under `intake/`; the loop reads them:
 
     intake/request.json         {"charter": "<preset>", "data": "<preset>"}   (either optional)
     intake/charter.yaml         an uploaded role (wins over a preset)
+    intake/charter.md           the same, in the standard Markdown shape (`loop/charter_md.py`)
     intake/data.csv             an uploaded dataset (wins over a preset)
     intake/accept.json          {"answers": {acc_id: column}, "ratified_by": "...", "iterations": n}
     intake/pairing.json         written HERE once accepted — the session is settled
     intake/charter.signed.yaml  the charter that actually runs
 
-`settle()` is the whole decision, with no model and no side effects except the two files
-above once a pairing is accepted. Anything a client sends is untrusted: preset names are
-matched against the shipped files, never joined to a path; answers go through
-`intake.resolve`, which only takes picks from the list it offered.
+`settle()` is the whole decision. Pairing itself costs no API call; when it leaves a
+metric genuinely unresolved — no column shares vocabulary with it — `settle()` calls a
+TypeSafe Choice to review the mismatch before the human sees it (`loop.suggest.review`), so a
+real-world export with no shared naming convention still gets a menu instead of silence.
+That review is automatic, not a separate step a client has to opt into; it costs nothing
+when a pairing is already clean or fully resolved lexically. Anything a client sends is
+untrusted: preset names are matched against the shipped files, never joined to a path;
+answers go through `intake.resolve`, which only takes picks from the list it offered.
 
 A session with nothing under `intake/` runs the environment's defaults exactly as before,
 so the CLI and a bare `azd ai agent invoke "go"` are unchanged.
@@ -34,18 +39,34 @@ from typing import Any
 import pandas as pd
 
 from .charter import RoleCharter, load_charter, sign, write_charter
-from .intake import IntakeReport, pair, resolve
+from .derived import Derived, derive
+from .intake import IntakeReport, normalize_columns, pair, resolve
+from .suggest import review, semantic_screens
 
 SERVICE = pathlib.Path(__file__).resolve().parent.parent
 INTAKE = "intake"
 
 
 def presets() -> dict[str, list[str]]:
-    """The roles and datasets shipped with the service, by name."""
+    """The roles and datasets shipped with the service, by name.
+
+    Shipped means committed: a charter or export someone keeps locally under a gitignored
+    name is theirs to run by path, not a preset the customer page offers. Without git (the
+    hosted container) everything present is shipped by definition.
+    """
     return {
-        "charters": sorted(p.stem for p in (SERVICE / "charters").glob("*.yaml")),
-        "data": sorted(p.stem for p in (SERVICE / "data").glob("*.csv")),
+        "charters": sorted(p.stem for p in (SERVICE / "charters").glob("*.yaml") if not _ignored(p)),
+        "data": sorted(p.stem for p in (SERVICE / "data").glob("*.csv") if not _ignored(p)),
     }
+
+
+def _ignored(path: pathlib.Path) -> bool:
+    import subprocess
+    try:
+        return subprocess.run(["git", "-C", str(SERVICE), "check-ignore", "-q", str(path)],
+                              capture_output=True, timeout=5).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
 
 
 def session_home(session_id: str | None) -> pathlib.Path:
@@ -73,6 +94,21 @@ class Settled:
     data: pd.DataFrame
     max_iterations: int
     source: dict[str, str] = field(default_factory=dict)   # {"charter": "upload"|"preset:x"|"default", ...}
+    # What this data rules out for this charter (`loop.derived`), both tiers merged.
+    derived: Derived | None = None
+
+
+async def derive_all(charter: RoleCharter, data: pd.DataFrame,
+                     column_labels: dict[str, str] | None = None) -> Derived:
+    """Both tiers of derived screens: what the data proves (`derive`, always) under what
+    the column names suggest (`semantic_screens`, when TypeSafe is configured). The code
+    tier wins wherever both have an opinion."""
+    code = derive(data, charter)
+    try:
+        semantic = await semantic_screens(charter, data, code, column_labels)
+    except Exception:  # the loop never depends on the external call
+        semantic = Derived()
+    return code.merge(semantic)
 
 
 @dataclass
@@ -98,6 +134,7 @@ class Inputs:
         self.dir = pathlib.Path(home) / INTAKE
         self.request_path = self.dir / "request.json"
         self.charter_path = self.dir / "charter.yaml"
+        self.charter_md_path = self.dir / "charter.md"
         self.data_path = self.dir / "data.csv"
         self.accept_path = self.dir / "accept.json"
         self.pairing_path = self.dir / "pairing.json"
@@ -106,7 +143,8 @@ class Inputs:
     @property
     def engaged(self) -> bool:
         """Did a client speak intake at all? If not, the defaults run untouched."""
-        return any(p.exists() for p in (self.request_path, self.charter_path, self.data_path, self.accept_path))
+        return any(p.exists() for p in (self.request_path, self.charter_path, self.charter_md_path,
+                                        self.data_path, self.accept_path))
 
     def _json(self, path: pathlib.Path) -> dict[str, Any] | None:
         if not path.exists():
@@ -130,7 +168,7 @@ def _pick(name: Any, kind: str, folder: str, suffix: str) -> pathlib.Path:
     return SERVICE / folder / f"{name}{suffix}"
 
 
-def settle(inputs: Inputs, defaults: Settled) -> Outcome:
+async def settle(inputs: Inputs, defaults: Settled) -> Outcome:
     """Decide whether this session may run, and on what. See the module docstring."""
     if not inputs.engaged:
         return Outcome("run", settled=defaults, source={"charter": "default", "data": "default"})
@@ -139,9 +177,10 @@ def settle(inputs: Inputs, defaults: Settled) -> Outcome:
     if inputs.pairing_path.exists() and inputs.signed_path.exists():
         pairing = json.loads(inputs.pairing_path.read_text())
         charter = load_charter(inputs.signed_path)
-        data = _load_data(inputs, pairing.get("source", {}).get("data", "default"), defaults)
+        data, labels = _load_data(inputs, pairing.get("source", {}).get("data", "default"), defaults)
         settled = Settled(charter, data, _iterations(pairing.get("iterations"), defaults.max_iterations),
-                          source=pairing.get("source", {}))
+                          source=pairing.get("source", {}),
+                          derived=await derive_all(charter, data, labels))
         return Outcome("run", settled=settled, source=settled.source)
 
     source: dict[str, str] = {}
@@ -157,15 +196,16 @@ def settle(inputs: Inputs, defaults: Settled) -> Outcome:
         charter = None
     try:
         data_source = _data_source(inputs, request)
-        data = _load_data(inputs, data_source, defaults)
+        data, labels = _load_data(inputs, data_source, defaults)
         source["data"] = data_source
     except Exception as exc:
         problems.append(f"data: {_reason(exc)}")
-        data = None
+        data, labels = None, {}
     if problems or charter is None or data is None:
         return Outcome("refused", problems=problems, source=source)
 
-    report = pair(charter, data)
+    derived = await derive_all(charter, data, labels)
+    report = await review(charter, data, pair(charter, data, labels, derived), labels)
     accept = inputs.accept()
     if accept is None:
         return Outcome("awaiting", report=report, source=source)
@@ -188,7 +228,9 @@ def settle(inputs: Inputs, defaults: Settled) -> Outcome:
     if ratified_by:
         final = sign(final, ratified_by)
 
-    final_report = pair(final, data)
+    # Remapping changes which columns are metrics, so what leaks them changes too.
+    final_derived = await derive_all(final, data, labels) if changed else derived
+    final_report = pair(final, data, labels, final_derived)
     if final_report.problems:
         return Outcome("refused", report=final_report, problems=list(final_report.problems), source=source)
 
@@ -203,13 +245,17 @@ def settle(inputs: Inputs, defaults: Settled) -> Outcome:
         "iterations": iterations,
         "report": final_report.model_dump(mode="json"),
     }, indent=2, default=str))
-    settled = Settled(final, data, iterations, source=source)
+    settled = Settled(final, data, iterations, source=source, derived=final_derived)
     return Outcome("run", report=final_report, settled=settled, source=source)
 
 
 def _load_charter(inputs: Inputs, request: dict[str, Any], defaults: Settled) -> tuple[RoleCharter, str]:
-    if inputs.charter_path.exists():
-        return load_charter(inputs.charter_path), "upload"
+    uploaded = [p for p in (inputs.charter_path, inputs.charter_md_path) if p.exists()]
+    if len(uploaded) > 1:
+        # Which one the person meant is not ours to guess; the one that runs is the one signed.
+        raise ValueError("both intake/charter.yaml and intake/charter.md were uploaded; upload one")
+    if uploaded:
+        return load_charter(uploaded[0]), "upload"
     if request.get("charter"):
         return load_charter(_pick(request["charter"], "charters", "charters", ".yaml")), f"preset:{request['charter']}"
     return defaults.charter, "default"
@@ -224,17 +270,17 @@ def _data_source(inputs: Inputs, request: dict[str, Any]) -> str:
     return "default"
 
 
-def _load_data(inputs: Inputs, source: str, defaults: Settled) -> pd.DataFrame:
+def _load_data(inputs: Inputs, source: str, defaults: Settled) -> tuple[pd.DataFrame, dict[str, str]]:
     if source == "upload":
         if not inputs.data_path.exists():
             raise ValueError("uploaded data.csv is missing")
         data = pd.read_csv(inputs.data_path)
         if data.empty or not len(data.columns):
             raise ValueError("data.csv has no rows or no columns")
-        return data
+        return normalize_columns(data)
     if source.startswith("preset:"):
-        return pd.read_csv(_pick(source.split(":", 1)[1], "data", "data", ".csv"))
-    return defaults.data
+        return normalize_columns(pd.read_csv(_pick(source.split(":", 1)[1], "data", "data", ".csv")))
+    return defaults.data, {}
 
 
 def _reason(exc: Exception) -> str:

@@ -107,6 +107,9 @@ class Hypothesis(BaseModel):
     spec: dict[str, Any]            # gate-specific parameters
     rationale: str = ""
     author: str = "agent"           # which model / sub-agent proposed it
+    # Hash of the rows `spec.where` selects, set by the Toolbelt before evaluation. Two
+    # rules spelled differently that pick the same customers are one experiment.
+    rows_hash: str | None = None
     created_at: str = Field(default_factory=_now)
 
 
@@ -151,6 +154,8 @@ class Finding(BaseModel):
     # Derived from evidence by code, never self-reported by the model.
     confidence: float = 0.0
     novelty: float = 0.0
+    # What the claim screen doubted about the prose (`suggest.review_finding`); shown, not hidden.
+    warnings: list[str] = Field(default_factory=list)
     created_at: str = Field(default_factory=_now)
 
 
@@ -161,6 +166,7 @@ class Decision(BaseModel):
     finding_ids: list[str]
     recommendation: str
     expected_effect: str = ""
+    warnings: list[str] = Field(default_factory=list)   # `suggest.review_action`
     created_at: str = Field(default_factory=_now)
 
 

@@ -1,8 +1,9 @@
-"""make_showcase.py — build docs/showcase.html, the loop on one screen, from a recorded run.
+"""make_showcase.py — build docs/index.html ("How it works"), the loop on one ring, from a recorded run.
 
-    python tools/make_showcase.py docs/runs/<run_dir> --out docs/showcase.html
+    python tools/make_showcase.py docs/runs/<run_dir>
 
-The design lives in tools/showcase.template.html. This script only supplies the numbers: the
+The page lives in tools/index.template.html and draws with docs/wheel.js — the same wheel
+docs/live.html drives from the live stream. This script only supplies the numbers: the
 run's trace.log, ledger.jsonl, iteration headers and report.json, the charter as loaded, and
 the engine's own source. Nothing on the screen is typed in by hand.
 """
@@ -22,11 +23,11 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import pandas as pd  # noqa: E402
 
-from loop import gates, runner, tools  # noqa: E402
+from loop import charter_md, gates, runner, tools  # noqa: E402
 from loop.charter import authorise_action, load_charter  # noqa: E402
 from make_loop_doc import by_id, load_run, source_of  # noqa: E402
 
-TEMPLATE = ROOT / "tools" / "showcase.template.html"
+TEMPLATE = ROOT / "tools" / "index.template.html"
 PLACEHOLDER = "/*RUN_JSON*/"
 
 
@@ -81,7 +82,7 @@ def payload(run_dir: pathlib.Path, charter_path: pathlib.Path, data_path: pathli
         },
         "constants": {"patience": runner.PATIENCE, "idle_patience": runner.IDLE_PATIENCE,
                       "min_iterations": runner.MIN_ITERATIONS},
-        "charter_yaml": charter_path.read_text(),
+        "charter_md": charter_md.render(charter),
         "charter_file": charter_path.name,
         "questions": [{"id": q.id, "text": q.text, "why": q.why_it_matters, "priority": q.priority}
                       for q in sorted(ledger.all("question"), key=lambda q: q.priority)],
@@ -124,7 +125,7 @@ def main() -> int:
     ap.add_argument("run_dir", type=pathlib.Path)
     ap.add_argument("--charter", type=pathlib.Path, default=SERVICE / "charters" / "claims_analyst.yaml")
     ap.add_argument("--data", type=pathlib.Path, default=SERVICE / "data" / "claims.csv")
-    ap.add_argument("--out", type=pathlib.Path, default=ROOT / "docs" / "showcase.html")
+    ap.add_argument("--out", type=pathlib.Path, default=ROOT / "docs" / "index.html")
     a = ap.parse_args()
     build(a.run_dir.resolve(), a.charter, a.data, a.out)
     return 0

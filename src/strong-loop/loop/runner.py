@@ -56,6 +56,7 @@ from agent_framework import (
 
 from . import gates
 from .charter import RoleCharter
+from .derived import Derived, derive
 from .inputs import Inputs, Outcome, Settled, session_home, settle
 from .ledger import Ledger
 from .models import build_chat_client
@@ -128,6 +129,8 @@ class RunState:
     # defaults when the session brought nothing of its own.
     charter: RoleCharter = None  # type: ignore[assignment]
     data: pd.DataFrame = None    # type: ignore[assignment]
+    # What this data rules out for this charter, computed once per run (`loop.derived`).
+    derived: Derived | None = None
     # Whose run this is, from the hosting platform's request headers. `None` locally.
     user_id: str | None = None
     session_id: str | None = None
@@ -173,6 +176,7 @@ class RunScope(ContextProvider):
         max_iterations: int = DEFAULT_MAX_ITERATIONS,
         *,
         echo: bool = False,
+        derived: Derived | None = None,
     ):
         super().__init__(source_id="strong_loop_run")
         self.charter = charter
@@ -180,6 +184,9 @@ class RunScope(ContextProvider):
         self.runs_dir = pathlib.Path(runs_dir).resolve()
         self.max_iterations = max_iterations
         self.echo = echo
+        # Screens for the default pairing. The CLI passes both tiers in; otherwise the
+        # code tier is computed on first use.
+        self._derived = derived
         self._runs: dict[str, RunState] = {}
         # Pairings `IntakeGate` has settled for a session, consumed by the next new run.
         self._settled: dict[str, Settled] = {}
@@ -206,7 +213,9 @@ class RunScope(ContextProvider):
         return str(getattr(session, "session_id", None) or "cli")
 
     def defaults(self) -> Settled:
-        return Settled(self.charter, self.data, self.max_iterations)
+        if self._derived is None:
+            self._derived = derive(self.data, self.charter)
+        return Settled(self.charter, self.data, self.max_iterations, derived=self._derived)
 
     def settle(self, session: Any, settled: Settled) -> None:
         """Bind the next run on this conversation to a settled pairing."""
@@ -231,11 +240,12 @@ class RunScope(ContextProvider):
             n += 1
             run_dir = base.with_name(f"{base.name}-{n}")
         ledger = Ledger(run_dir)
+        derived = settled.derived if settled.derived is not None else derive(settled.data, settled.charter)
         if not ledger.all("question"):
-            for question in questions_from(settled.charter):
+            for question in questions_from(settled.charter, derived):
                 ledger.append(question)
         state = RunState(run_dir, ledger, min(settled.max_iterations, self.max_iterations),
-                         charter=settled.charter, data=settled.data,
+                         charter=settled.charter, data=settled.data, derived=derived,
                          user_id=user_id, session_id=session_id, conversation_id=conversation)
         self._say(f"--- run: {run_dir}" + (f" (user {user_id})" if user_id else ""))
         return state
@@ -274,7 +284,8 @@ class RunScope(ContextProvider):
                    summary=run.ledger.summary(), user_id=run.user_id,
                    session_id=run.session_id, conversation_id=run.conversation_id)
         context.extend_instructions(self.source_id, header)
-        context.extend_tools(self.source_id, Toolbelt(run.charter, run.data, run.ledger).tools())
+        context.extend_tools(self.source_id,
+                             Toolbelt(run.charter, run.data, run.ledger, run.derived).tools())
 
     async def after_run(self, *, agent, session, context, state) -> None:
         # Deferred to the end of the loop by `after_run_once_per_turn`. Fires on cap-stop,
@@ -433,16 +444,16 @@ class IntakeGate(AgentMiddleware):
     def __init__(self, scope: RunScope):
         self.scope = scope
 
-    def outcome(self, session: Any) -> Outcome:
+    async def outcome(self, session: Any) -> Outcome:
         ctx = get_request_context()
         inputs = Inputs(session_home(ctx.session_id or None))
         try:
-            return settle(inputs, self.scope.defaults())
+            return await settle(inputs, self.scope.defaults())
         except Exception as exc:  # a corrupt upload must never take the agent down
             return Outcome("refused", problems=[f"intake: {type(exc).__name__}: {exc}"])
 
     async def process(self, context, call_next) -> None:
-        outcome = self.outcome(context.session)
+        outcome = await self.outcome(context.session)
         if outcome.status == "run":
             assert outcome.settled is not None
             self.scope.settle(context.session, outcome.settled)
@@ -550,10 +561,16 @@ def finalise(charter: RoleCharter, run: RunState) -> dict[str, Any]:
         "hypotheses_tested": len(evidence),
         "verdicts": run.ledger.summary()["verdict_counts"],
         "findings": [
-            {"headline": f.headline, "confidence": f.confidence} for f in run.ledger.all("finding")
+            {"headline": f.headline, "confidence": f.confidence,
+             **({"warnings": f.warnings} if f.warnings else {})}
+            for f in run.ledger.all("finding")
         ],
         "actions": [action_report(a, charter, run.ledger) for a in run.ledger.all("action")],
         "demoted_by_multiple_testing": len(demoted),
+        # What the role did NOT cover, and why: a question withheld because its metric
+        # cannot move in this data is a real result the reader must see.
+        "withheld_questions": [q.text for q in run.ledger.all("question") if q.status == "withheld"],
+        "data_warnings": list(run.derived.warnings) if run.derived is not None else [],
         "iteration_log": list(run.log),
     }
     (run.run_dir / "report.json").write_text(json.dumps(report, indent=2, default=str))
@@ -574,6 +591,7 @@ def action_report(action: Action, charter: RoleCharter, ledger: Ledger) -> dict[
         "what": right.description if right else "",
         "recommendation": decision.recommendation if decision else "",
         "expected_effect": decision.expected_effect if decision else "",
+        "warnings": decision.warnings if decision else [],
         "target": {
             "where": action.params.get("where"),
             "rows": action.params.get("target_rows"),
@@ -633,8 +651,10 @@ def build_agent(
     runs_dir: pathlib.Path | None = None,
     model: str | None = None,
     echo: bool = False,
+    derived: Derived | None = None,
 ) -> tuple[Agent, RunScope]:
-    scope = RunScope(charter, data, runs_dir or default_runs_dir(), max_iterations, echo=echo)
+    scope = RunScope(charter, data, runs_dir or default_runs_dir(), max_iterations,
+                     echo=echo, derived=derived)
     toolbox = build_toolbox()
     providers = [scope]
     if toolbox is not None:
@@ -680,10 +700,12 @@ async def run_once(
     runs_dir: pathlib.Path,
     model: str | None = None,
     steer: str = DEFAULT_STEER,
+    derived: Derived | None = None,
 ) -> dict[str, Any]:
     """One complete run from the command line: build, loop, return the report."""
     agent, scope = build_agent(
-        charter, data, max_iterations=max_iterations, runs_dir=runs_dir, model=model, echo=True
+        charter, data, max_iterations=max_iterations, runs_dir=runs_dir, model=model, echo=True,
+        derived=derived,
     )
     session = agent.create_session()
     # Entering the agent connects (and on exit closes) the toolbox's MCP session, the

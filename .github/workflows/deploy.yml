@@ -74,6 +74,8 @@ jobs:
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set APIM_GATEWAY_URL "${{ vars.APIM_GATEWAY_URL }}"
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set APIM_SUBSCRIPTION_KEY "${{ secrets.APIM_SUBSCRIPTION_KEY }}"
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_MODEL "${{ vars.LOOP_MODEL }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set TYPESAFE_API_KEY "${{ secrets.TYPESAFE_API_KEY }}"
+          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set TYPESAFE_DEFAULT_MODEL "${{ vars.TYPESAFE_DEFAULT_MODEL }}"
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_CHARTER "${{ vars.LOOP_CHARTER }}"
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_DATA "${{ vars.LOOP_DATA }}"
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_MAX_ITERATIONS "${{ vars.LOOP_MAX_ITERATIONS }}"
@@ -167,11 +169,16 @@ jobs:
           SITE_URL: ${{ vars.AZURE_STATIC_WEB_APP_URL }}
         run: |
           set -euo pipefail
-          for path in / /showcase.html /loop.html; do
+          for path in / /wheel.js /wheel.css /charter-md.js /presets.json; do
             curl --fail --silent --show-error --retry 5 --retry-delay 5 "$SITE_URL$path" >/dev/null
           done
-          live_status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE_URL/live.html")"
-          test "$live_status" = "302"
+          curl --fail --silent "$SITE_URL/" | grep -q 'src="/wheel.js"'
+          for path in /showcase.html /loop.html; do
+            test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE_URL$path")" = "301"
+          done
+          for path in /live.html /charters.html; do
+            test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE_URL$path")" = "302"
+          done
       - name: Record deployment
         run: |
           {

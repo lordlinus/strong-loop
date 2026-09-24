@@ -259,3 +259,133 @@ class TestCharterSignature:
 
         # …but re-signing is still possible, or the charter would be unfixable.
         load_charter(tampered, verify=False)
+
+
+# ------------------------------------------------------------------ challenge precondition
+class TestAChallengeMustHaveRun:
+    """`record_finding` refuses a subgroup nobody tried to break. Seen live on the product
+    adoption charter: the model's first two `driver_effect` calls were REFUSED (non-binary
+    target) and still matched the subgroup's `where`, so they counted as challenges."""
+
+    def _belt(self, charter, data, tmp_path):
+        from loop.ledger import Ledger
+        from loop.tools import Toolbelt
+
+        belt = Toolbelt(charter, data, Ledger(tmp_path))
+        h = belt.ledger.append(Hypothesis(question_id="q", statement="long tenure converts",
+                                          kind="proportion_lift", spec={"where": "tenure > 5"}))
+        e = belt.ledger.append(Evidence(hypothesis_id=h.id, gate="proportion_lift",
+                                        verdict=Verdict.SUPPORTED, p_value=0.001,
+                                        effect_size=1.6, sample_size=400))
+        return belt, e
+
+    def _challenge(self, belt, verdict, **stats):
+        h = belt.ledger.append(Hypothesis(question_id="q", statement="challenge",
+                                          kind="driver_effect",
+                                          spec={"where": "tenure > 5", "control": "amount"}))
+        belt.ledger.append(Evidence(hypothesis_id=h.id, gate="driver_effect", verdict=verdict,
+                                    statistics=stats, sample_size=400,
+                                    refusal_reason="screen: needs a binary target"
+                                    if verdict == Verdict.REFUSED else None))
+
+    def test_a_refused_challenge_does_not_count(self, charter, data, tmp_path):
+        belt, e = self._belt(charter, data, tmp_path)
+        self._challenge(belt, Verdict.REFUSED)
+        res = belt.record_finding(e.id, "Tenure over 5 converts more", "x")
+        assert res["status"] == "refused"
+        assert res["required_gate"] == "driver_effect"
+
+    def test_an_inconclusive_challenge_does_not_count(self, charter, data, tmp_path):
+        belt, e = self._belt(charter, data, tmp_path)
+        self._challenge(belt, Verdict.INCONCLUSIVE, usable_strata=0)
+        assert belt.record_finding(e.id, "Tenure over 5 converts more", "x")["status"] == "refused"
+
+    def test_a_challenge_that_ran_and_failed_to_explain_it_lets_the_finding_through(
+        self, charter, data, tmp_path
+    ):
+        belt, e = self._belt(charter, data, tmp_path)
+        self._challenge(belt, Verdict.REJECTED, control="amount", confound_explains_fraction=0.1)
+        assert belt.record_finding(e.id, "Tenure over 5 converts more", "x")["status"] == "recorded"
+
+    def test_a_challenge_about_another_outcome_does_not_count(self, charter, data, tmp_path):
+        """Seen live: a mean_shift finding on metric A was cleared by a driver_effect on the
+        same `where` whose target was metric B."""
+        from loop.ledger import Ledger
+        from loop.tools import Toolbelt
+
+        belt = Toolbelt(charter, data, Ledger(tmp_path))
+        h0 = belt.ledger.append(Hypothesis(question_id="q", statement="long tenure converts",
+                                           kind="proportion_lift", spec={"where": "tenure > 5"}))
+        e = belt.ledger.append(Evidence(hypothesis_id=h0.id, gate="proportion_lift",
+                                        verdict=Verdict.SUPPORTED, p_value=0.001, effect_size=1.6,
+                                        sample_size=400, statistics={"target": "converted"}))
+        h = belt.ledger.append(Hypothesis(question_id="q2", statement="challenge on B",
+                                          kind="driver_effect",
+                                          spec={"where": "tenure > 5", "control": "amount"}))
+        belt.ledger.append(Evidence(hypothesis_id=h.id, gate="driver_effect", verdict=Verdict.SUPPORTED,
+                                    statistics={"target": "other_metric", "control": "amount",
+                                                "confound_explains_fraction": 0.1}, sample_size=400))
+        assert belt.record_finding(e.id, "Tenure over 5 converts more", "x")["status"] == "refused"
+
+    def test_a_driver_effect_that_calls_itself_a_proxy_cannot_be_recorded_directly(
+        self, charter, data, tmp_path
+    ):
+        """Seen live: the model skipped the refused mean_shift and recorded the driver_effect
+        evidence itself, whose own statistics said 82% of the association was the control."""
+        from loop.ledger import Ledger
+        from loop.tools import Toolbelt
+
+        belt = Toolbelt(charter, data, Ledger(tmp_path))
+        h = belt.ledger.append(Hypothesis(question_id="q", statement="x", kind="driver_effect",
+                                          spec={"where": "tenure > 5", "control": "amount"}))
+        e = belt.ledger.append(Evidence(hypothesis_id=h.id, gate="driver_effect", verdict=Verdict.SUPPORTED,
+                                        p_value=0.001, effect_size=1.6, sample_size=400,
+                                        statistics={"target": "converted", "control": "amount",
+                                                    "confound_explains_fraction": 0.82}))
+        res = belt.record_finding(e.id, "Tenure drives conversion beyond amount", "x")
+        assert res["status"] == "refused" and "['amount']" in res["message"]
+        # ...while a DIFFERENT subgroup whose control explained little is recordable on its
+        # own. (The same subgroup is not: a successful challenge stays on its record.)
+        h2 = belt.ledger.append(Hypothesis(question_id="q", statement="y", kind="driver_effect",
+                                           spec={"where": "tenure > 8", "control": "amount"}))
+        e2 = belt.ledger.append(Evidence(hypothesis_id=h2.id, gate="driver_effect", verdict=Verdict.SUPPORTED,
+                                         p_value=0.001, effect_size=1.6, sample_size=400,
+                                         statistics={"target": "converted", "control": "amount",
+                                                     "confound_explains_fraction": 0.1}))
+        assert belt.record_finding(e2.id, "Tenure drives conversion beyond amount", "x")["status"] == "recorded"
+
+    def test_a_challenge_that_explains_the_subgroup_blocks_it_and_names_the_control(
+        self, charter, data, tmp_path
+    ):
+        belt, e = self._belt(charter, data, tmp_path)
+        self._challenge(belt, Verdict.REFUSED)   # must not appear as `None` in the message
+        self._challenge(belt, Verdict.SUPPORTED, control="amount", confound_explains_fraction=0.8)
+        res = belt.record_finding(e.id, "Tenure over 5 converts more", "x")
+        assert res["status"] == "refused"
+        assert "['amount']" in res["message"] and "None" not in res["message"]
+
+
+
+# ------------------------------------------------------------------ same-rows dedupe
+class TestSameRowsAreOneExperiment:
+    """Seen live: `Acquired == 1` and `pillars_met >= 2` selected the same 96 customers and
+    were both tested, recorded, and used as separate evidence."""
+
+    def test_a_differently_spelled_rule_over_the_same_rows_is_a_duplicate(self, charter, data, tmp_path):
+        from loop.ledger import Ledger
+        from loop.tools import Toolbelt
+        from loop.types import Question
+
+        d = data.assign(senior=(data["tenure"] > 5).astype(int))
+        belt = Toolbelt(charter, d, Ledger(tmp_path))
+        q = belt.ledger.append(Question(accountability_id="a1", text="q", target_measure="converted"))
+        first = belt.test_hypothesis(q.id, "long tenure converts", "proportion_lift", {"where": "tenure > 5"})
+        assert first["status"] == "tested"
+        second = belt.test_hypothesis(q.id, "seniors convert", "proportion_lift", {"where": "senior == 1"})
+        assert second["status"] == "duplicate"
+        assert second["same_as"] == first["hypothesis_id"]
+        assert "tenure > 5" in second["message"]
+        # A different gate over the same rows is a different experiment.
+        third = belt.test_hypothesis(q.id, "seniors pay more", "mean_shift",
+                                     {"where": "senior == 1", "measure": "converted"})
+        assert third["status"] == "tested"

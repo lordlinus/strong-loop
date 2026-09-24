@@ -173,18 +173,104 @@ class TestGates:
             assert e.verdict == Verdict.INCONCLUSIVE
 
     def test_non_binary_target_is_refused_by_proportion_gate(self, charter, data):
+        # A question whose metric is the continuous `amount`.
+        amount_ctx = GateContext(data=data, charter=charter,
+                                 standard=charter.evidence_standards, target=data["amount"])
         h = Hypothesis(question_id="q", statement="wrong gate", kind="proportion_lift",
-                       spec={"where": "tenure > 5", "target": "amount"})
-        e = gates.evaluate(h, ctx(charter, data))
+                       spec={"where": "tenure > 5"})
+        e = gates.evaluate(h, amount_ctx)
         assert e.verdict == Verdict.REFUSED
         assert "mean_shift" in e.refusal_reason
 
     def test_mean_shift_handles_continuous_measures(self, charter, data):
+        amount_ctx = GateContext(data=data, charter=charter,
+                                 standard=charter.evidence_standards, target=data["amount"])
         h = Hypothesis(question_id="q", statement="amount differs", kind="mean_shift",
                        spec={"where": "tenure > 8", "measure": "amount"})
-        e = gates.evaluate(h, ctx(charter, data))
+        e = gates.evaluate(h, amount_ctx)
         assert e.verdict in (Verdict.SUPPORTED, Verdict.REJECTED)
         assert "cohens_d" in e.statistics
+
+    def test_the_outcome_is_the_questions_metric_never_a_substitute(self, charter, data):
+        """Seen live: a continuous metric made the model pick some other binary column as
+        the driver_effect target, then write findings about the metric it never tested."""
+        for kind, spec in (
+            ("proportion_lift", {"where": "tenure > 5", "target": "amount"}),
+            ("driver_effect", {"where": "tenure > 5", "control": "noise", "target": "amount"}),
+            ("mean_shift", {"where": "tenure > 5", "measure": "amount"}),
+        ):
+            e = gates.evaluate(Hypothesis(question_id="q", statement="x", kind=kind, spec=spec),
+                               ctx(charter, data))
+            assert e.verdict == Verdict.REFUSED, kind
+            assert "question's metric 'converted'" in e.refusal_reason, kind
+
+    def test_driver_effect_handles_a_continuous_metric(self, charter, data):
+        """The challenge gate must be reachable for a share or an amount, or the
+        precondition on findings can never be met for such a role."""
+        rng = np.random.default_rng(3)
+        d = data.copy()
+        # tenure raises amount; `noise` is unrelated, so controlling for it explains nothing
+        d["amount"] = d["amount"] + 400 * (d["tenure"] > 5) + rng.normal(0, 50, len(d))
+        amount_ctx = GateContext(data=d, charter=charter,
+                                 standard=charter.evidence_standards, target=d["amount"])
+        h = Hypothesis(question_id="q", statement="tenure drives amount", kind="driver_effect",
+                       spec={"where": "tenure > 5", "control": "noise"})
+        e = gates.evaluate(h, amount_ctx)
+        assert e.verdict == Verdict.SUPPORTED
+        assert e.statistics["test"] == "stratified_welch"
+        assert e.statistics["confound_explains_fraction"] < 0.2
+        # And a control that IS the driver's proxy explains the association away.
+        d["proxy"] = (d["tenure"] > 5).astype(int) + rng.integers(0, 2, len(d)) * 0
+        h2 = Hypothesis(question_id="q", statement="tenure drives amount", kind="driver_effect",
+                        spec={"where": "tenure > 5", "control": "proxy"})
+        e2 = gates.evaluate(h2, GateContext(data=d, charter=charter,
+                                            standard=charter.evidence_standards, target=d["amount"]))
+        assert e2.verdict == Verdict.INCONCLUSIVE, "a perfect proxy leaves no stratum with both sides"
+
+    def test_driver_effect_tolerates_a_missing_control_value(self, charter, data):
+        """Seen live: one NaN in a numeric control crashed the continuous path with a
+        float-vs-str comparison inside the stratum loop; three challenges were REFUSED."""
+        d = data.copy()
+        d.loc[d.index[:3], "noise"] = np.nan
+        amount_ctx = GateContext(data=d, charter=charter,
+                                 standard=charter.evidence_standards, target=d["amount"])
+        e = gates.evaluate(Hypothesis(question_id="q", statement="x", kind="driver_effect",
+                                      spec={"where": "tenure > 5", "control": "noise"}), amount_ctx)
+        assert e.verdict != Verdict.REFUSED, e.refusal_reason
+        assert e.statistics["usable_strata"] >= 2
+
+    def test_a_rule_that_is_the_metrics_definition_is_refused_as_circular(self, charter, data):
+        d = data.copy()
+        d["converted_copy_score"] = d["converted"] * 7          # a relabelling nobody listed
+        c = GateContext(data=d, charter=charter, standard=charter.evidence_standards,
+                        target=d["converted"])
+        h = Hypothesis(question_id="q", statement="tautology", kind="proportion_lift",
+                       spec={"where": "converted_copy_score > 0"})
+        e = gates.evaluate(h, c)
+        assert e.verdict == Verdict.REFUSED
+        assert "circular" in e.refusal_reason
+        m = Hypothesis(question_id="q", statement="tautology", kind="mean_shift",
+                       spec={"where": "converted_copy_score > 0", "measure": "converted"})
+        assert "circular" in gates.evaluate(m, c).refusal_reason
+
+    def test_derived_leaks_are_refused_only_for_their_own_metric(self, charter, data):
+        from loop.derived import Derived
+        derived = Derived(leaks={"tenure": {"converted": "planted: tenure defines converted"}},
+                          constants={"noise": "constant"})
+        c = GateContext(data=data, charter=charter, standard=charter.evidence_standards,
+                        target=data["converted"], derived=derived)
+        e = gates.evaluate(Hypothesis(question_id="q", statement="x", kind="proportion_lift",
+                                      spec={"where": "tenure > 5"}), c)
+        assert e.verdict == Verdict.REFUSED and "circular" in e.refusal_reason
+        e = gates.evaluate(Hypothesis(question_id="q", statement="x", kind="proportion_lift",
+                                      spec={"where": "noise > 0"}), c)
+        assert e.verdict == Verdict.REFUSED and "excluded" in e.refusal_reason
+        # The same column, for a question about a different metric, is fine.
+        other = GateContext(data=data, charter=charter, standard=charter.evidence_standards,
+                            target=data["amount"], derived=derived)
+        e = gates.evaluate(Hypothesis(question_id="q", statement="x", kind="mean_shift",
+                                      spec={"where": "tenure > 5", "measure": "amount"}), other)
+        assert e.verdict != Verdict.REFUSED
 
 
 class TestMultipleTesting:

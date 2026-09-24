@@ -8,13 +8,22 @@ once this has proved too blunt.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from .charter import RoleCharter
 from .types import Question
+
+if TYPE_CHECKING:
+    from .derived import Derived
 
 _VERB = {"increase": "raise", "decrease": "lower", "stabilise": "stabilise"}
 
 
-def questions_from(charter: RoleCharter) -> list[Question]:
+def questions_from(charter: RoleCharter, derived: "Derived | None" = None) -> list[Question]:
+    """One question per accountability. A metric the data cannot move (constant in every
+    row) yields a WITHHELD question: kept on record so the report can say the role did
+    not cover it, never offered to the agent."""
+    unmeasurable = derived.unmeasurable if derived is not None else {}
     return [
         Question(
             accountability_id=acc.id,
@@ -25,9 +34,11 @@ def questions_from(charter: RoleCharter) -> list[Question]:
             why_it_matters=(
                 f"{charter.role} is accountable for this over {acc.horizon_days} days; a "
                 f"finding here is one the role can act on."
+                + (" Leads from the charter: " + " | ".join(acc.leads) if acc.leads else "")
             ),
             target_measure=acc.metric,
             priority=acc.priority,
+            status="withheld" if acc.metric in unmeasurable else "open",
         )
         for acc in sorted(charter.accountabilities, key=lambda a: a.priority)
     ]

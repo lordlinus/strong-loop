@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>strong-loop — how it works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/wheel.css">
+<style>
+:root{--paper:#EFF2F4;--paper-2:#F7F9FA;--ink:#15181D;--graphite:#59626E;--rule:#C7CED6;--code:#1F3A93;--model:#5B4B9E;--human:#8A5A00;
+--display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;--body:"Source Serif 4",Georgia,serif;--mono:"IBM Plex Mono",Consolas,monospace}
+*{box-sizing:border-box} html,body{height:100%;margin:0}
+html{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:clamp(11px,1.5vh,15px);line-height:1.4}
+body{display:grid;grid-template-rows:auto auto 1fr auto;padding:14px 22px 8px;gap:8px;min-height:640px}
+.mono{font-family:var(--mono)} .muted{color:var(--graphite)}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+.kicker{font-family:var(--mono);font-size:.74rem;color:var(--graphite);margin:0 0 .15rem}
+h1{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:2.2rem;line-height:1;margin:0}
+h1 .code-ink{color:var(--code)}
+.lede{margin:.4rem 0 0;font-size:1rem;color:var(--graphite);max-width:74ch;line-height:1.4} .lede b{color:var(--ink);font-weight:600}
+.hright{display:flex;flex-direction:column;align-items:flex-end;gap:.6rem}
+.site-nav{display:flex;gap:1.1rem;font:600 .72rem var(--mono);text-transform:uppercase;letter-spacing:.05em}.site-nav a{color:var(--code);text-decoration:none}.site-nav a:hover{text-decoration:underline}.site-nav a[aria-current]{color:var(--ink)}
+.site-nav .n{display:inline-block;width:1.35em;height:1.35em;line-height:1.35em;text-align:center;border-radius:50%;background:var(--code);color:#fff;margin-right:.35em;font-size:.9em}
+.bar{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center}
+.controls{display:flex;gap:.4rem;align-items:center;font-family:var(--mono);font-size:.74rem}
+.controls button{font-family:var(--mono);font-size:.74rem;font-weight:600;padding:.35rem .7rem;border:1.5px solid var(--code);border-radius:3px;background:var(--code);color:#fff;white-space:nowrap;cursor:pointer}
+.controls button.ghost{background:transparent;color:var(--code)} .controls button[disabled]{opacity:.45;cursor:default}
+.controls input[type=range]{width:12rem}
+#stage{min-height:0}
+footer{font-family:var(--mono);font-size:.66rem;color:var(--graphite);display:flex;justify-content:space-between;gap:1rem;padding-top:6px;border-top:1px solid var(--rule)} footer span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+footer a{color:var(--code)}
+dialog{border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);padding:0;width:min(880px,90vw);max-height:86vh;font:15px/1.5 var(--body)}
+dialog::backdrop{background:rgba(21,24,29,.45)}
+dialog .head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;padding:1rem 1.25rem .6rem;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--paper)}
+dialog .head .eyebrow{display:flex;gap:.5rem;align-items:baseline;font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--graphite);margin:0 0 .3rem}
+dialog h2{font-family:var(--display);font-weight:700;font-size:1.4rem;letter-spacing:-.02em;margin:0}
+dialog .close{border:0;background:none;font-family:var(--mono);font-size:.8rem;color:var(--code);padding:.3rem .5rem;cursor:pointer}
+dialog .body{padding:.8rem 1.25rem 1.25rem;overflow:auto;max-height:calc(86vh - 5rem)}
+dialog p{margin:0 0 .8em;max-width:70ch} dialog h3{font-family:var(--display);font-size:1rem;color:var(--graphite);margin:1.2rem 0 .4rem}
+dialog pre{font-family:var(--mono);font-size:.74rem;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:.8rem;margin:0 0 1rem}
+dialog table{width:100%;border-collapse:collapse;font-size:.86rem;margin:0 0 1rem} dialog th{text-align:left;font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);padding:.3rem .5rem .3rem 0;border-bottom:1px solid var(--rule)}
+dialog td{padding:.4rem .5rem .4rem 0;border-bottom:1px solid var(--rule);vertical-align:top} dialog td.mono{font-size:.78rem}
+dialog code{font-family:var(--mono);font-size:.9em}
+</style></head>
+<body>
+<header>
+  <div><p class="kicker" id="kicker">strong-loop</p><h1>The agent proposes. <span class="code-ink">Code disposes.</span></h1>
+    <p class="lede"><b>An AI model proposes claims about a dataset; fixed code decides which ones are true and what may be done about them.</b> The ring is the boundary: the model works outside it, and only code writes inside it. Below is a real recorded run — step through it, or click any part of the ring for the records behind it.</p></div>
+  <div class="hright">
+    <nav class="site-nav" aria-label="three steps"><a href="/" aria-current="page"><span class="n">1</span>How it works</a><a href="/charters.html"><span class="n">2</span>Write a charter</a><a href="/live.html"><span class="n">3</span>Run it</a></nav>
+    <div class="wheel-legend"><span class="who who-model">model</span><span>proposes · outside</span><span class="sep"></span><span class="who who-code">code</span><span>decides · inside</span><span class="sep"></span><span class="who who-human">human</span><span>signs the charter</span></div>
+  </div>
+</header>
+<div class="bar">
+  <p class="wheel-caption" id="caption" aria-live="polite"></p>
+  <div class="controls" aria-label="step through the recorded run">
+    <button class="ghost" id="first" title="back to the start">start</button><button class="ghost" id="prev" title="one step back (←)">‹ back</button>
+    <button id="play" title="play / pause (space)">play</button><button class="ghost" id="next" title="one step forward (→)">next ›</button><button class="ghost" id="last" title="jump to the end">end</button>
+    <input type="range" id="scrub" min="0" value="0" aria-label="position in the run"><span id="pos" class="muted">0 / 0</span>
+  </div>
+</div>
+<main id="stage"></main>
+<footer><span id="foot-l"></span><span><a href="/charters.html">Next: write a charter for your own role →</a></span></footer>
+
+<dialog id="modal"><div class="head"><div><p class="eyebrow" id="m-eyebrow"></p><h2 id="m-title"></h2></div><button class="close" id="m-close" aria-label="close">esc · close</button></div><div class="body" id="m-body"></div></dialog>
+
+<script src="/wheel.js"></script>
+<script id="run" type="application/json">/*RUN_JSON*/</script>
+<script>
+const RUN = JSON.parse(document.getElementById("run").textContent);
+const $ = (id) => document.getElementById(id);
+const {esc, badge, fmtP} = Wheel;
+
+// ------------------------------------------------------------------ modals
+const M = {
+  human: () => ["human", "input · the role charter, as written", `<p>The charter says what the role is accountable for, what it may do, what counts as proof and what it must not touch. It cannot say which questions to ask. Nothing in the engine mentions ${esc(RUN.role.split("_")[0])}s: the same code ran a different charter over a different file with zero changes.</p><p class="mono muted" style="font-size:.8rem">${esc(RUN.dataset.name)} · ${RUN.dataset.rows.toLocaleString()} rows · ${RUN.dataset.columns} columns · the model never opens it; it sees a profile and the gate scores the rows on its behalf.</p><pre>${esc(RUN.charter_md)}</pre>`],
+  boundary: () => { const c = RUN.constants; return ["code", "iteration boundary · fresh context + ledger summary", `<p>Each iteration is a new context: the system prompt, the human's steer and a header carrying the ledger summary. Nothing else. <code>should_continue</code> reads the ledger, never the model's text: ${c.idle_patience} consecutive iterations that test nothing, or ${c.patience} that add no supported evidence, end the run after a minimum of ${c.min_iterations}. Below, the exact header each iteration received.</p>` + Object.entries(RUN.headers).map(([n, t]) => `<h3>iterations/${esc(n)}.md</h3><pre>${esc(t)}</pre>`).join("")]; },
+  read: () => ["model", "read-only · the questions it inherits", `<p>Before any model call, one question per accountability is compiled from the charter and appended to the ledger. The agent may pick which open question to work, and may not invent a new one. The read tools (<span class="mono">get_progress, list_questions, get_charter, list_gates, get_data_profile, load_skill</span>) write nothing.</p><table><thead><tr><th>id</th><th>question</th><th>why it matters</th></tr></thead><tbody>${RUN.questions.map(q => `<tr><td class="mono">${esc(q.id)}</td><td>${esc(q.text)}</td><td class="muted">${esc(q.why)}</td></tr>`).join("")}</tbody></table>`],
+  test: () => { const s = RUN.standard; const rows = testRows(k => k !== "driver_effect"); return ["code", "the gate · screen, test, decide", `<p>The <code>where</code> clause is parsed as an AST and screened (no calls, attributes or subscripts; no unknown, sensitive, forbidden or target-leaking columns). Then a gate runs and <code>decide</code> applies the charter's standard: n ≥ ${s.min_sample_size}, p &lt; ${s.max_p_value}, effect ≥ ${s.min_effect_size}×. INCONCLUSIVE is first-class: an underpowered test is not a false one.</p><table><thead><tr><th>gate</th><th>question shape</th></tr></thead><tbody>${RUN.gates.map(g => `<tr><td class="mono">${esc(g.name)}</td><td>${esc(g.question_shape)}</td></tr>`).join("")}</tbody></table><pre>${esc(RUN.source.decide)}</pre><h3>Every test in this run</h3>${rows}`]; },
+  challenge: () => { const ev = Object.entries(RUN.ledger.evidence).filter(([, e]) => e.gate === "driver_effect"); const rows = ev.map(([, e]) => { const h = RUN.ledger.hypotheses[e.hypothesis_id] || {spec: {}}; const f = e.statistics.confound_explains_fraction; return `<tr><td class="mono">${esc(h.spec.where || "")}</td><td class="mono">${esc(h.spec.control || "")}</td><td>${badge(e.verdict)}</td><td class="mono">${esc(String(e.statistics.adjusted_odds_ratio ?? "—"))}</td><td class="mono">${typeof f === "number" ? Math.round(f * 100) + "%" : "—"}</td></tr>`; }).join(""); return ["code", "the challenge · driver_effect", `<p>SUPPORTED means the effect is unlikely to be noise. It does not mean the attribute the model named is the reason. So the same subgroup is re-tested holding a plausible confound constant. The bar is that a confound was named and tested, not that the finding survived; a challenge that fails is as informative as one that succeeds.</p><table><thead><tr><th>subgroup</th><th>control</th><th>verdict</th><th>adjusted OR</th><th>explained by confound</th></tr></thead><tbody>${rows || "<tr><td colspan=5>none</td></tr>"}</tbody></table>`]; },
+  record: () => ["code", "record_finding · refuses an unchallenged subgroup", `<p>The instruction to challenge is in the prompt too, but a prompt is not a mechanism; this is. A subgroup finding is refused until a driver_effect test exists for the same <code>where</code>, and refused again if the confound explains half or more of the association.</p><pre>${esc(RUN.source.unchallenged)}</pre><h3>Findings this run recorded</h3><table><thead><tr><th>confidence</th><th>headline</th><th>evidence</th></tr></thead><tbody>${Object.values(RUN.ledger.findings).map(f => `<tr><td class="mono">${Number(f.confidence).toFixed(3)}</td><td>${esc(f.headline)}<br><span class="muted" style="font-size:.85em">${esc(f.interpretation)}</span></td><td class="mono">${esc(f.evidence_id)}</td></tr>`).join("")}</tbody></table>`],
+  act: () => ["code", "authorise_action · no action without a right, evidence for that right, a cap and a way to observe it", `<p>The gate decides whether something is true; this decides whether the role may act on it. Four checks in fixed code: the charter names the action type; every cited finding clears the standard for that type; the blast radius is within cap; there is a plan to measure the result. Autonomy is granted per action type by the charter, never chosen by the model.</p><h3>What this charter grants</h3><table><thead><tr><th>action type</th><th>autonomy</th><th>cap</th><th>observed by</th><th>needs</th></tr></thead><tbody>${RUN.rights.map(r => `<tr><td class="mono">${esc(r.action_type)}<br><span class="muted" style="font-size:.85em;font-family:var(--body)">${esc(r.description)}</span></td><td class="mono">${esc(r.autonomy_level)}</td><td class="mono">${r.max_per_run} ${esc(r.unit)}</td><td class="mono">${esc(r.observation_metric || "—")}</td><td>${esc(r.requires_authority || "—")}</td></tr>`).join("")}</tbody></table><h3>Actions this run produced</h3><table><thead><tr><th>type</th><th>status</th><th>recommendation</th><th>blast radius · observation</th><th>reasons</th></tr></thead><tbody>${RUN.ledger.actions.map(a => `<tr><td class="mono">${esc(a.action_type)}</td><td>${badge(a.status)}<br><span class="mono muted" style="font-size:.75em">${esc(a.autonomy_level)}</span></td><td>${esc(a.recommendation)}</td><td class="mono">${esc(JSON.stringify(a.blast_radius))}<br>${esc(JSON.stringify(a.observation_plan))}</td><td>${a.reasons.map(esc).join("<br>")}</td></tr>`).join("") || "<tr><td colspan=5>none</td></tr>"}</tbody></table>`],
+  finalise: () => ["code", "finalise · the whole run, corrected", `<p>Every p-value from the run is corrected together (${esc(RUN.standard.correction)}), and a result that was only lucky is demoted before anyone reads it. ${RUN.report.demoted_by_multiple_testing} were demoted in this run.</p><pre>${esc(JSON.stringify(RUN.report, null, 2))}</pre>`],
+  ledger: () => ["code", "the ledger · every record, in order", `<p>What the platform believes, as an append-only file. A hypothesis is written before its result is known; the verdict beside it was written by code. This is the only memory carried between iterations.</p>${testRows(() => true)}`],
+};
+function testRows(keep){
+  const rows = Object.entries(RUN.ledger.evidence).filter(([, e]) => keep(e.gate)).map(([, e]) => { const h = RUN.ledger.hypotheses[e.hypothesis_id] || {}; const stats = e.verdict === "REFUSED" ? esc(e.refusal_reason || "") : `${e.effect != null ? e.effect.toFixed(2) + "×" : "—"} · p ${fmtP(e.p)} · n ${(e.n ?? 0).toLocaleString()}`; return `<tr><td>${badge(e.verdict)}</td><td class="mono">${esc(e.gate)}</td><td>“${esc(h.statement || "")}”<br><span class="mono muted" style="font-size:.78em">${esc(Object.entries(h.spec || {}).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("  "))}</span></td><td class="mono">${stats}</td></tr>`; }).join("");
+  return `<table><thead><tr><th>verdict</th><th>gate</th><th>the model wrote</th><th>code measured</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function openModal(key){
+  const f = M[key]; if (!f) return; const [who, title, body] = f();
+  $("m-eyebrow").innerHTML = `<span class="who who-${who}">${who}</span><span>${esc(RUN.role)} · ${esc(RUN.run_dir.split("/").pop())}</span>`;
+  $("m-title").textContent = title; $("m-body").innerHTML = body; $("m-body").scrollTop = 0; $("modal").showModal();
+}
+$("m-close").addEventListener("click", () => $("modal").close());
+$("modal").addEventListener("click", (e) => { if (e.target === $("modal")) $("modal").close(); });
+
+
+// ------------------------------------------------------------------ the wheel, over the recorded run
+const OPEN = {input: "human", output: "finalise"};
+const wheel = Wheel.mount($("stage"), {
+  onOpen: (key) => openModal(OPEN[key] || key),
+  lookup: {evidence: (id) => RUN.ledger.evidence[id], finding: (id) => RUN.ledger.findings[id]},
+  input: {role: RUN.role, accountabilities: RUN.accountabilities, rights: RUN.rights, standard: RUN.standard,
+          dataset: RUN.dataset, questions: RUN.questions.length},
+});
+const EVENTS = RUN.trace.map(raw => Wheel.fromTrace(raw.event === "report" ? {...raw, report: RUN.report} : raw));
+const INTRO = {who: "human", tone: "", text: `A person signed a charter for the ${RUN.role.replace(/_/g, " ")} role and gave it ${RUN.dataset.name} (${RUN.dataset.rows.toLocaleString()} rows). Code turned the charter into ${RUN.questions.length} questions before the model saw anything. Press play.`};
+let pos = 0, timer = null;
+const pace = (ev) => ev && ev.kind === "tool" && !["test_hypothesis","record_finding","propose_action"].includes(ev.tool) ? 900 : 2600;
+function goTo(k){
+  pos = Math.max(0, Math.min(EVENTS.length, k));
+  wheel.reset();
+  for (let i = 0; i < pos; i++) wheel.apply(EVENTS[i]);
+  Wheel.caption($("caption"), pos ? Wheel.narrate(EVENTS[pos - 1], {finding: (id) => RUN.ledger.findings[id]}) : INTRO);
+  $("scrub").value = pos; $("pos").textContent = `${pos} / ${EVENTS.length}`;
+  $("prev").disabled = $("first").disabled = pos === 0; $("next").disabled = $("last").disabled = pos === EVENTS.length;
+}
+let touched = false;   // autoplay only for a visitor who has not taken the controls
+function stop(){ clearTimeout(timer); timer = null; $("play").textContent = "play"; }
+function tick(){ if (pos >= EVENTS.length) return stop(); goTo(pos + 1); timer = setTimeout(tick, pace(EVENTS[pos - 1])); }
+function play(){ if (timer) return stop(); if (pos >= EVENTS.length) goTo(0); $("play").textContent = "pause"; timer = setTimeout(tick, 300); }
+document.querySelector(".controls").addEventListener("click", () => { touched = true; }, true);
+document.addEventListener("keydown", () => { touched = true; }, true);
+$("play").addEventListener("click", play);
+$("next").addEventListener("click", () => { stop(); goTo(pos + 1); });
+$("prev").addEventListener("click", () => { stop(); goTo(pos - 1); });
+$("first").addEventListener("click", () => { stop(); goTo(0); });
+$("last").addEventListener("click", () => { stop(); goTo(EVENTS.length); });
+$("scrub").max = EVENTS.length; $("scrub").addEventListener("input", (e) => { stop(); goTo(Number(e.target.value)); });
+document.addEventListener("keydown", (e) => {
+  if ($("modal").open || e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowRight") { stop(); goTo(pos + 1); } else if (e.key === "ArrowLeft") { stop(); goTo(pos - 1); } else if (e.key === " ") { e.preventDefault(); play(); }
+});
+$("kicker").textContent = `a recorded run · ${RUN.role} over ${RUN.dataset.name} · ${RUN.dataset.rows.toLocaleString()} rows · ${RUN.report.iterations_run} rounds`;
+$("foot-l").textContent = `generated ${RUN.generated_at} from ${RUN.run_dir} by tools/make_showcase.py · every number comes from the run`;
+goTo(0);
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setTimeout(() => { if (!touched) play(); }, 1200);
+</script>
+</body></html>

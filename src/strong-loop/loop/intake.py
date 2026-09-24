@@ -25,6 +25,7 @@ No domain vocabulary here. The two shipped charters share none, and both must pa
 from __future__ import annotations
 
 import difflib
+import re
 from typing import Any
 
 import pandas as pd
@@ -32,6 +33,7 @@ from pydantic import BaseModel, Field
 
 from . import gates
 from .charter import RoleCharter
+from .derived import Derived, derive
 from .questions import questions_from
 from .tools import profile
 from .types import Hypothesis
@@ -40,6 +42,109 @@ from .types import Hypothesis
 # deliberate decision to leave the accountability out of this run rather than as a
 # column name.
 NOTHING_MEASURES_IT = "(nothing in this data measures it)"
+
+
+_WORD = gates._WORDS  # same camelCase/snake_case/space splitter the screens and stemmer use
+
+
+def normalize_column_name(name: str) -> str:
+    """A raw header turned into a safe python identifier.
+
+    Gate expressions are parsed as Python (`screen()` walks `ast.Name` nodes) and a
+    metric can only ever be matched, remapped onto, or later queried as one, so any
+    column that is not already `str.isidentifier()` — spaces, `#`, `&`, a leading digit,
+    a unit suffix — is unusable no matter how good the semantic match is. This is the
+    one normalization: split on the same word boundaries `column_words` already uses,
+    rejoin snake_case, and prefix a bare leading digit.
+    """
+    words = gates.column_words(name)
+    slug = "_".join(words) or "column"
+    return f"c_{slug}" if slug[0].isdigit() else slug
+
+
+def normalize_columns(data: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
+    """Rename only the columns that are not already valid identifiers.
+
+    An already-clean header (`JobSatisfaction`, `Attrition`, `attrition_flag`) is left
+    exactly as the charter and any shipped data agree on it today — this must not
+    disturb an existing working pairing. Returns the frame (renamed only if needed) and
+    a `{new_name: original_header}` map covering just the columns that changed, so a
+    reviewer can still recognise their own export in the report. Values are then read
+    by `normalize_values`; what it changed is left in `data.attrs["recoded"]`.
+    """
+    seen = set(map(str, data.columns))
+    renames: dict[str, str] = {}
+    labels: dict[str, str] = {}
+    for col in data.columns:
+        name = str(col)
+        if name.isidentifier():
+            continue
+        base = normalize_column_name(name)
+        safe, n = base, 1
+        while safe in seen:
+            n += 1
+            safe = f"{base}_{n}"
+        renames[col] = safe
+        labels[safe] = name
+        seen.add(safe)
+    data, recoded = normalize_values(data.rename(columns=renames) if renames else data)
+    data = data.copy(deep=False)      # never write attrs onto the caller's frame
+    data.attrs["recoded"] = recoded   # `pair()` reports it; attrs survive rename and copy
+    return data, labels
+
+
+# Spellings of a yes/no answer that mean one thing in any export. A two-valued text column
+# outside these (`Gold`/`Silver`, `M`/`F`) has no safe 0/1 reading, so it stays text and
+# `pair()` says so.
+_YES = {"yes", "y", "true", "t"}
+_NO = {"no", "n", "false", "f"}
+_CODE = re.compile(r"^[+-]?0\d")   # a leading zero is a code (postcode, account), not a quantity
+
+
+def normalize_values(data: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, str]]:
+    """Read the two text encodings of a number every export uses as the number.
+
+    Without this, `pd.to_numeric(errors="coerce")` downstream turns a `Yes`/`No` outcome
+    into all-missing, then all-zero: seen on a churn export, where the metric was reported
+    unmeasurable and the gate probe claimed every row had `Churn == 0`. And a numeric column
+    with one blank cell arrives as text, which blinds every numeric screen in `derived`.
+
+    Only unambiguous readings are applied: every non-blank value a yes/no spelling with
+    both answers present, or every non-blank value a number with no leading-zero code.
+    Blank cells become missing. Returns the frame and `{column: how it was read}`, so the
+    person ratifying intake sees what changed.
+    """
+    out = data
+    recoded: dict[str, str] = {}
+    for col in data.columns:
+        series = data[col]
+        if not (pd.api.types.is_object_dtype(series) or pd.api.types.is_string_dtype(series)):
+            continue
+        text = series.astype("string").str.strip()
+        present = text[text.notna() & (text != "")]
+        if present.empty:
+            continue
+        lower = present.str.lower()
+        values = set(lower.unique())
+        blanks = int((text == "").fillna(False).sum())
+        blank_note = f"; {blanks} blank cell(s) read as missing" if blanks else ""
+        if values <= _YES | _NO and values & _YES and values & _NO:
+            mapping = {**{w: 1.0 for w in _YES}, **{w: 0.0 for w in _NO}}
+            numeric = text.str.lower().map(mapping).astype("float64")
+            yes = sorted(set(present[lower.isin(_YES)]))
+            no = sorted(set(present[lower.isin(_NO)]))
+            out = out if out is not data else data.copy()
+            out[col] = numeric.astype("int64") if numeric.notna().all() else numeric
+            recoded[col] = f"{'/'.join(yes)} read as 1, {'/'.join(no)} as 0{blank_note}"
+            continue
+        if present.str.match(_CODE).any():
+            continue
+        parsed = pd.to_numeric(present.astype(object), errors="coerce")
+        if parsed.notna().all():
+            out = out if out is not data else data.copy()
+            out[col] = pd.to_numeric(text.where(text != "").astype(object), errors="coerce")
+            recoded[col] = f"numbers stored as text, read as numbers{blank_note}"
+    return out, recoded
 
 
 class Screened(BaseModel):
@@ -62,7 +167,7 @@ class AccountabilityStatus(BaseModel):
     id: str
     statement: str
     metric: str
-    status: str             # "ok" | "missing" | "unmeasurable" (present, but not numeric or 0/1)
+    status: str             # "ok" | "missing" | "unmeasurable" (present, but not numeric, 0/1, or constant)
     measure: dict[str, Any] = Field(default_factory=dict)   # today's level, when present
 
 
@@ -84,10 +189,18 @@ class IntakeReport(BaseModel):
     rows: int
     analysable_columns: list[str]
     leakage_columns: list[str]
+    column_labels: dict[str, str] = Field(default_factory=dict)  # normalized -> original header
+    recoded: dict[str, str] = Field(default_factory=dict)        # column -> how its text was read
     screened: list[Screened]
+    # What the data itself rules out (`loop.derived`): columns refused for a metric they
+    # define, and columns the run will never be offered. Reasons name the metric.
+    derived: list[Screened] = Field(default_factory=list)
+    suspected: list[Screened] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     accountabilities: list[AccountabilityStatus]
     clarifications: list[Clarification]
     questions: list[str]
+    withheld: list[str] = Field(default_factory=list)   # questions a constant metric took out of this run
     gate_probe: Probe | None
     screen_probe: Probe | None
     problems: list[str]
@@ -102,12 +215,16 @@ class IntakeReport(BaseModel):
 # --------------------------------------------------------------------------------------
 
 
-def pair(charter: RoleCharter, data: pd.DataFrame) -> IntakeReport:
-    prof = profile(data, charter)
+def pair(charter: RoleCharter, data: pd.DataFrame, column_labels: dict[str, str] | None = None,
+         derived: Derived | None = None) -> IntakeReport:
+    if derived is None:
+        derived = derive(data, charter)   # the code tier; `settle()` adds the semantic one
+    prof = profile(data, charter, derived)
     forbidden = set(charter.constraints.forbidden_features)
+    dropped = derived.excluded()
     screened = [
         Screened(column=c, reason="forbidden by charter" if c in forbidden
-                 else "identifier, personal data or protected attribute")
+                 else dropped.get(c) or "identifier, personal data or protected attribute")
         for c in prof["excluded_columns"]
     ]
     analysable = list(prof["columns"])
@@ -118,6 +235,12 @@ def pair(charter: RoleCharter, data: pd.DataFrame) -> IntakeReport:
     for acc in charter.accountabilities:
         present = acc.metric in data.columns
         measure = prof["accountability_measures"].get(acc.metric, {}) if present else {}
+        if present and acc.metric in derived.unmeasurable:
+            # A metric with one value cannot move. Its question is withheld, not the run.
+            statuses.append(AccountabilityStatus(id=acc.id, statement=acc.statement,
+                                                 metric=acc.metric, status="unmeasurable",
+                                                 measure=measure))
+            continue
         measurable = "kind" in measure
         statuses.append(AccountabilityStatus(
             id=acc.id, statement=acc.statement, metric=acc.metric,
@@ -152,17 +275,22 @@ def pair(charter: RoleCharter, data: pd.DataFrame) -> IntakeReport:
 
     if not charter.accountabilities:
         problems.append("charter has no accountabilities; there is nothing to run")
+    elif not any(s.status == "ok" for s in statuses) and not clarifications:
+        problems.append("no accountability can be measured in this data: "
+                        + "; ".join(f"{s.metric} is {s.status}" for s in statuses))
 
-    questions = questions_from(charter)
-    target_col = next((a.metric for a in charter.accountabilities if a.metric in data.columns), None)
+    questions = questions_from(charter, derived)
+    # Only a metric a gate can read: probing a text metric reports a coerced verdict on
+    # values that are not there, which reads as a real result.
+    target_col = next((s.metric for s in statuses if s.status == "ok"), None)
     ctx = gates.GateContext(
         data=data, charter=charter, standard=charter.evidence_standards,
-        target=data[target_col] if target_col else None,
+        target=data[target_col] if target_col else None, derived=derived,
     )
     qid = questions[0].id if questions else "q_probe"
 
     gate_probe = None
-    where = _default_probe(data, charter)
+    where = _default_probe(data, charter, derived)
     if where and target_col:
         binary = set(pd.unique(pd.to_numeric(data[target_col], errors="coerce").dropna())).issubset({0, 1})
         kind = "proportion_lift" if binary else "mean_shift"
@@ -190,14 +318,23 @@ def pair(charter: RoleCharter, data: pd.DataFrame) -> IntakeReport:
         role=charter.role, version=charter.version, status=charter.status,
         content_hash=charter.content_hash, rows=int(prof["rows"]),
         analysable_columns=analysable, leakage_columns=list(prof["leakage_columns"]),
-        screened=screened, accountabilities=statuses, clarifications=clarifications,
-        questions=[q.text for q in questions], gate_probe=gate_probe,
-        screen_probe=screen_probe, problems=problems,
+        column_labels=dict(column_labels or {}),
+        recoded=dict(data.attrs.get("recoded") or {}),
+        screened=screened,
+        derived=[Screened(column=c, reason=r) for c, r in derived.screened() if c not in dropped],
+        suspected=[Screened(column=c, reason=r) for c, r in derived.suspicions()],
+        warnings=list(derived.warnings),
+        accountabilities=statuses, clarifications=clarifications,
+        questions=[q.text for q in questions if q.status == "open"],
+        withheld=[q.text for q in questions if q.status == "withheld"],
+        gate_probe=gate_probe, screen_probe=screen_probe, problems=problems,
     )
 
 
-def _default_probe(data: pd.DataFrame, charter: RoleCharter) -> str | None:
+def _default_probe(data: pd.DataFrame, charter: RoleCharter, derived: Derived | None = None) -> str | None:
     blocked = set(charter.constraints.forbidden_features) | set(charter.constraints.leakage_features)
+    if derived is not None:   # a probe must not be one of the tautologies the screens exist to refuse
+        blocked |= set(derived.excluded()) | set(derived.leaks)
     for col in data.columns:
         if col in blocked or gates.is_sensitive_column(col) or not col.isidentifier():
             continue
