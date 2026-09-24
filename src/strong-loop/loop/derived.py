@@ -150,7 +150,8 @@ def _rho(d: pd.DataFrame, c: str, m: str) -> float:
         d = rest
     if d[c].nunique() < 2 or d[m].nunique() < 2:
         return 0.0
-    rho = d[c].corr(d[m], method="spearman")
+    # Spearman is Pearson on average ranks; pandas' own method="spearman" needs scipy.
+    rho = d[c].rank().corr(d[m].rank())
     return abs(float(rho)) if pd.notna(rho) else 0.0
 
 
