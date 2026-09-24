@@ -112,6 +112,9 @@ def build(run_dir: pathlib.Path, charter_path: pathlib.Path, data_path: pathlib.
     if PLACEHOLDER not in template:
         raise SystemExit(f"{TEMPLATE} has no {PLACEHOLDER} placeholder")
     data = json.dumps(payload(run_dir, charter_path, data_path), ensure_ascii=False)
+    # Paths recorded on the machine that ran it (report.json, the trace) become repo-relative:
+    # the page is public and must not carry someone's home directory.
+    data = data.replace(json.dumps(str(ROOT) + "/")[1:-1], "")
     # A closing script tag inside a JSON string would end the data block early.
     data = data.replace("</", "<\\/")
     page = template.replace(PLACEHOLDER, data)

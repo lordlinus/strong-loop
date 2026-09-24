@@ -54,6 +54,7 @@ def test_committed_how_it_works_is_built_from_the_committed_run():
     `python tools/make_showcase.py docs/runs/<run>`."""
     page = (ROOT / "docs" / "index.html").read_text()
     assert f'"run_dir": "docs/runs/{_latest_run().name}"' in page
+    assert "/home/" not in page and "/Users/" not in page, "a local path reached the public page"
 
 
 def test_presets_manifest_matches_the_shipped_service():

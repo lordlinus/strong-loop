@@ -172,7 +172,10 @@ jobs:
           for path in / /wheel.js /wheel.css /charter-md.js /presets.json; do
             curl --fail --silent --show-error --retry 5 --retry-delay 5 "$SITE_URL$path" >/dev/null
           done
-          curl --fail --silent "$SITE_URL/" | grep -q 'src="/wheel.js"'
+          # read the page into a variable first: `curl | grep -q` fails under pipefail when grep
+          # exits on its first match and curl gets a broken pipe (exit 23)
+          home="$(curl --fail --silent --show-error "$SITE_URL/")"
+          grep -q 'src="/wheel.js"' <<<"$home"
           for path in /showcase.html /loop.html; do
             test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$SITE_URL$path")" = "301"
           done
