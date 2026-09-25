@@ -1,0 +1,73 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.900
+This is strong-loop: an AI analyst that runs on its own, and that you can still trust.
+
+00:00:06.400 --> 00:00:10.831
+Ask a model to analyse data and you get confident findings.
+
+00:00:10.831 --> 00:00:11.882
+Some are real.
+
+00:00:11.882 --> 00:00:13.008
+Some are noise.
+
+00:00:13.008 --> 00:00:16.163
+From the text alone, you can't tell which.
+
+00:00:16.662 --> 00:00:18.055
+So we split the job.
+
+00:00:18.055 --> 00:00:22.511
+The model works outside the ring: it reads, and proposes claims.
+
+00:00:22.511 --> 00:00:29.265
+Only fixed code works inside: it runs the statistics, gives the verdict, and approves any action.
+
+00:00:29.265 --> 00:00:32.537
+A person signs the charter that sets the rules.
+
+00:00:33.037 --> 00:00:34.347
+Then we let it loop.
+
+00:00:34.347 --> 00:00:37.034
+Every round starts from an empty context.
+
+00:00:37.034 --> 00:00:39.982
+The only memory is a ledger, written by code.
+
+00:00:39.982 --> 00:00:44.699
+And it stops when the ledger says so, not when the model says it's done.
+
+00:00:45.199 --> 00:00:49.972
+Here is a real run: a claims analyst charter over 7,000 claims.
+
+00:00:49.972 --> 00:00:55.049
+The model reads its brief, and picks a question the charter allows.
+
+00:00:55.549 --> 00:00:58.629
+It commits to each claim before seeing any result.
+
+00:00:58.629 --> 00:01:03.312
+Code tests it against the rows, and applies the charter's standard of proof.
+
+00:01:03.811 --> 00:01:05.135
+A pass isn't enough.
+
+00:01:05.135 --> 00:01:11.686
+The same group is re-tested with a likely confound held constant, before a finding may be recorded.
+
+00:01:12.186 --> 00:01:19.136
+Actions need a right the charter grants, evidence that clears its bar, and a blast radius inside the cap.
+
+00:01:19.636 --> 00:01:22.732
+Round two starts fresh, from the ledger alone.
+
+00:01:22.732 --> 00:01:28.049
+At the end, every p-value is corrected together, and lucky results are demoted.
+
+00:01:28.548 --> 00:01:31.440
+The role lives in a charter, not in code.
+
+00:01:31.440 --> 00:01:34.261
+Write one for your own role, and run it.

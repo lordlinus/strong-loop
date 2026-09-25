@@ -29,6 +29,7 @@ azd up && azd ai agent invoke "go"                          # deploy, then invok
 # keep one run in docs/runs — tests check docs/index.html was built from it
 python -m loop run --charter charters/claims_analyst.yaml --data data/claims.csv --iterations 2 --run-dir ../../docs/runs
 python ../../tools/make_showcase.py ../../docs/runs/<run>        # -> docs/index.html
+python ../../tools/make_explainer.py --speech-endpoint https://<account>.cognitiveservices.azure.com   # -> docs/explainer.{mp4,webm,vtt,jpg}; rerun after the line above
 ```
 
 ## The two rules that must never be broken

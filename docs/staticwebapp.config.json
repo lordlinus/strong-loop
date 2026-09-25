@@ -61,6 +61,7 @@
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
   },
   "mimeTypes": {
-    ".json": "application/json"
+    ".json": "application/json",
+    ".vtt": "text/vtt"
   }
 }

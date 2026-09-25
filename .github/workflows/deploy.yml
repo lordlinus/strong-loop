@@ -169,7 +169,7 @@ jobs:
           SITE_URL: ${{ vars.AZURE_STATIC_WEB_APP_URL }}
         run: |
           set -euo pipefail
-          for path in / /wheel.js /wheel.css /charter-md.js /presets.json; do
+          for path in / /wheel.js /wheel.css /site-nav.css /charter-md.js /presets.json /explainer.mp4 /explainer.webm /explainer.vtt /explainer.jpg; do
             curl --fail --silent --show-error --retry 5 --retry-delay 5 "$SITE_URL$path" >/dev/null
           done
           # read the page into a variable first: `curl | grep -q` fails under pipefail when grep

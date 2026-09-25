@@ -1,0 +1,14 @@
+/* The three-step site nav, shared by every page so the steps look and behave the same everywhere.
+   Pills + connectors read as "a sequence you move through", not as a caption; the current step is filled. */
+.site-nav{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem 0;font:600 .78rem var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.site-nav a{position:relative;display:inline-flex;align-items:center;gap:.5em;padding:.4rem .9rem .4rem .45rem;border:1.5px solid var(--code);border-radius:999px;background:var(--paper-2);color:var(--code);text-decoration:none;white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s}
+.site-nav a+a{margin-left:1.6rem}
+.site-nav a+a::before{content:"";position:absolute;right:100%;top:50%;width:1.6rem;border-top:1.5px dashed var(--rule)}
+.site-nav .n{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;background:var(--code);color:#fff;font-size:.9em}
+.site-nav a:hover{background:var(--code);color:#fff;box-shadow:0 2px 8px rgba(31,58,147,.25)}
+.site-nav a:hover .n,.site-nav a[aria-current] .n{background:#fff;color:var(--code)}
+.site-nav a[aria-current]{background:var(--code);color:#fff;cursor:default;box-shadow:none}
+.site-nav a:focus-visible{outline:2px solid var(--code);outline-offset:2px}
+.site-nav .out{margin-left:auto;border-color:transparent;background:none;padding-inline:.6rem;color:var(--graphite)}
+.site-nav .out::before{display:none}
+.site-nav .out:hover{background:none;color:var(--code);box-shadow:none;text-decoration:underline}

@@ -85,6 +85,8 @@ def test_static_web_app_serves_three_pages_and_one_wheel():
         for step in ('href="/"', 'href="/charters.html"', 'href="/live.html"'):
             assert step in page, (name, step)
         assert "aria-current" in page, name
+        # one nav stylesheet for all three pages, so the steps cannot drift apart again
+        assert 'href="/site-nav.css"' in page and ".site-nav a{" not in page, name
 
     live = pages["live.html"]
     # the page speaks to the site's API for all three verbs, and renders the gate's answer
@@ -94,6 +96,16 @@ def test_static_web_app_serves_three_pages_and_one_wheel():
     # option lists come from the manifest, never from hand-typed HTML
     assert 'fetch("/presets.json"' in live
     assert "<option" not in live.split('id="charter-preset"')[1].split("</select>")[0]
+
+
+def test_how_it_works_ships_its_explainer_video():
+    """Rebuild with `python tools/make_explainer.py` whenever page 1 or its run changes."""
+    page = (ROOT / "docs" / "index.html").read_text()
+    for name in ("explainer.mp4", "explainer.webm", "explainer.vtt", "explainer.jpg"):
+        assert f'"/{name}"' in page, name
+        assert (ROOT / "docs" / name).stat().st_size > 0, name
+    assert (ROOT / "docs" / "explainer.vtt").read_text().startswith("WEBVTT")
+    assert 'kind="captions"' in page and 'id="watch"' in page
 
 
 def test_charter_page_hands_markdown_to_the_run_page():
