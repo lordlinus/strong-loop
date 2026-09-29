@@ -1,73 +1,79 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:05.900
-This is strong-loop: an AI analyst that runs on its own, and that you can still trust.
+00:00:00.000 --> 00:00:01.243
+This is strong-loop.
 
-00:00:06.400 --> 00:00:10.831
-Ask a model to analyse data and you get confident findings.
+00:00:01.243 --> 00:00:04.412
+Build the loop once, and run every role through it.
 
-00:00:10.831 --> 00:00:11.882
-Some are real.
+00:00:04.912 --> 00:00:12.183
+Today, each analytics use case is its own agent project, with its own prompts, tools and guardrails.
 
-00:00:11.882 --> 00:00:13.008
-Some are noise.
+00:00:12.183 --> 00:00:14.074
+Ten use cases, ten builds.
 
-00:00:13.008 --> 00:00:16.163
-From the text alone, you can't tell which.
+00:00:14.074 --> 00:00:16.837
+And none of them trusted to act alone.
 
-00:00:16.662 --> 00:00:18.055
-So we split the job.
+00:00:17.337 --> 00:00:19.784
+Here, the loop is built once.
 
-00:00:18.055 --> 00:00:22.511
-The model works outside the ring: it reads, and proposes claims.
+00:00:19.784 --> 00:00:27.715
+A use case is a charter: what the role owns, may do, must never use, and what counts as proof.
 
-00:00:22.511 --> 00:00:29.265
-Only fixed code works inside: it runs the statistics, gives the verdict, and approves any action.
+00:00:27.715 --> 00:00:31.175
+Four roles, one engine, no code per role.
 
-00:00:29.265 --> 00:00:32.537
-A person signs the charter that sets the rules.
+00:00:31.675 --> 00:00:33.461
+Autonomy has three parts.
 
-00:00:33.037 --> 00:00:34.347
-Then we let it loop.
+00:00:33.461 --> 00:00:38.249
+The model explores freely, round after round, with nobody watching.
 
-00:00:34.347 --> 00:00:37.034
-Every round starts from an empty context.
+00:00:38.249 --> 00:00:40.535
+Fixed code decides what is true.
 
-00:00:37.034 --> 00:00:39.982
-The only memory is a ledger, written by code.
+00:00:40.535 --> 00:00:51.325
+And each action runs only at the level its charter grants: recommend, or act reversibly inside a cap, with a named person signing off where it matters.
 
-00:00:39.982 --> 00:00:44.699
-And it stops when the ledger says so, not when the model says it's done.
+00:00:51.825 --> 00:00:55.265
+Before a run, it asks only what code cannot settle.
 
-00:00:45.199 --> 00:00:49.972
-Here is a real run: a claims analyst charter over 7,000 claims.
+00:00:55.265 --> 00:01:01.200
+Then the agent gets its brief: its goals, its permitted actions, and the proof it needs.
 
-00:00:49.972 --> 00:00:55.049
-The model reads its brief, and picks a question the charter allows.
+00:01:01.700 --> 00:01:06.115
+Here is a real run: the claims analyst over 7,000 claims.
 
-00:00:55.549 --> 00:00:58.629
-It commits to each claim before seeing any result.
+00:01:06.115 --> 00:01:09.214
+Each round starts from an empty context.
 
-00:00:58.629 --> 00:01:03.312
+00:01:09.214 --> 00:01:12.700
+Its only memory is a ledger, written by code.
+
+00:01:13.200 --> 00:01:16.127
+It commits to each claim before seeing a result.
+
+00:01:16.127 --> 00:01:20.762
 Code tests it against the rows, and applies the charter's standard of proof.
 
-00:01:03.811 --> 00:01:05.135
+00:01:21.262 --> 00:01:22.599
 A pass isn't enough.
 
-00:01:05.135 --> 00:01:11.686
-The same group is re-tested with a likely confound held constant, before a finding may be recorded.
+00:01:22.599 --> 00:01:28.949
+The same group is re-tested with a likely confound held constant, before a finding is recorded.
 
-00:01:12.186 --> 00:01:19.136
-Actions need a right the charter grants, evidence that clears its bar, and a blast radius inside the cap.
+00:01:29.450 --> 00:01:35.900
+An action needs a right the charter grants, evidence that clears its bar, and a size inside the cap.
 
-00:01:19.636 --> 00:01:22.732
-Round two starts fresh, from the ledger alone.
+00:01:36.400 --> 00:01:40.753
+It stops when the ledger says so, not when the model says it's done.
 
-00:01:22.732 --> 00:01:28.049
-At the end, every p-value is corrected together, and lucky results are demoted.
+00:01:40.753 --> 00:01:45.362
+Then every p-value is corrected together, and lucky results are demoted.
 
-00:01:28.548 --> 00:01:31.440
-The role lives in a charter, not in code.
+00:01:45.863 --> 00:01:49.400
+A new use case is a new charter, not a new agent.
 
-00:01:31.440 --> 00:01:34.261
+00:01:49.400 --> 00:01:52.288
 Write one for your own role, and run it.

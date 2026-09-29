@@ -3,8 +3,10 @@
     python tools/make_explainer.py --speech-endpoint https://<account>.cognitiveservices.azure.com
         -> docs/explainer.mp4 (+ .webm), docs/explainer.vtt, docs/explainer.jpg
 
-Concept cards first, then the real recorded run on the same wheel as docs/index.html, so the
-video can never show a different loop from the page. Every frame is a screenshot of a state
+The story: one loop, built once, runs every role — and how its autonomy is bounded. Concept
+cards first (the shipped charters, the charter's decision rights and the agent's brief are read
+from the repo, never typed here), then the real recorded run on the same wheel as
+docs/index.html, so the video can never show a different loop from the page. Every frame is a screenshot of a state
 (no screen recording), and each scene lasts exactly as long as its narration, so re-running it
 after the run or the page changes gives a video that still lines up.
 
@@ -31,6 +33,7 @@ from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
+SERVICE = ROOT / "src" / "strong-loop"
 W, H = 1920, 1080
 VOICE = "en-US-AndrewMultilingualNeural"
 PAD = 0.5          # silence after each scene's narration, seconds
@@ -48,28 +51,73 @@ CARD_CSS = """
 #xp .ring{width:460px;height:460px;border:5px solid var(--code);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px}
 #xp .ring p{font-size:30px;margin:14px 0 0}
 #xp .foot{font:600 22px var(--mono);color:var(--code);margin-top:40px;letter-spacing:.04em}
+#xp .tiles{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:8px 0 0}
+#xp .tile{background:var(--paper-2);border:2px solid var(--rule);border-radius:8px;padding:22px 26px}
+#xp .tile h3{font:700 30px var(--mono);margin:0 0 8px;color:var(--ink)} #xp .tile p{font-size:24px;margin:0 0 8px;line-height:1.35}
+#xp .tile .m{font:500 19px var(--mono);color:var(--code);margin:0}
+#xp .dials{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:10px}
+#xp .dial{border-top:5px solid var(--rule);padding-top:18px} #xp .dial.m{border-color:var(--model)} #xp .dial.c{border-color:var(--code)} #xp .dial.h{border-color:var(--human)}
+#xp .dial h3{font:800 38px/1.1 var(--display);margin:10px 0 12px} #xp .dial p{font-size:25px;line-height:1.35;margin:0 0 10px}
+#xp .dial ul{list-style:none;margin:0;padding:0} #xp .dial li{font-size:24px;line-height:1.35;margin:0 0 14px;color:var(--graphite)} #xp .dial li code{font:600 21px var(--mono);color:var(--ink);display:block}
+#xp pre.brief{font:500 22px/1.5 var(--mono);white-space:pre-wrap;background:#fff;border:2px solid var(--rule);border-left:8px solid var(--human);border-radius:0 8px 8px 0;padding:24px 30px;margin:6px 0 0;color:var(--ink)}
 .site-nav,.controls,#watch,footer{visibility:hidden}
 """
 
 
-def cards(run: dict) -> dict[str, str]:
+def repo_facts(run: dict) -> dict:
+    """What the cards say about charters and autonomy, read from the repo: the shipped
+    charters (docs/presets.json) and this run's own charter and brief (`loop.brief`)."""
+    sys.path.insert(0, str(SERVICE))
+    import json
+
+    import pandas as pd
+    from loop.brief import render, role_brief
+    from loop.charter import load_charter
+    from loop.derived import derive
+
+    manifest = json.loads((DOCS / "presets.json").read_text())
+    charter = load_charter(SERVICE / "charters" / f"{run['role']}.yaml")
+    pairing = next(p for p in manifest["pairings"] if p["charter"] == run["role"])
+    data = pd.read_csv(SERVICE / "data" / f"{pairing['data']}.csv")
+    brief = role_brief(charter, data, derive(data, charter))
+    return {"charters": manifest["charters"], "brief": brief, "brief_text": render(brief)}
+
+
+def cards(run: dict, facts: dict) -> dict[str, str]:
+    def first_sentence(text: str) -> str:
+        return re.split(r"(?<=\.)\s|:\s", " ".join(text.split()), maxsplit=1)[0].rstrip(".") + "."
+    tiles = "".join(
+        f"""<div class="tile"><h3>{escape(c['name'])}</h3><p>{escape(first_sentence(c['description']))}</p>
+            <p class="m">{escape(' · '.join(c['metrics']))}</p></div>""" for c in facts["charters"][:4])
+    plays = "".join(
+        f"<li><code>{escape(p['action_type'])}</code>{escape(p['who_acts'])}"
+        + (f" · <b>{escape(p['signs_off'])}</b> signs off" if p["signs_off"] else "") + f" · {escape(p['cap'].replace(' per run', ''))}</li>"
+        for p in facts["brief"]["plays"])
+    # The goals and the bar; the actions are on the autonomy card already.
+    lines = facts["brief_text"].splitlines()
+    cut = next((i for i, l in enumerate(lines) if l.startswith("WHAT YOU MAY DO")), len(lines))
+    excerpt = "\n".join(lines[:cut]).rstrip() + "\n\n" + next((l for l in lines if l.startswith("PROOF")), "")
     return {
-        "title": f"""<p class="k">strong-loop · an autonomous loop</p>
-            <h2>The agent proposes.<br><span class="c">Code disposes.</span></h2>
-            <p>An AI analyst that runs on its own, <b>and that you can still trust.</b></p>""",
-        "problem": """<p class="k">the problem</p><h2>Fluent is not the same as true.</h2>
-            <p>Ask a model to analyse data and you get confident findings.</p>
-            <p><b>Some are real. Some are noise.</b> From the text alone, you can't tell which.</p>""",
-        "split": """<p class="k">the idea</p><div class="split"><div><h2>Split the job.</h2>
-            <p><span class="who who-model">model</span><b>proposes</b> · outside the ring. Reads, picks a question, states a claim.</p>
-            <p><span class="who who-human">human</span><b>signs the charter</b> · what the role owns, may do, and what counts as proof.</p></div>
-            <div class="ring"><span class="who who-code">code</span><p><b>decides</b> · inside the ring. Runs the statistics, gives the verdict, approves actions.</p></div></div>""",
-        "loop": """<p class="k">the loop</p><h2>Then let it loop.</h2>
-            <p>Every round starts from <b>an empty context.</b></p>
-            <p>The only memory is <b>an append-only ledger, written by code.</b></p>
-            <p>It stops when the ledger says so — <b>never because the model says it's done.</b></p>""",
-        "close": f"""<p class="k">one engine · any role</p><h2>The role lives in a charter,<br><span class="c">not in code.</span></h2>
-            <p>Nothing in the engine mentions {run['role'].split('_')[0]}s. A new role is a new charter — never new code.</p>
+        "title": """<p class="k">strong-loop · one autonomous loop</p>
+            <h2>Build the loop once.<br><span class="c">Run every role.</span></h2>
+            <p>Free to explore. <b>Bound to prove.</b> It acts only as far as its charter allows.</p>""",
+        "problem": """<p class="k">the problem</p><h2>One use case, one build.</h2>
+            <p>Every new use case becomes its own agent — its own prompts, tools and guardrails.</p>
+            <p><b>Ten use cases, ten builds.</b> And none of them trusted to act alone.</p>""",
+        "once": f"""<p class="k">the idea</p><h2>A use case is a charter.</h2>
+            <div class="tiles">{tiles}</div>
+            <p class="foot">one loop · one gate · one ledger · no code per role</p>""",
+        "autonomy": f"""<p class="k">how autonomy works</p><div class="dials">
+            <div class="dial m"><span class="who who-model">model</span><h3>Explores freely</h3>
+              <p>Picks the questions and the claims, round after round, with nobody watching.</p></div>
+            <div class="dial c"><span class="who who-code">code</span><h3>Decides what's true</h3>
+              <p>Runs the statistics against the rows. The model cannot argue with the verdict.</p></div>
+            <div class="dial h"><span class="who who-human">charter</span><h3>Grants each action</h3>
+              <ul>{plays}</ul></div></div>""",
+        "brief": f"""<p class="k">before it starts</p><h2 style="font-size:64px;margin-bottom:22px">Asked only what code can't settle.<br><span class="c">Then told who it is.</span></h2>
+            <pre class="brief">{escape(excerpt)}</pre>""",
+        "close": """<p class="k">one loop · every role</p><h2>A new use case is a new charter,<br><span class="c">not a new agent.</span></h2>
+            <p>Same loop, same proof, same guardrails. The role changes; the engine doesn't.</p>
             <p class="foot">write a charter → run it</p>""",
     }
 
@@ -91,17 +139,19 @@ def scenes(run: dict, events: list[dict]) -> list[dict]:
     thin = lambda ks, n=4: ks if len(ks) <= n else [ks[round(i * (len(ks) - 1) / (n - 1))] for i in range(n)]
     later = [k for k in range(r2 + 1, len(events) + 1)]
     rows = f"{run['dataset']['rows']:,}"
+    role = run["role"].replace("_", " ")
     return [
-        {"card": "title", "say": "This is strong-loop: an AI analyst that runs on its own, and that you can still trust."},
-        {"card": "problem", "say": "Ask a model to analyse data and you get confident findings. Some are real. Some are noise. From the text alone, you can't tell which."},
-        {"card": "split", "say": "So we split the job. The model works outside the ring: it reads, and proposes claims. Only fixed code works inside: it runs the statistics, gives the verdict, and approves any action. A person signs the charter that sets the rules."},
-        {"card": "loop", "say": "Then we let it loop. Every round starts from an empty context. The only memory is a ledger, written by code. And it stops when the ledger says so, not when the model says it's done."},
-        {"wheel": [0, 3, first_test - 1], "say": f"Here is a real run: a {run['role'].replace('_', ' ')} charter over {rows} claims. The model reads its brief, and picks a question the charter allows."},
-        {"wheel": thin(tests), "say": "It commits to each claim before seeing any result. Code tests it against the rows, and applies the charter's standard of proof."},
-        {"wheel": thin(challenges + records, 5), "say": "A pass isn't enough. The same group is re-tested with a likely confound held constant, before a finding may be recorded."},
-        {"wheel": acts, "say": "Actions need a right the charter grants, evidence that clears its bar, and a blast radius inside the cap."},
-        {"wheel": [later[0], later[len(later) // 2], len(events)], "say": "Round two starts fresh, from the ledger alone. At the end, every p-value is corrected together, and lucky results are demoted."},
-        {"card": "close", "say": "The role lives in a charter, not in code. Write one for your own role, and run it."},
+        {"card": "title", "say": "This is strong-loop. Build the loop once, and run every role through it."},
+        {"card": "problem", "say": "Today, each analytics use case is its own agent project, with its own prompts, tools and guardrails. Ten use cases, ten builds. And none of them trusted to act alone."},
+        {"card": "once", "say": "Here, the loop is built once. A use case is a charter: what the role owns, may do, must never use, and what counts as proof. Four roles, one engine, no code per role."},
+        {"card": "autonomy", "say": "Autonomy has three parts. The model explores freely, round after round, with nobody watching. Fixed code decides what is true. And each action runs only at the level its charter grants: recommend, or act reversibly inside a cap, with a named person signing off where it matters."},
+        {"card": "brief", "say": "Before a run, it asks only what code cannot settle. Then the agent gets its brief: its goals, its permitted actions, and the proof it needs."},
+        {"wheel": [0, 3, first_test - 1], "say": f"Here is a real run: the {role} over {rows} claims. Each round starts from an empty context. Its only memory is a ledger, written by code."},
+        {"wheel": thin(tests), "say": "It commits to each claim before seeing a result. Code tests it against the rows, and applies the charter's standard of proof."},
+        {"wheel": thin(challenges + records, 5), "say": "A pass isn't enough. The same group is re-tested with a likely confound held constant, before a finding is recorded."},
+        {"wheel": acts, "say": "An action needs a right the charter grants, evidence that clears its bar, and a size inside the cap."},
+        {"wheel": [later[0], later[len(later) // 2], len(events)], "say": "It stops when the ledger says so, not when the model says it's done. Then every p-value is corrected together, and lucky results are demoted."},
+        {"card": "close", "say": "A new use case is a new charter, not a new agent. Write one for your own role, and run it."},
     ]
 
 
@@ -186,7 +236,7 @@ def main() -> int:
             page.add_style_tag(content=CARD_CSS)
             run = page.evaluate("({role: RUN.role, dataset: RUN.dataset})")
             events = page.evaluate("EVENTS.map(e => ({kind: e.kind, tool: e.tool, args: e.args && {kind: e.args.kind}}))")
-            plan, html = scenes(run, events), cards(run)
+            plan, html = scenes(run, events), cards(run, repo_facts(run))
 
             frames: list[tuple[Path, float]] = []
             clips: list[tuple[Path, float]] = []

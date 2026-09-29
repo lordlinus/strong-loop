@@ -43,7 +43,7 @@ def test_how_it_works_builds_from_the_recorded_run(tmp_path):
     )
     page = out.read_text()
     assert "/*RUN_JSON*/" not in page, "the run payload was not substituted"
-    for needle in ("Code disposes", '"trace"', '"report"', "SUPPORTED", "authorise", '"charter_md"', "## Accountabilities"):
+    for needle in ("Run every role", '"trace"', '"report"', "SUPPORTED", "authorise", '"charter_md"', "## Accountabilities"):
         assert needle in page, needle
     for needle in ('src="/wheel.js"', 'href="/wheel.css"', 'href="/charters.html"', 'href="/live.html"', "Wheel.mount", "Wheel.narrate"):
         assert needle in page, needle
