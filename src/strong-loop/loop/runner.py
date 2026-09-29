@@ -456,7 +456,7 @@ class IntakeGate(AgentMiddleware):
                 run and `call_next()`.
       awaiting  a role and data are present but nobody has accepted the pairing yet —
                 answer with the intake report as a single `loop.intake` item and return
-                WITHOUT calling the model. Zero tokens; the client renders the questions.
+                WITHOUT calling the reasoning model (TypeSafe, if configured, screens column names). The client renders the questions.
       refused   the inputs cannot be paired (bad preset, unreadable CSV, an answer that
                 was not on the menu, no ratifier) — same shape, with the reasons.
 

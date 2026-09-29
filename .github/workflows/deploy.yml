@@ -101,7 +101,7 @@ jobs:
       - name: Verify and smoke-test hosted agent
         # Every turn is a run, so a bare `azd ai agent invoke` would start the loop on the
         # default pairing. The smoke test instead uploads a preset pairing and checks the
-        # intake gate answers with the report alone: the whole path, zero model tokens.
+        # intake gate answers with the report alone: the whole path, no reasoning-model tokens.
         run: |
           set -euo pipefail
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd ai agent show --output json > /tmp/agent.json

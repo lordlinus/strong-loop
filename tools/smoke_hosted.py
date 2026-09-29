@@ -1,4 +1,4 @@
-"""Smoke-test a strong-loop agent without running the loop: zero model tokens.
+"""Smoke-test a strong-loop agent without running the loop: no reasoning-model tokens (Jev may screen column names).
 
 The agent's intake gate answers a session that has a charter and data but no acceptance
 with the pairing report alone, before any model runs (`runner.IntakeGate`). That makes it
@@ -141,7 +141,7 @@ def main() -> int:
     if problems:
         print("FAIL " + "; ".join(problems))
         return 1
-    print("OK — the agent answered from intake; no model ran")
+    print("OK — the agent answered from intake; the reasoning model did not run")
     return 0
 
 

@@ -95,7 +95,7 @@ details.log{margin-top:1.2rem;border-top:1px solid var(--rule);padding-top:.6rem
 <nav class="site-nav" aria-label="three steps"><a href="/"><span class="n">1</span>How it works</a><a href="/charters.html"><span class="n">2</span>Write a charter</a><a href="/live.html" aria-current="page"><span class="n">3</span>Run it</a><a class="out" href="/.auth/logout">Sign out</a></nav>
 <header>
   <div><p class="status" id="status">idle</p><h1>Run it</h1></div>
-  <p class="muted" style="max-width:52ch;margin:0;font-size:.92rem">Pick a charter and a dataset, check that they pair, answer anything the platform cannot decide for you, then start and watch the same wheel as <a href="/">How it works</a> — live. No model runs until you press start.</p>
+  <p class="muted" style="max-width:52ch;margin:0;font-size:.92rem">Pick a charter and a dataset, check that they pair, answer anything the platform cannot decide for you, then start and watch the same wheel as <a href="/">How it works</a> — live. The reasoning model runs only after you press start.</p>
 </header>
 <main>
   <form class="intake" id="intake">
@@ -120,7 +120,7 @@ details.log{margin-top:1.2rem;border-top:1px solid var(--rule);padding-top:.6rem
     </div>
     <div class="step">
       <h2><span class="n">3</span>Check the pairing</h2>
-      <p class="hint">Fixed code, no model: what the role will pursue on this data, which columns are screened, and whether the evidence gate bites on it. Anything code cannot settle comes back as a question with a closed list of answers.</p>
+      <p class="hint">No reasoning model yet: fixed code, plus Jev (TypeSafe) reading column names — never row values — to flag identifiers, protected attributes and likely leaks. It shows what the role will pursue on this data, which columns are screened, and whether the evidence gate bites on it. Anything that cannot be settled comes back as a question with a closed list of answers.</p>
       <button id="check" type="submit">Check pairing</button>
       <div class="progress" id="check-progress" hidden aria-live="polite"></div>
       <p class="hint mono" id="session" style="font-size:.72rem"></p>
@@ -423,7 +423,7 @@ async function check(ev){
   checkProgress.start([
     {label: "Opening a session", slow: WAKING},
     {label: "Uploading into the session", slow: "Large files take longer. They go into this session only."},
-    {label: "Checking the pairing — fixed code, no model", slow: "The session's agent starts before the check runs; this usually takes 10–30 s. " + WAKING},
+    {label: "Checking the pairing — code and Jev, no reasoning model", slow: "The session's agent starts before the check runs; this usually takes 10–30 s. " + WAKING},
   ]);
   intakeSeen = false;
   try {
