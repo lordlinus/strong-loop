@@ -55,9 +55,11 @@ from agent_framework import (
 )
 
 from . import gates
+from .brief import coverage, render as render_brief, role_brief
 from .charter import RoleCharter
 from .derived import Derived, derive
 from .inputs import Inputs, Outcome, Settled, session_home, settle
+from .intake import settle_advice
 from .ledger import Ledger
 from .models import build_chat_client
 from .questions import questions_from
@@ -81,7 +83,9 @@ a chart you make or answer a question you ask. Your output is evidence-backed fi
 and authorised actions.
 
 HOW THIS WORKS
-- Your role's accountabilities, permitted actions and constraints come from `get_charter`.
+- Who you are — the role, what it is accountable for, what it may do, what it may never
+  use and the proof it needs — is stated under YOUR ROLE below. `get_charter` has the
+  full charter (glossary, per-action evidence overrides) when you need the detail.
 - What the data looks like, and today's level of each metric, comes from `get_data_profile`.
 - The shapes of claim you can test, and each one's spec, come from `list_gates`.
 - Your open questions come from `list_questions`.
@@ -131,6 +135,10 @@ class RunState:
     data: pd.DataFrame = None    # type: ignore[assignment]
     # What this data rules out for this charter, computed once per run (`loop.derived`).
     derived: Derived | None = None
+    # Who the agent is on this run (`loop.brief`), fixed at the start: the structured
+    # record goes in the report, the rendered text into every iteration's instructions.
+    brief: dict = field(default_factory=dict)
+    brief_text: str = ""
     # Whose run this is, from the hosting platform's request headers. `None` locally.
     user_id: str | None = None
     session_id: str | None = None
@@ -170,23 +178,31 @@ class RunScope(ContextProvider):
 
     def __init__(
         self,
-        charter: RoleCharter,
-        data: pd.DataFrame,
+        charter: RoleCharter | None,
+        data: pd.DataFrame | None,
         runs_dir: pathlib.Path,
         max_iterations: int = DEFAULT_MAX_ITERATIONS,
         *,
         echo: bool = False,
         derived: Derived | None = None,
+        problem: str | None = None,
+        advice: dict[str, str] | None = None,
     ):
         super().__init__(source_id="strong_loop_run")
+        # The default pairing, for a session that brings none. None (with `problem`) when
+        # it could not be loaded: the agent still serves every session that uploads its own.
         self.charter = charter
         self.data = data
+        self.problem = problem
         self.runs_dir = pathlib.Path(runs_dir).resolve()
         self.max_iterations = max_iterations
         self.echo = echo
         # Screens for the default pairing. The CLI passes both tiers in; otherwise the
         # code tier is computed on first use.
         self._derived = derived
+        # Advisory answers for the default pairing (the CLI's `--answer`); defaults otherwise.
+        self._advice = dict(advice or {})
+        self._default_context: dict | None = None
         self._runs: dict[str, RunState] = {}
         # Pairings `IntakeGate` has settled for a session, consumed by the next new run.
         self._settled: dict[str, Settled] = {}
@@ -213,9 +229,14 @@ class RunScope(ContextProvider):
         return str(getattr(session, "session_id", None) or "cli")
 
     def defaults(self) -> Settled:
-        if self._derived is None:
-            self._derived = derive(self.data, self.charter)
-        return Settled(self.charter, self.data, self.max_iterations, derived=self._derived)
+        if self.charter is None or self.data is None:
+            return Settled(None, None, self.max_iterations, problem=self.problem or "no default charter or data")
+        if self._default_context is None:
+            # Advisory defaults apply to the default pairing exactly as to an uploaded one.
+            base = self._derived if self._derived is not None else derive(self.data, self.charter)
+            self._derived, self._default_context = settle_advice(self.charter, self.data, base, self._advice)
+        return Settled(self.charter, self.data, self.max_iterations, derived=self._derived,
+                       context=self._default_context)
 
     def settle(self, session: Any, settled: Settled) -> None:
         """Bind the next run on this conversation to a settled pairing."""
@@ -244,9 +265,12 @@ class RunScope(ContextProvider):
         if not ledger.all("question"):
             for question in questions_from(settled.charter, derived):
                 ledger.append(question)
+        brief = role_brief(settled.charter, settled.data, derived, settled.context)
         state = RunState(run_dir, ledger, min(settled.max_iterations, self.max_iterations),
                          charter=settled.charter, data=settled.data, derived=derived,
+                         brief=brief, brief_text=render_brief(brief),
                          user_id=user_id, session_id=session_id, conversation_id=conversation)
+        (run_dir / "brief.md").write_text(state.brief_text + "\n")
         self._say(f"--- run: {run_dir}" + (f" (user {user_id})" if user_id else ""))
         return state
 
@@ -283,7 +307,7 @@ class RunScope(ContextProvider):
         self.trace(run, "iteration_start", max_iterations=run.max_iterations,
                    summary=run.ledger.summary(), user_id=run.user_id,
                    session_id=run.session_id, conversation_id=run.conversation_id)
-        context.extend_instructions(self.source_id, header)
+        context.extend_instructions(self.source_id, f"{run.brief_text}\n\n{header}" if run.brief_text else header)
         context.extend_tools(self.source_id,
                              Toolbelt(run.charter, run.data, run.ledger, run.derived).tools())
 
@@ -557,6 +581,9 @@ def finalise(charter: RoleCharter, run: RunState) -> dict[str, Any]:
         "session_id": run.session_id,
         "conversation_id": run.conversation_id,
         "status": "complete",
+        # Who the agent was on this run, then what each accountability got out of it.
+        "brief": run.brief,
+        "coverage": coverage(charter, run.ledger, evidence),
         "iterations_run": run.iteration,
         "hypotheses_tested": len(evidence),
         "verdicts": run.ledger.summary()["verdict_counts"],
@@ -644,17 +671,21 @@ def default_runs_dir() -> pathlib.Path:
 
 
 def build_agent(
-    charter: RoleCharter,
-    data: pd.DataFrame,
+    charter: RoleCharter | None,
+    data: pd.DataFrame | None,
     *,
     max_iterations: int = DEFAULT_MAX_ITERATIONS,
     runs_dir: pathlib.Path | None = None,
     model: str | None = None,
     echo: bool = False,
     derived: Derived | None = None,
+    problem: str | None = None,
+    advice: dict[str, str] | None = None,
 ) -> tuple[Agent, RunScope]:
+    """`charter`/`data` are the default pairing. Either may be None, with `problem` saying
+    why: the agent then refuses sessions that bring nothing, and serves the rest."""
     scope = RunScope(charter, data, runs_dir or default_runs_dir(), max_iterations,
-                     echo=echo, derived=derived)
+                     echo=echo, derived=derived, problem=problem, advice=advice)
     toolbox = build_toolbox()
     providers = [scope]
     if toolbox is not None:
@@ -701,11 +732,12 @@ async def run_once(
     model: str | None = None,
     steer: str = DEFAULT_STEER,
     derived: Derived | None = None,
+    advice: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """One complete run from the command line: build, loop, return the report."""
     agent, scope = build_agent(
         charter, data, max_iterations=max_iterations, runs_dir=runs_dir, model=model, echo=True,
-        derived=derived,
+        derived=derived, advice=advice,
     )
     session = agent.create_session()
     # Entering the agent connects (and on exit closes) the toolbox's MCP session, the

@@ -45,7 +45,6 @@ jobs:
       id-token: write
     env:
       AZD_ENV_NAME: strong-loop
-      AGENT_TEST_PROMPT: "Confirm that the Strong Loop agent is running. Do not start a data analysis."
     steps:
       - uses: actions/checkout@v4
       - uses: Azure/setup-azd@v2
@@ -82,13 +81,19 @@ jobs:
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT "${{ vars.TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT }}"
       - name: Deploy hosted agent
         run: AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd deploy strong-loop --no-prompt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - name: Verify and smoke-test hosted agent
+        # Every turn is a run, so a bare `azd ai agent invoke` would start the loop on the
+        # default pairing. The smoke test instead uploads a preset pairing and checks the
+        # intake gate answers with the report alone: the whole path, zero model tokens.
         run: |
           set -euo pipefail
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd ai agent show --output json > /tmp/agent.json
           python -c 'import json; d=json.load(open("/tmp/agent.json")); assert d.get("status") in ("active", "deployed"), d'
-          AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd ai agent invoke --new-session "$AGENT_TEST_PROMPT" > /tmp/agent-response.txt 2>&1
-          test -s /tmp/agent-response.txt
+          python -m pip install --quiet httpx azure-identity
+          python tools/smoke_hosted.py --responses-url "$(python -c 'import json; print(json.load(open("/tmp/agent.json"))["agent_endpoints"]["responses"])')"
 
   deploy-api:
     if: github.event_name != 'pull_request'

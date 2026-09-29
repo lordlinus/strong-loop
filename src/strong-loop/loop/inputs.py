@@ -9,7 +9,9 @@ forward). The client puts files under `intake/`; the loop reads them:
     intake/charter.yaml         an uploaded role (wins over a preset)
     intake/charter.md           the same, in the standard Markdown shape (`loop/charter_md.py`)
     intake/data.csv             an uploaded dataset (wins over a preset)
-    intake/accept.json          {"answers": {acc_id: column}, "ratified_by": "...", "iterations": n}
+    intake/accept.json          {"answers": {question_id: choice}, "ratified_by": "...", "iterations": n}
+                                (a blocking question's id is its accountability id; advisories
+                                that are not answered take their default)
     intake/pairing.json         written HERE once accepted — the session is settled
     intake/charter.signed.yaml  the charter that actually runs
 
@@ -40,7 +42,7 @@ import pandas as pd
 
 from .charter import RoleCharter, load_charter, sign, write_charter
 from .derived import Derived, derive
-from .intake import IntakeReport, normalize_columns, pair, resolve
+from .intake import IntakeReport, encode, normalize_columns, pair, resolve, settle_advice
 from .suggest import review, semantic_screens
 
 SERVICE = pathlib.Path(__file__).resolve().parent.parent
@@ -88,14 +90,21 @@ def _safe(value: str) -> str:
 
 @dataclass
 class Settled:
-    """A pairing the loop may run."""
+    """A pairing the loop may run. `charter`/`data` are None only for an unconfigured
+    default (see `main.py`): a session that brings nothing is then refused, not crashed."""
 
-    charter: RoleCharter
-    data: pd.DataFrame
+    charter: RoleCharter | None
+    data: pd.DataFrame | None
     max_iterations: int
     source: dict[str, str] = field(default_factory=dict)   # {"charter": "upload"|"preset:x"|"default", ...}
-    # What this data rules out for this charter (`loop.derived`), both tiers merged.
+    # What this data rules out for this charter (`loop.derived`), both tiers merged and the
+    # advisory answers applied.
     derived: Derived | None = None
+    # What the pairing added for the run: advisory answers, glossary bindings, data notes
+    # (`intake.settle_advice`). The persona brief reads it.
+    context: dict[str, Any] = field(default_factory=dict)
+    # Why there is no default pairing, when there is none.
+    problem: str | None = None
 
 
 async def derive_all(charter: RoleCharter, data: pd.DataFrame,
@@ -171,6 +180,10 @@ def _pick(name: Any, kind: str, folder: str, suffix: str) -> pathlib.Path:
 async def settle(inputs: Inputs, defaults: Settled) -> Outcome:
     """Decide whether this session may run, and on what. See the module docstring."""
     if not inputs.engaged:
+        if defaults.charter is None or defaults.data is None:
+            return Outcome("refused", problems=[
+                f"no default pairing is configured ({defaults.problem or 'unknown reason'}); "
+                f"upload a charter and data, or choose presets"])
         return Outcome("run", settled=defaults, source={"charter": "default", "data": "default"})
 
     # Already settled in an earlier turn of this session: run what was ratified.
@@ -178,9 +191,11 @@ async def settle(inputs: Inputs, defaults: Settled) -> Outcome:
         pairing = json.loads(inputs.pairing_path.read_text())
         charter = load_charter(inputs.signed_path)
         data, labels = _load_data(inputs, pairing.get("source", {}).get("data", "default"), defaults)
+        data = encode(data, pairing.get("encoded") or {})
+        derived, context = settle_advice(charter, data, await derive_all(charter, data, labels),
+                                         pairing.get("advice") or {})
         settled = Settled(charter, data, _iterations(pairing.get("iterations"), defaults.max_iterations),
-                          source=pairing.get("source", {}),
-                          derived=await derive_all(charter, data, labels))
+                          source=pairing.get("source", {}), derived=derived, context=context)
         return Outcome("run", settled=settled, source=settled.source)
 
     source: dict[str, str] = {}
@@ -218,19 +233,21 @@ async def settle(inputs: Inputs, defaults: Settled) -> Outcome:
         return Outcome("refused", report=report, problems=[f"answer {r}" for r in res.refused], source=source)
 
     final = res.charter
-    changed = bool(res.remapped or res.dropped)
+    changed = res.changed
     ratified_by = str(accept.get("ratified_by") or "").strip()
     if changed and not ratified_by:
-        # Remapping changes what the role is answerable for. `resolve` un-signed it;
-        # someone puts their name to the result or it does not run.
+        # Remapping or encoding changes what the role is answerable for. Someone puts
+        # their name to the result or it does not run.
         return Outcome("refused", report=report, source=source,
                        problems=["accept.json: ratified_by is required to sign this pairing"])
     if ratified_by:
         final = sign(final, ratified_by)
 
-    # Remapping changes which columns are metrics, so what leaks them changes too.
+    # Remapping or encoding changes which columns are metrics, so what leaks them changes too.
+    data = encode(data, res.encoded)
     final_derived = await derive_all(final, data, labels) if changed else derived
-    final_report = pair(final, data, labels, final_derived)
+    final_derived, context = settle_advice(final, data, final_derived, res.advice)
+    final_report = pair(final, data, labels, final_derived, context)
     if final_report.problems:
         return Outcome("refused", report=final_report, problems=list(final_report.problems), source=source)
 
@@ -241,11 +258,14 @@ async def settle(inputs: Inputs, defaults: Settled) -> Outcome:
         "source": source,
         "remapped": res.remapped,
         "dropped": res.dropped,
+        "encoded": res.encoded,
+        "advice": context["advice"],
+        "bindings": context["bindings"],
         "ratified_by": final.ratified_by,
         "iterations": iterations,
         "report": final_report.model_dump(mode="json"),
     }, indent=2, default=str))
-    settled = Settled(final, data, iterations, source=source, derived=final_derived)
+    settled = Settled(final, data, iterations, source=source, derived=final_derived, context=context)
     return Outcome("run", report=final_report, settled=settled, source=source)
 
 
@@ -258,6 +278,8 @@ def _load_charter(inputs: Inputs, request: dict[str, Any], defaults: Settled) ->
         return load_charter(uploaded[0]), "upload"
     if request.get("charter"):
         return load_charter(_pick(request["charter"], "charters", "charters", ".yaml")), f"preset:{request['charter']}"
+    if defaults.charter is None:
+        raise ValueError(f"none uploaded or chosen, and no default is configured ({defaults.problem})")
     return defaults.charter, "default"
 
 
@@ -280,6 +302,8 @@ def _load_data(inputs: Inputs, source: str, defaults: Settled) -> tuple[pd.DataF
         return normalize_columns(data)
     if source.startswith("preset:"):
         return normalize_columns(pd.read_csv(_pick(source.split(":", 1)[1], "data", "data", ".csv")))
+    if defaults.data is None:
+        raise ValueError(f"none uploaded or chosen, and no default is configured ({defaults.problem})")
     return defaults.data, {}
 
 

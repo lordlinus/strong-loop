@@ -21,9 +21,9 @@ _VERB = {"increase": "raise", "decrease": "lower", "stabilise": "stabilise"}
 
 def questions_from(charter: RoleCharter, derived: "Derived | None" = None) -> list[Question]:
     """One question per accountability. A metric the data cannot move (constant in every
-    row) yields a WITHHELD question: kept on record so the report can say the role did
-    not cover it, never offered to the agent."""
-    unmeasurable = derived.unmeasurable if derived is not None else {}
+    row), or one a person withheld at intake, yields a WITHHELD question: kept on record so
+    the report can say the role did not cover it, never offered to the agent."""
+    unmeasurable = {**derived.unmeasurable, **derived.withheld} if derived is not None else {}
     return [
         Question(
             accountability_id=acc.id,

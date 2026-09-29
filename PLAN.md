@@ -94,6 +94,22 @@ Two invariants carry everything, and both are enforced by tests rather than docu
   (§6.6 item 1). Verified live: contradiction refused P=1.00, study-as-action refused
   P=0.93, causal claim and scope overreach warned, clean text clean; 0.7–2 s per call,
   off the event loop (sync tools run via `asyncio.to_thread`).
+- The persona brief (2026-09-29, `loop/brief.py`): one code-built statement of what the
+  role holding this charter does on this data — objectives in priority order with today's
+  level and leads, plays with autonomy / cap / sign-off, columns never put in a rule, the
+  proof the gate needs, glossary bindings, data notes. It is `IntakeReport.brief` (the live
+  page shows it before start), the head of every iteration's instructions (455 tokens for
+  claims, tiktoken o200k), `brief.md` in the run dir, and `report.brief`; the report adds
+  `coverage`, one line per accountability. Verified in a browser against the local agent:
+  brief shown before start, first wheel event 2.2 s after start, report with coverage
+  after 35 s (1 round). The model still calls `get_charter` once per round.
+- Fail soft and a no-model smoke test (2026-09-29): a default `LOOP_CHARTER`/`LOOP_DATA`
+  that cannot load or pair no longer raises in `main.py` (hosted, that was an opaque 424);
+  the agent serves `/readiness`, refuses a bare session with the reason as `loop.intake`,
+  and serves sessions that bring their own. CI's smoke step is `tools/smoke_hosted.py`:
+  preset pairing uploaded, `loop.intake` "awaiting" expected and nothing else — zero
+  tokens, ~11–17 s against the deployed agent. It replaced a bare `azd ai agent invoke`,
+  which started a full loop on every deploy.
 
 ## 4. Deployment coordinates
 
@@ -231,7 +247,7 @@ Not worth doing: gate/spec selection via function_calling (the model already rec
 spec schema and a refusal explains itself); hypothesis dedupe beyond `fingerprint` (a gate
 call costs milliseconds); replacing the convergence counters (the ledger already answers).
 
-### 6.7 Intake clarification questionnaire — next, in this order
+### 6.7 Intake clarification questionnaire — steps 1, 2, 4 built (see status below)
 Why: the adoption runs (2026-09-22) spent three model runs discovering what four questions to
 a person would have settled before the first: which column is hosted-agent adoption, whether
 an all-zero metric should be withheld, whether a period exists, whether `pillars_met` counts
@@ -279,6 +295,22 @@ Build order (each step testable offline through the `_ask` / `_ask_nouls` seams)
 3. The Jev pass (ask-or-default Noul + ranking Choice), cached per charter + schema.
 4. Surface in `check` (prose + `--json`) and the hosted `awaiting` state, which already
    renders clarifications; CLI answers through `--map`-style flags per kind.
+
+**Status 2026-09-29:** steps 1, 2 and 4 are built, without the Jev pass (step 3).
+`Clarification` has `id`, `kind`, `default`, `answer`. Blocking (`IntakeReport.clarifications`,
+answered before any run): kind 1 `metric`, and `encoding` — a metric present as text with
+2–12 values asks which value is the event (read as 1), signed by name like a remap and
+re-applied from `pairing.json` on later turns. Advisory (`IntakeReport.advisories`, a safe
+default applies): kind 3 `leak` (unsure / yes → confirmed leak / no → cleared), kind 6
+`attribute` (a person's attribute the word list does not block; default **exclude**), kind
+7 `weak` (keep / withhold → question withheld), kind 2 `term` (glossary binding, asked only
+when a lexical candidate exists; the pick goes to the brief, not the charter). Deviation:
+kinds 2 and 6 are advisory rather than blocking because each has a safe default. Kind 4 is
+a note, not a question (`IntakeReport.notes`: no date/period column → "snapshot;
+associations only", carried into the brief). Kind 5 (thresholds) is not built. Answers
+are keyed by question id in `accept.json`; `intake.settle_advice` applies answers or
+defaults identically for uploads, presets, the CLI (`--answer ID=CHOICE`, `--map` kept)
+and a session that brings nothing.
 
 ### 6.8 Close the loop on the loop
 - **Outcomes.** Every action carries an `observation_plan`; nothing writes an `Outcome` yet.

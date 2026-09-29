@@ -23,7 +23,8 @@ python -m loop render charters/<c>.yaml                     # the same charter a
 cd ../..
 azd ai agent run --no-client                                # the hosted agent, locally, on :8088
 azd ai agent invoke --local "Focus on ..."                 # every turn is one run; history is not replayed
-azd up && azd ai agent invoke "go"                          # deploy, then invoke the deployed agent
+azd up && azd ai agent invoke "go"                          # deploy, then invoke the deployed agent (a real run)
+python tools/smoke_hosted.py [--local]                      # the deployed (or local) agent answers intake; no model runs
 
 # page 1 ("How it works"), regenerated from a recorded run (every number on it comes from the run);
 # keep one run in docs/runs — tests check docs/index.html was built from it
@@ -57,6 +58,8 @@ python -m loop check --charter charters/claims_analyst.yaml    --data data/claim
 | a new **role** | a YAML in `src/strong-loop/charters/` (or a standard-Markdown charter uploaded) — never code |
 | a new **charter key** | the model in `loop/charter.py`, `parse`/`render` in `loop/charter_md.py`, and a case in `tests/charter_md_cases.json` (the page's JS parser runs the same cases) |
 | a new **safety rule** | `screen()` in `loop/gates.py` |
+| a new **intake question** (something a person must settle before a run) | a `kind` in `loop/intake.py`: generated in `pair`/`advisories_for`, landed by `resolve`/`apply_advice`, rendered by `askBox` in `docs/live.html` |
+| something the **persona must know every iteration** | `loop/brief.py` — code from the charter and the pairing; state its token cost |
 | a new **data-driven screen** (something the DATA proves may not be tested: a copy of the metric, a constant, an alias) | a rule in `loop/derived.py` — never a list in a charter |
 | a new **model** | nothing: set `LOOP_MODEL`. `claude-*` routes to the Anthropic API, else `/openai/v1` |
 | a new **tool** that certifies or touches the data | a method on `Toolbelt` in `loop/tools.py`, added to `tools()` |

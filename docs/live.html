@@ -61,6 +61,16 @@ details summary{cursor:pointer;font-family:var(--mono);font-size:.78rem;color:va
 .accept label{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite)}
 .accept input,.accept textarea{font:inherit;font-family:var(--mono);font-size:.82rem;width:100%;padding:.45rem .6rem;border:1px solid var(--rule);border-radius:3px;background:#fff}
 button.ghost{background:transparent;color:var(--code);border:1px solid var(--code)}
+/* the brief: what the persona holding this charter will do, before anyone presses start */
+.brief{border:1px solid var(--rule);border-left:4px solid var(--human);background:#fff;border-radius:0 4px 4px 0;padding:1rem 1.2rem;margin:0 0 1rem}
+.brief h2{font-family:var(--display);font-size:1.15rem;margin:0 0 .3rem}.brief .mission{margin:0 0 .6rem;max-width:68ch}
+.brief h3{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);margin:.8rem 0 .3rem;font-weight:600}
+.brief ol,.brief ul{margin:0;padding-left:1.3rem}.brief li{margin:.25rem 0;max-width:72ch}.brief li.off{opacity:.65}
+.brief .dir{font-family:var(--mono);color:var(--code);font-weight:700}
+details.checks{margin:.6rem 0 0}details.checks>summary{font-family:var(--mono);font-size:.78rem;color:var(--code);cursor:pointer}
+.ask-head{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);margin:.4rem 0 0;font-weight:600}
+.ask.soft{background:var(--paper-2);border-color:var(--rule)}
+table.cov{border-collapse:collapse;width:100%;font-size:.9rem;margin:.3rem 0 .9rem}table.cov td{padding:.3rem .5rem;border-bottom:1px solid var(--rule);vertical-align:top}
 @media (max-width:720px){li.rec{grid-template-columns:1fr}.rail{display:none}.lane.code{border-left:2px solid var(--code);padding-left:.9rem}.intake,.pairing.show{grid-template-columns:1fr}}
 .watch{width:min(1480px,calc(100vw - 48px));margin:1.2rem 0 0 calc(50% - min(740px, 50vw - 24px));border-top:1px solid var(--rule);padding-top:.8rem}
 .watch-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem}
@@ -100,7 +110,7 @@ details.log{margin-top:1.2rem;border-top:1px solid var(--rule);padding-top:.6rem
     </div>
     <div class="step">
       <h2><span class="n">3</span>Check the pairing</h2>
-      <p class="hint">Fixed code, no model: which accountabilities this data can measure, which columns are screened, and whether the evidence gate bites on it. Anything ambiguous comes back as a question with a closed list of answers.</p>
+      <p class="hint">Fixed code, no model: what the role will pursue on this data, which columns are screened, and whether the evidence gate bites on it. Anything code cannot settle comes back as a question with a closed list of answers.</p>
       <button id="check" type="submit">Check pairing</button>
       <p class="hint mono" id="session" style="font-size:.72rem"></p>
     </div>
@@ -224,7 +234,9 @@ function onLoopEvent(name, args, out){
     const f = (out.findings || []).map(x => `<li>${esc(x.headline)} <span class="mono muted">${esc(x.confidence)}</span>${(x.warnings || []).map(w => `<br><span class="reason">⚠ ${esc(w)}</span>`).join("")}</li>`).join("");
     const a = (out.actions || []).map(actionCard).join("");
     const box = $("report"); box.hidden = false;
-    box.innerHTML = `<h2>Report — ${esc(out.iterations_run)} rounds, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2><p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p><strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>What to do next</strong><ol class="todo">${a || "<li>nothing was authorised — see the findings and the event log</li>"}</ol>${(out.withheld_questions || []).length ? `<p class="muted">Not covered: ${out.withheld_questions.map(esc).join(" · ")}</p>` : ""}<details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details>`;
+    const cov = (out.coverage || []).map(c => `<tr><td class="mono">${esc(c.goal)}</td><td>${esc(c.outcome)}</td><td class="mono muted">${esc(c.tested)} tested · ${esc(c.supported)} supported</td></tr>`).join("");
+    const who = out.brief && out.brief.role ? `<p class="muted" style="margin:0 0 .6rem">${esc(out.brief.role)} — ${esc(out.brief.mission || "")}</p>` : "";
+    box.innerHTML = `<h2>Report — ${esc(out.iterations_run)} rounds, ${esc(out.hypotheses_tested)} hypotheses, ${esc(out.demoted_by_multiple_testing)} demoted by the correction</h2>${who}<p class="mono muted">${esc(JSON.stringify(out.verdicts))}</p>${cov ? `<strong>By accountability</strong><table class="cov">${cov}</table>` : ""}<strong>Findings</strong><ul>${f || "<li>none</li>"}</ul><strong>What to do next</strong><ol class="todo">${a || "<li>nothing was authorised — see the findings and the event log</li>"}</ol>${(out.withheld_questions || []).length ? `<p class="muted">Not covered: ${out.withheld_questions.map(esc).join(" · ")}</p>` : ""}<details><summary>report.json</summary><pre>${esc(JSON.stringify(out, null, 1))}</pre></details>`;
     add(el(`<li class="tally"><span class="mono">report written</span> — shown above the log</li>`));
     $("status").textContent = "complete";
   } else if (name === "loop.intake") {
@@ -266,6 +278,34 @@ function wheelInput(r){
   return {role: r.role, accountabilities: (r.accountabilities || []).filter(a => a.status === "ok"),
           dataset: {name: (r.source && r.source.data) || "data", rows: r.rows}, questions: (r.questions || []).length};
 }
+function briefCard(b){
+  if (!b || !b.role) return "";
+  const arrow = {increase: "↑", decrease: "↓", stabilise: "→"};
+  const objectives = (b.objectives || []).map(o => {
+    const off = o.status !== "open";
+    const why = o.status === "missing" ? "not in this data" : `not covered this run: ${o.why_not || o.status}`;
+    return `<li class="${off ? "off" : ""}"><span class="dir">${arrow[o.direction] || ""} ${esc(o.goal)}</span> within ${esc(o.horizon_days)} days${o.today ? ` <span class="mono muted">· today ${esc(o.today)}</span>` : ""}<br>${esc(o.statement)}${(o.leads || []).length ? `<br><span class="muted">looks first at: ${o.leads.map(esc).join(" · ")}</span>` : ""}${off ? `<br><span class="problem">${esc(why)}</span>` : ""}</li>`;
+  }).join("");
+  const plays = (b.plays || []).map(p => `<li><span class="mono">${esc(p.action_type)}</span> — ${esc(p.description)} <span class="muted">${esc(p.who_acts)}${p.signs_off ? `; <strong>${esc(p.signs_off)}</strong> signs off` : ""}; ${esc(p.cap)}</span></li>`).join("");
+  const never = (b.never || []).map(x => `<span class="mono" title="${esc(x.reason)}">${esc(x.column)}</span>`).join(", ");
+  const drivers = Object.entries(b.not_a_driver_of || {}).map(([m, cols]) => `<p class="stats muted">not a driver of <span class="mono">${esc(m)}</span> (they define it): ${cols.map(esc).join(", ")}</p>`).join("");
+  const bar = b.evidence_bar || {};
+  const terms = Object.entries(b.glossary_in_data || {}).map(([t, c]) => `<li>“${esc(t)}” is <span class="mono">${esc(c)}</span></li>`).join("");
+  return `<section class="brief" aria-label="role brief"><h2>What <span class="mono">${esc(b.role)}</span> will do</h2>${b.mission ? `<p class="mission">${esc(b.mission)}</p>` : ""}
+    <h3>Pursue, in priority order — one open question each</h3><ol>${objectives || "<li>nothing</li>"}</ol>
+    <h3>May do — only on a recorded finding, only to the group it tested</h3><ul>${plays || "<li>no action is granted; findings are the whole output</li>"}</ul>
+    <h3>Never puts in a rule</h3><p class="stats" style="margin:0">${never || "—"}</p>${drivers}
+    <h3>Proof the gate requires</h3><p class="stats" style="margin:0">n ≥ ${esc(bar.min_sample_size)} · p ≤ ${esc(bar.max_p_value)} · effect ≥ ${esc(bar.min_effect_size)}× · ${esc(bar.correction)} across the run${bar.requires_causal_design ? " · causal design required" : ""}</p>
+    ${terms ? `<h3>In this data</h3><ul>${terms}</ul>` : ""}${(b.notes || []).map(n => `<p class="reason muted">${esc(n)}</p>`).join("")}
+    <p class="hint" style="margin-top:.7rem">Built by code from the charter and this data. The agent reads exactly this at the start of every round.</p></section>`;
+}
+function askBox(c){
+  // Which value is "the event" has no safe default: the most frequent one is usually the non-event.
+  const pickFirst = c.kind === "encoding";
+  const chosen = pickFirst ? null : (c.answer ?? c.default ?? c.candidates[0]);
+  const placeholder = pickFirst ? `<option value="" selected disabled>choose the value that is the event…</option>` : "";
+  return el(`<div class="ask ${c.default != null ? "soft" : ""}"><p><strong>${esc(c.question)}</strong></p><p class="muted" style="font-size:.85rem">${esc(c.why)}</p><select data-id="${esc(c.id)}"${pickFirst ? " required" : ""}>${placeholder}${c.candidates.map(x => `<option value="${esc(x)}"${x === chosen ? " selected" : ""}>${esc(x)}${x === c.default ? " (default)" : ""}</option>`).join("")}</select></div>`);
+}
 function onIntake(out){
   const r = out.report || {}; const status = out.status || "refused";
   if (out.report) lastReport = {...r, source: out.source};
@@ -274,23 +314,30 @@ function onIntake(out){
   const problems = [...new Set([...(out.problems || []), ...(r.problems || [])])];
   if (problems.length) html += problems.map(p => `<p class="problem">${esc(p)}</p>`).join("");
   if (status === "awaiting" && (r.problems || []).length && !(r.clarifications || []).length) html += `<p class="problem">Nothing in this data plausibly measures the missing metric(s); starting will be refused. Pick a different pairing.</p>`;
+  html += briefCard(r.brief);
   if (r.accountabilities) {
+    const attention = r.accountabilities.some(a => a.status !== "ok") || (r.suspected || []).length || (r.warnings || []).length;
+    html += `<details class="checks"${attention ? " open" : ""}><summary>What the data check found — metrics, screens, probes</summary>`;
     html += `<table><tr><th>accountability</th><th>metric</th><th>in this data</th></tr>` + r.accountabilities.map(a =>
-      `<tr><td>${esc(a.statement)}<br><span class="mono muted">${esc(a.id)}</span></td><td class="mono">${esc(a.metric)}</td><td>${a.status === "ok" ? `<span class="ok">✓</span> <span class="mono muted">${esc(fmtMeasure(a.measure))}</span>` : `<span class="problem">${a.status === "unmeasurable" ? "not numeric or 0/1" : "not a column"}</span>`}</td></tr>`).join("") + `</table>`;
+      `<tr><td>${esc(a.statement)}<br><span class="mono muted">${esc(a.id)}</span></td><td class="mono">${esc(a.metric)}</td><td>${a.status === "ok" ? `<span class="ok">✓</span> <span class="mono muted">${esc(fmtMeasure(a.measure))}</span>` : `<span class="problem">${{unmeasurable: "not numeric or 0/1, or constant", withheld: "withheld this run", missing: "not a column"}[a.status] || esc(a.status)}</span>`}</td></tr>`).join("") + `</table>`;
     html += `<p class="stats muted">analysable: ${(r.analysable_columns || []).map(esc).join(", ") || "none"}</p>`;
     if (r.screened && r.screened.length) html += `<p class="stats muted">screened out: ${r.screened.map(s => `${esc(s.column)} <span style="opacity:.7">(${esc(s.reason)})</span>`).join(", ")}</p>`;
+    if (r.derived && r.derived.length) html += `<p class="stats muted">ruled out by this data: ${r.derived.map(s => `${esc(s.column)} <span style="opacity:.7">(${esc(s.reason)})</span>`).join(", ")}</p>`;
+    if (r.suspected && r.suspected.length) html += `<p class="stats muted">suspected — allowed, but evidence using them carries a warning: ${r.suspected.map(s => `${esc(s.column)} <span style="opacity:.7">(${esc(s.reason)})</span>`).join(", ")}</p>`;
+    for (const w of (r.warnings || [])) html += `<p class="reason">⚠ ${esc(w)}</p>`;
     const recoded = Object.entries(r.recoded || {});
     if (recoded.length) html += `<p class="stats muted">values read as numbers: ${recoded.map(([c, how]) => `${esc(c)} <span style="opacity:.7">(${esc(how)})</span>`).join(", ")}</p>`;
     const probes = [r.gate_probe, r.screen_probe].filter(Boolean).map(p => `${esc(p.gate)} on <span class="mono">${esc(p.where)}</span> → <span class="verdict v-${esc(p.verdict)}">${esc(p.verdict)}</span>`);
     if (probes.length) html += `<p class="stats muted">probes — the gate and the screens, exercised on this data before anything runs: ${probes.join(" · ")}</p>`;
-    if (r.questions) html += `<details><summary>${r.questions.length} question(s) the agent will pursue — derived from the charter, not for you to answer</summary><ul>${r.questions.map(q => `<li>${esc(q)}</li>`).join("")}</ul></details>`;
+    if (r.questions) html += `<p class="stats muted">${r.questions.length} question(s) the agent will pursue${(r.withheld || []).length ? `; ${r.withheld.length} withheld` : ""}:</p><ul>${r.questions.map(q => `<li>${esc(q)}</li>`).join("")}${(r.withheld || []).map(q => `<li class="muted">(withheld) ${esc(q)}</li>`).join("")}</ul>`;
+    html += `</details>`;
   }
   box.innerHTML = html;
   const asks = $("asks"); asks.innerHTML = "";
-  for (const c of (r.clarifications || [])) {
-    asks.appendChild(el(`<div class="ask"><p><strong>${esc(c.question)}</strong></p><p class="muted" style="font-size:.85rem">${esc(c.why)}</p><select data-acc="${esc(c.accountability_id)}">${c.candidates.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("")}</select></div>`));
-  }
-  if (r.accountabilities && !(r.clarifications || []).length) asks.appendChild(el(`<p class="hint">Nothing to answer — every metric was found in the data. You would only be asked here when the pairing is ambiguous.</p>`));
+  const blocking = r.clarifications || [], advisory = r.advisories || [];
+  if (blocking.length) { asks.appendChild(el(`<p class="ask-head">Needed before start</p>`)); blocking.forEach(c => asks.appendChild(askBox(c))); }
+  if (advisory.length) { asks.appendChild(el(`<p class="ask-head">Worth a look — the default applies if you leave it</p>`)); advisory.forEach(c => asks.appendChild(askBox(c))); }
+  if (r.accountabilities && !blocking.length && !advisory.length) asks.appendChild(el(`<p class="hint">Nothing to answer — every metric was found in the data and nothing needs a person's judgement. You are only asked here when code cannot settle it.</p>`));
   // A report means the inputs paired; a refusal at this point is about the answers or
   // the ratifier, both of which the person can change and try again.
   $("go").disabled = !r.accountabilities; $("again").hidden = false; $("check").disabled = false;
@@ -332,7 +379,7 @@ async function check(ev){
 
 async function start(ev){
   ev.preventDefault();
-  const answers = {}; for (const s of $("asks").querySelectorAll("select")) answers[s.dataset.acc] = s.value;
+  const answers = {}; for (const s of $("asks").querySelectorAll("select")) answers[s.dataset.id] = s.value;
   const accept = {answers, iterations: Number($("iterations").value) || 3};
   if (LOCAL && $("ratifier").value.trim()) accept.ratified_by = $("ratifier").value.trim();
   $("go").disabled = true; $("status").textContent = "accepting";

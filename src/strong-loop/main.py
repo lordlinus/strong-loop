@@ -45,17 +45,34 @@ charter_path = HERE / (os.environ.get("LOOP_CHARTER") or "charters/claims_analys
 data_path = HERE / (os.environ.get("LOOP_DATA") or "data/claims.csv")
 max_iterations = int(os.environ.get("LOOP_MAX_ITERATIONS") or DEFAULT_MAX_ITERATIONS)
 
-charter = load_charter(charter_path)
-data = pd.read_csv(data_path)
-missing = [a.metric for a in charter.accountabilities if a.metric not in data.columns]
-if missing:
-    raise SystemExit(f"{charter_path.name}: accountability metric(s) not in {data_path.name}: {missing}")
 
+def load_default_pairing() -> tuple:
+    """The pairing a session runs when it brings none, or (None, None, why).
+
+    Fail soft: a hosted agent that raises here never serves /readiness, and the platform
+    reports only an opaque `424 session_not_ready`. A bad default must cost the sessions
+    that rely on it, not the ones that upload their own charter and data.
+    """
+    try:
+        charter = load_charter(charter_path)
+        data = pd.read_csv(data_path)
+    except Exception as exc:  # yaml, pydantic, csv and file errors alike
+        return None, None, f"{charter_path.name} + {data_path.name}: {type(exc).__name__}: {exc}"
+    missing = [a.metric for a in charter.accountabilities if a.metric not in data.columns]
+    if missing:
+        return None, None, f"{charter_path.name}: accountability metric(s) not in {data_path.name}: {missing}"
+    return charter, data, None
+
+
+charter, data, problem = load_default_pairing()
 log.info("model routing: %s", describe())
-log.info("role %s over %s (%d rows), %d iterations, runs under %s",
-         charter.role, data_path.name, len(data), max_iterations, default_runs_dir())
+if problem:
+    log.error("no default pairing — sessions must bring their own: %s", problem)
+else:
+    log.info("role %s over %s (%d rows), %d iterations, runs under %s",
+             charter.role, data_path.name, len(data), max_iterations, default_runs_dir())
 
-agent, _scope = build_agent(charter, data, max_iterations=max_iterations, echo=True)
+agent, _scope = build_agent(charter, data, max_iterations=max_iterations, echo=True, problem=problem)
 
 HOSTED = bool(os.environ.get("FOUNDRY_HOSTING_ENVIRONMENT"))
 

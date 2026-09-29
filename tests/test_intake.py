@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 
 from loop.charter import Accountability, Constraints, RoleCharter, load_charter, sign
-from loop.intake import NOTHING_MEASURES_IT, _plausible_columns, normalize_columns, pair, resolve
+from loop.intake import NOTHING_MEASURES_IT, _plausible_columns, encode, normalize_columns, pair, resolve
 
 SERVICE = pathlib.Path(__file__).resolve().parent.parent / "src" / "strong-loop"
 
@@ -267,6 +267,28 @@ def test_numbers_stored_as_text_become_numbers_and_blanks_missing():
 def test_a_text_metric_gets_no_probe_rather_than_a_coerced_verdict(data):
     r = pair(charter_for("tier"), data.assign(tier=["Gold", "Silver"] * 200))
     assert r.gate_probe is None
+    assert any("holds text" in p for p in r.problems)
+
+
+def test_a_text_metric_with_a_few_values_asks_which_one_is_the_outcome(data):
+    r = pair(charter_for("tier"), data.assign(tier=["Gold", "Silver"] * 200))
+    (c,) = r.clarifications
+    assert (c.kind, c.id, c.metric) == ("encoding", "a0", "tier")
+    assert c.candidates[-1] == NOTHING_MEASURES_IT and set(c.candidates[:-1]) == {"Gold", "Silver"}
+
+    res = resolve(charter_for("tier"), r, {"a0": "Gold"})
+    assert res.encoded == {"tier": "Gold"} and res.changed
+    assert res.charter.accountabilities[0].metric == "tier"   # the charter text is untouched
+    encoded = encode(data.assign(tier=["Gold", "Silver"] * 200), res.encoded)
+    assert encoded["tier"].tolist()[:4] == [1, 0, 1, 0]
+    assert pair(charter_for("tier"), encoded).ok
+
+    assert resolve(charter_for("tier"), r, {"a0": "Platinum"}).refused   # off the menu
+
+
+def test_free_text_metric_is_a_source_fix_not_a_menu(data):
+    r = pair(charter_for("note"), data.assign(note=[f"text {i}" for i in range(400)]))
+    assert r.clarifications == []
     assert any("not numeric or 0/1" in p for p in r.problems)
 
 

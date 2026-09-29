@@ -54,6 +54,8 @@ class Derived:
     identifiers: dict[str, str] = field(default_factory=dict)    # column -> reason (semantic tier)
     protected: dict[str, str] = field(default_factory=dict)      # column -> reason (semantic tier)
     unmeasurable: dict[str, str] = field(default_factory=dict)   # metric -> reason
+    weak: dict[str, str] = field(default_factory=dict)           # metric -> why no subgroup may clear the gate
+    withheld: dict[str, str] = field(default_factory=dict)       # metric -> why a person took it out of this run
     warnings: list[str] = field(default_factory=list)
 
     # ---- what the screens ask ------------------------------------------------------
@@ -79,7 +81,8 @@ class Derived:
             suspected={c: dict(m) for c, m in self.suspected.items()},
             constants=dict(self.constants), aliases=dict(self.aliases),
             identifiers=dict(self.identifiers), protected=dict(self.protected),
-            unmeasurable=dict(self.unmeasurable), warnings=list(self.warnings),
+            unmeasurable=dict(self.unmeasurable), weak=dict(self.weak),
+            withheld=dict(self.withheld), warnings=list(self.warnings),
         )
         for c, metrics in other.leaks.items():
             for m, reason in metrics.items():
@@ -181,10 +184,11 @@ def derive(data: pd.DataFrame, charter: RoleCharter) -> Derived:
             numeric = pd.to_numeric(series, errors="coerce").dropna()
             minority = int(min(numeric.sum(), len(numeric) - numeric.sum()))
             if minority < standard.min_sample_size:
+                out.weak[m] = (f"its minority class has {minority} rows, below the charter "
+                               f"minimum sample of {standard.min_sample_size}")
                 out.warnings.append(
-                    f"metric {m!r} is nearly constant: its minority class has {minority} rows, "
-                    f"below the charter minimum sample of {standard.min_sample_size}; no "
-                    f"subgroup can clear the gate on it"
+                    f"metric {m!r} is nearly constant: {out.weak[m]}; no subgroup can clear "
+                    f"the gate on it"
                 )
 
     # R1 — constants.

@@ -26,13 +26,15 @@ source .venv/bin/activate      # or `make venv && make test`, which uses .venv/b
 python -m pytest tests -q
 
 cd src/strong-loop
-python -m loop check --charter charters/claims_analyst.yaml --data data/claims.csv
+python -m loop check --charter charters/claims_analyst.yaml --data data/claims.csv --brief
 python -m loop run   --charter charters/claims_analyst.yaml --data data/claims.csv --iterations 3
 
-# a charter whose metric the export carries under another name: pick from the closed list
-# `check` offers (no free text, no derivation script), and put a name to the remapping
+# answer what `check` asked, from its closed lists (no free text, no derivation script).
+# A metric carried under another name, or as text, is remapped or encoded and signed by
+# name; an advisory question left unanswered takes the default `check` marks with *
 python -m loop run --charter charters/<role>.yaml --data data/<export>.csv \
-    --map <accountability_id>=<column> --ratified-by <you>
+    --answer <accountability_id>=<column> --answer 'attribute:age=yes — this role may use it' \
+    --ratified-by <you>
 
 # write a charter as Markdown instead: every command above takes a .md charter too
 python -m loop render charters/claims_analyst.yaml > my_role.md    # a worked example to edit
@@ -80,6 +82,25 @@ everything falls back to the code-only behaviour if it is unconfigured or unavai
 Yes/No-style text columns (`Yes`/`No`, `Y`/`N`, `True`/`False`, both answers present) and
 numbers stored as text are read as numbers at load; `check` and the pairing report list
 every column read this way. Anything more ambiguous stays text.
+
+**Before a run, the platform asks what code cannot settle** — always as a closed list,
+generated from the charter and the schema, never by a model. Two kinds block the run until
+answered: which column measures a metric the data does not carry by that name, and, for a
+metric that arrives as text with a handful of values (`Churned`/`Active`/`Paused`), which
+value is the event. Four are advisory, each with a safe default that is applied and
+recorded if nobody answers: a column suspected (not proven) of leaking a metric, a
+person's attribute such as `age` that the screens do not block (default: leave it out), a
+metric too rare for any subgroup to clear the gate (keep or withhold), and which column a
+glossary term means in this data. Answers land in `intake/pairing.json` and are
+re-applied on every later turn of the session.
+
+**Then the agent is told who it is.** `loop/brief.py` builds one brief from the charter and
+the pairing: the objectives in priority order with today's level, the plays with who acts
+and who signs off, the columns it may never put in a rule, the proof the gate requires, and
+what the data's shape means (no date column → associations only). The live page shows it
+before start; every fresh iteration's instructions open with it (`check --brief` prints
+it); the report opens with it and ends each accountability with what the run got
+(`coverage`).
 
 ## As a Foundry hosted agent
 
@@ -176,8 +197,10 @@ open docs/live.html
    worked examples, your CSV's columns checked against the metrics in the browser, then
    "Check it with data →".
 3. `/live.html` — **Run it** (signed in). Upload or pick a charter and a dataset, check the
-   pairing, answer its closed-list questions, start, and watch the same wheel driven by the
-   live stream (`docs/wheel.js` renders both). The report opens below it.
+   pairing, read what the role will do (the brief), answer its closed-list questions —
+   "needed before start" and "defaults shown" — start, and watch the same wheel driven by
+   the live stream (`docs/wheel.js` renders both). The report opens below it, with a line
+   per accountability.
 
 `/showcase.html` and `/loop.html` redirect to `/`.
 
@@ -241,6 +264,8 @@ self-contained. Locally, export the endpoint from the azd env; in the container,
 | `charter_md.py` | the same charter as standard Markdown: `parse` (strict, line-numbered errors) and `render` |
 | `ledger.py` | append-only JSONL; `summary()` is what a fresh iteration reads |
 | `questions.py` | one question per accountability |
+| `intake.py` | the pairing: screens, the closed-list questions (blocking and advisory), `resolve` / `settle_advice` |
+| `brief.py` | what the persona does on this data: the page, every iteration and the report read the same brief |
 | `tools.py` | eight bound operations; three of them certify |
 | `models.py` | one env var picks the model |
 | `runner.py` | `AgentLoopMiddleware(fresh_context=True)` + `RunScope` |

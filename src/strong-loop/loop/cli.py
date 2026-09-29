@@ -27,7 +27,7 @@ import pandas as pd
 
 from . import models
 from .charter import load_charter, sign, write_charter
-from .intake import NOTHING_MEASURES_IT, normalize_columns, pair, resolve
+from .intake import NOTHING_MEASURES_IT, encode, normalize_columns, pair, resolve
 from .questions import questions_from
 
 
@@ -94,9 +94,17 @@ def cmd_check(args: argparse.Namespace) -> int:
         why = f" — {a.measure['reason']}" if a.status == "unmeasurable" and a.measure.get("reason") else ""
         print(f"  [{mark}] {a.id}: {a.metric}{why}")
     for c in r.clarifications:
-        print(f"  ? {c.accountability_id}: {c.question}")
+        print(f"  ? {c.id}: {c.question}")
         for cand in c.candidates:
             print(f"      - {cand}")
+    if r.advisories:
+        print("\nadvisory questions (a default applies unless you answer: --answer ID=CHOICE):")
+        for c in r.advisories:
+            print(f"  ~ {c.id}: {c.question}")
+            for cand in c.candidates:
+                print(f"      {'*' if cand == c.default else '-'} {cand}")
+    for note in r.notes:
+        print(f"  note: {note}")
 
     print(f"\n{len(r.questions)} questions:")
     for q in r.questions:
@@ -114,6 +122,11 @@ def cmd_check(args: argparse.Namespace) -> int:
         p = r.screen_probe
         print(f"  sensitive-column probe {p.where!r} -> {p.verdict} ({p.reason})")
 
+    if args.brief:
+        from .brief import render
+        print("\nthe brief every iteration starts from:\n")
+        print("    " + render(r.brief).replace("\n", "\n    "))
+
     if r.problems:
         print("\n" + "\n".join(f"!! {p}" for p in r.problems), file=sys.stderr)
         return 1
@@ -124,10 +137,11 @@ def cmd_check(args: argparse.Namespace) -> int:
 def cmd_run(args: argparse.Namespace) -> int:
     """The same intake the hosted agent performs, then the loop.
 
-    A metric the data does not carry under that name is resolved the one way the platform
-    allows: `--map <accountability_id>=<column>` picks from the closed list `pair()` (and,
-    when configured, TypeSafe) offered, and `--ratified-by` puts a name to the remapped
-    charter. No free text, no derivation step, no domain script.
+    Every question `check` prints is answered the one way the platform allows:
+    `--answer <id>=<choice>` picks from the closed list `pair()` (and, when configured,
+    TypeSafe) offered. A remap or an encoding changes what the role is answerable for, so
+    `--ratified-by` puts a name to it; an advisory left unanswered takes its default. No
+    free text, no derivation step, no domain script.
     """
     from .inputs import derive_all
     from .runner import run_once
@@ -138,19 +152,21 @@ def cmd_run(args: argparse.Namespace) -> int:
     derived = asyncio.run(derive_all(charter, data, labels))
     report = pair(charter, data, labels, derived)
     answers = dict(item.split("=", 1) for item in (args.map or []) if "=" in item)
+    advice: dict[str, str] = {}
     if report.clarifications or answers:
         report = asyncio.run(review(charter, data, report, labels))
     if answers:
         res = resolve(charter, report, answers)
         if res.refused:
-            raise SystemExit("\n".join(["mapping refused:", *(f"  {r}" for r in res.refused),
+            raise SystemExit("\n".join(["answer refused:", *(f"  {r}" for r in res.refused),
                                        *_menu(report)]))
-        charter = res.charter
-        if res.remapped or res.dropped:
+        charter, advice = res.charter, res.advice
+        if res.changed:
             if not args.ratified_by:
-                raise SystemExit("--ratified-by <name> is required: remapping changes what "
-                                 "the role is answerable for, and someone signs that.")
+                raise SystemExit("--ratified-by <name> is required: remapping or encoding a "
+                                 "metric changes what the role is answerable for, and someone signs that.")
             charter = sign(charter, args.ratified_by)
+            data = encode(data, res.encoded)
             derived = asyncio.run(derive_all(charter, data, labels))
             report = pair(charter, data, labels, derived)
     if report.problems:
@@ -160,7 +176,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         run_once(
             charter, data, max_iterations=args.iterations,
             runs_dir=pathlib.Path(args.run_dir), model=args.model, steer=args.steer,
-            derived=derived,
+            derived=derived, advice=advice,
         )
     )
     print(json.dumps(result, indent=2, default=str))
@@ -170,10 +186,13 @@ def cmd_run(args: argparse.Namespace) -> int:
 def _menu(report) -> list[str]:
     lines = []
     for c in report.clarifications:
-        lines.append(f"  ? {c.accountability_id}: {c.question}")
-        lines.extend(f"      --map {c.accountability_id}={cand!r}" for cand in c.candidates
+        lines.append(f"  ? {c.id}: {c.question}")
+        lines.extend(f"      --answer {c.id}={cand!r}" for cand in c.candidates
                      if cand != NOTHING_MEASURES_IT)
-        lines.append(f"      --map {c.accountability_id}={NOTHING_MEASURES_IT!r}   (leave it out)")
+        lines.append(f"      --answer {c.id}={NOTHING_MEASURES_IT!r}   (leave it out)")
+    for c in report.advisories:
+        lines.append(f"  ~ {c.id}: {c.question} (default {c.default!r})")
+        lines.extend(f"      --answer {c.id!r}={cand!r}" for cand in c.candidates if cand != c.default)
     return lines
 
 
@@ -290,6 +309,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--charter", required=True)
     p.add_argument("--data", required=True)
     p.add_argument("--json", action="store_true", help="print the IntakeReport instead of prose")
+    p.add_argument("--brief", action="store_true", help="also print the brief the agent would be given")
     p.set_defaults(func=cmd_check)
 
     p = sub.add_parser("run", help="run the loop against a charter and a dataset")
@@ -300,11 +320,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--run-dir", default="runs")
     p.add_argument("--steer", default="Begin. Work the open questions.",
                    help="the human's one message; every iteration starts from it")
-    p.add_argument("--map", action="append", metavar="ACC_ID=COLUMN",
-                   help="resolve a metric the data does not carry under that name, from the "
-                        "closed list `check` offers; repeatable")
+    p.add_argument("--answer", "--map", dest="map", action="append", metavar="ID=CHOICE",
+                   help="answer a question `check` printed, from its closed list; repeatable. "
+                        "Blocking questions are keyed by accountability id")
     p.add_argument("--ratified-by", default=None,
-                   help="who signs the remapped charter; required with --map")
+                   help="who signs a remapped or encoded metric; required for those answers")
     p.set_defaults(func=cmd_run)
 
     p = sub.add_parser("questions", help="the question set a run would inherit")
