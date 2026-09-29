@@ -27,7 +27,7 @@ azd_env_file=".azure/$azd_env_name/.env"
 toolbox_name="${TOOLBOX_NAME:-strong-loop-toolbox}"
 agent_name="strong-loop"
 
-loop_model="${LOOP_MODEL:-gpt-5.6-luna}"
+loop_model="${LOOP_MODEL:-gpt-6-astra}"
 loop_charter="${LOOP_CHARTER:-charters/claims_analyst.yaml}"
 loop_data="${LOOP_DATA:-data/claims.csv}"
 loop_max_iterations="${LOOP_MAX_ITERATIONS:-4}"

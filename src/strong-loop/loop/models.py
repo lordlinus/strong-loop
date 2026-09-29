@@ -9,7 +9,7 @@ setting `LOOP_MODEL`. The gateway fronts two APIs on one subscription key:
                    model-name substring to the Claude deployments.
 
 Both verified HTTP 200 on 2026-09-04 (gpt-5.6-luna, gpt-5.4-mini, claude-sonnet-4-6,
-claude-fable-5-1). Two things the gateway's README warns about, kept here so nobody
+claude-fable-5-1); gpt-6-astra, the default since 2026-09-29, ran a full loop round. Two things the gateway's README warns about, kept here so nobody
 re-learns them: `/openai/v1/models` lists the whole Azure catalogue rather than what is
 deployed, so only a real POST is proof — that is what `probe()` is for; and the anthropic
 policy strips `temperature`/`top_p` because the adaptive-thinking Claude models reject
@@ -29,7 +29,7 @@ import pathlib
 
 from dotenv import dotenv_values
 
-DEFAULT_MODEL = "gpt-5.6-luna"
+DEFAULT_MODEL = "gpt-6-astra"
 APIM_STORE = pathlib.Path.home() / ".config" / "azure-apim" / "apim-ssattiraju-01.env"
 HERE = pathlib.Path(__file__).resolve().parent.parent
 
