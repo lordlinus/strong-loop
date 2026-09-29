@@ -14,6 +14,7 @@ python -m pytest tests -q                                   # no model, no netwo
 
 cd src/strong-loop
 python -m loop models                                       # which client LOOP_MODEL resolves to, one-token probe
+make model MODEL=<name>                                     # (repo root) switch the DEPLOYED model: probe, set, deploy, verify
 python -m loop check --charter charters/<c>.yaml --data data/<d>.csv     # pairing valid, gate + screens bite, no model
 python -m loop questions --charter charters/<c>.yaml
 python -m loop run --charter charters/<c>.yaml --data data/<d>.csv --iterations 3   # the loop; needs a model
@@ -61,7 +62,7 @@ python -m loop check --charter charters/claims_analyst.yaml    --data data/claim
 | a new **intake question** (something a person must settle before a run) | a `kind` in `loop/intake.py`: generated in `pair`/`advisories_for`, landed by `resolve`/`apply_advice`, rendered by `askBox` in `docs/live.html` |
 | something the **persona must know every iteration** | `loop/brief.py` — code from the charter and the pairing; state its token cost |
 | a new **data-driven screen** (something the DATA proves may not be tested: a copy of the metric, a constant, an alias) | a rule in `loop/derived.py` — never a list in a charter |
-| a new **model** | nothing: set `LOOP_MODEL`. `claude-*` routes to the Anthropic API, else `/openai/v1` |
+| a new **model** | nothing: `make model MODEL=<name>` (probe → `production` env var → deploy → verify). Locally, `LOOP_MODEL` or `--model`. `claude-*` routes to the Anthropic API, else `/openai/v1` |
 | a new **tool** that certifies or touches the data | a method on `Toolbelt` in `loop/tools.py`, added to `tools()` |
 | a new **reference tool or skill** (safe for every role) | `toolbox.yaml` / `src/strong-loop/skills/`, then `azd ai toolbox create` — never `code_interpreter` |
 

@@ -79,11 +79,25 @@ jobs:
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_DATA "${{ vars.LOOP_DATA }}"
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set LOOP_MAX_ITERATIONS "${{ vars.LOOP_MAX_ITERATIONS }}"
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd env set TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT "${{ vars.TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT }}"
-      - name: Deploy hosted agent
-        run: AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd deploy strong-loop --no-prompt
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
+      - name: Probe the model before deploying
+        # The model is a deploy setting (the `production` environment's LOOP_MODEL, empty =
+        # the code default). A name the gateway does not serve would deploy cleanly and fail
+        # every run, and the smoke test below spends no tokens, so it would not notice.
+        # One real round-trip through APIM, with the values the agent will get.
+        env:
+          APIM_GATEWAY_URL: ${{ vars.APIM_GATEWAY_URL }}
+          APIM_SUBSCRIPTION_KEY: ${{ secrets.APIM_SUBSCRIPTION_KEY }}
+          LOOP_MODEL: ${{ vars.LOOP_MODEL }}
+        working-directory: src/strong-loop
+        run: |
+          python -m pip install --quiet -r requirements.txt
+          python -m loop models
+      - name: Deploy hosted agent
+        run: AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd deploy strong-loop --no-prompt
       - name: Verify and smoke-test hosted agent
         # Every turn is a run, so a bare `azd ai agent invoke` would start the loop on the
         # default pairing. The smoke test instead uploads a preset pairing and checks the
@@ -92,6 +106,8 @@ jobs:
           set -euo pipefail
           AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd ai agent show --output json > /tmp/agent.json
           python -c 'import json; d=json.load(open("/tmp/agent.json")); assert d.get("status") in ("active", "deployed"), d'
+          # The version just deployed carries the model this workflow was given.
+          WANT_MODEL="${{ vars.LOOP_MODEL }}" python -c 'import json, os; got = json.load(open("/tmp/agent.json"))["definition"]["environment_variables"].get("LOOP_MODEL") or ""; want = os.environ["WANT_MODEL"]; assert got == want, f"deployed LOOP_MODEL {got!r}, expected {want!r}"; print("deployed LOOP_MODEL:", got or "(code default)")'
           python -m pip install --quiet httpx azure-identity
           python tools/smoke_hosted.py --responses-url "$(python -c 'import json; print(json.load(open("/tmp/agent.json"))["agent_endpoints"]["responses"])')"
 

@@ -63,6 +63,15 @@ key from `~/.config/azure-apim/apim-ssattiraju-01.env` if present; otherwise cop
 routes to the Anthropic API, anything else to `/openai/v1`. `python -m loop models` proves
 a model works before you spend a run on it.
 
+**Changing the deployed model** is a setting, not a code change: `make model MODEL=<name>`
+(add `TYPESAFE_MODEL=<name>` for TypeSafe's). It probes the model through the gateway,
+sets `LOOP_MODEL` on the GitHub `production` environment — the one place it lives for
+deploys; it overrides any repo-level variable, and empty means the default in
+`loop/models.py` — then runs the deploy workflow and waits. The workflow probes again
+before `azd deploy` and fails if the deployed agent version does not carry that model, so
+a name the gateway does not serve never reaches the live agent. `scripts/set-model.sh
+--default` returns to the code default; `--no-deploy` leaves it for the next push.
+
 TypeSafe is optional and serves three narrow purposes, none of which sends a row or sample
 value. The frontier model does the reasoning — hypotheses, confounds, interpretation;
 TypeSafe answers the small closed questions around it. When an uploaded charter metric has

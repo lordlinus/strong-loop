@@ -120,7 +120,7 @@ Two invariants carry everything, and both are enforced by tests rather than docu
 | Agent | `strong-loop`, responses protocol 2.0.0; endpoint in azd env `AGENT_STRONG_LOOP_RESPONSES_ENDPOINT` |
 | Agent managed identity | `a3921277-2d07-4fe7-97f2-72a55048c0ff`, holds **Foundry User** on the account (needed to read skill bodies) |
 | Toolbox | `strong-loop-toolbox` v1, endpoint in azd env `TOOLBOX_STRONG_LOOP_TOOLBOX_MCP_ENDPOINT` |
-| Models | APIM `apim-ssattiraju-01`; gateway + key from `~/.config/azure-apim/apim-ssattiraju-01.env` locally, azd env in the container. Default `gpt-6-astra` (2026-09-29; was `gpt-5.6-luna`), pinned by the GitHub variable `LOOP_MODEL`. |
+| Models | APIM `apim-ssattiraju-01`; gateway + key from `~/.config/azure-apim/apim-ssattiraju-01.env` locally, azd env in the container. Default `gpt-6-astra` (2026-09-29; was `gpt-5.6-luna`). Deployed model = GitHub `production` environment variable `LOOP_MODEL` (overrides repo-level; empty = code default); change it with `make model MODEL=<name>`. The deploy workflow probes it before `azd deploy` and asserts the deployed version carries it. |
 | azd environment | `strong-loop` (`.azure/strong-loop/.env`, gitignored) |
 | Customer site | `https://wonderful-smoke-0d5632100.3.azurestaticapps.net` (Standard, East Asia) |
 | Live APIs | `app-strong-loop-s56amuculonh4` handles authenticated control calls behind SWA; `app-strong-loop-s56amuculonh4-stream` relays SSE directly using 60-second signed tickets; shared UAMI holds **Foundry User** |
