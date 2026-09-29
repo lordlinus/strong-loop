@@ -15,6 +15,7 @@ python -m pytest tests -q                                   # no model, no netwo
 cd src/strong-loop
 python -m loop models                                       # which client LOOP_MODEL resolves to, one-token probe
 make model MODEL=<name>                                     # (repo root) switch the DEPLOYED model: probe, set, deploy, verify
+make usage DAYS=7                                           # (repo root) who signed in, checked pairings, started runs
 python -m loop check --charter charters/<c>.yaml --data data/<d>.csv     # pairing valid, gate + screens bite, no model
 python -m loop questions --charter charters/<c>.yaml
 python -m loop run --charter charters/<c>.yaml --data data/<d>.csv --iterations 3   # the loop; needs a model

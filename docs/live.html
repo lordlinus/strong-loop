@@ -497,6 +497,8 @@ async function loadPresets(){
 $("charter-preset").addEventListener("change", () => { const m = presets.pairings.find(p => p.charter === $("charter-preset").value); if (m) $("data-preset").value = m.data; pairsHint(); });
 $("data-preset").addEventListener("change", pairsHint);
 loadPresets();
+// Usage: who opened this signed-in page (the site's API records it; nothing local).
+if (!["localhost", "127.0.0.1"].includes(location.hostname)) fetch("/api/visit", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({page: "live"})}).catch(() => {});
 
 let proseLi = null, proseText = "";
 function onTextDelta(d){ if (!proseLi) { proseLi = el(`<li class="prose"></li>`); add(proseLi); } proseText += d; proseLi.textContent = proseText; }

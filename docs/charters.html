@@ -234,5 +234,7 @@ function fillStart(){
   if (want) { $("start").value = want; load(want); } else if (draft) { $("md").value = draft; render(); } else load("template");
   localStorage.setItem("strong-loop.loaded", $("md").value);
 })();
+// Usage: who opened this signed-in page (the site's API records it; nothing local).
+if (!["localhost", "127.0.0.1"].includes(location.hostname)) fetch("/api/visit", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({page: "charters"})}).catch(() => {});
 </script>
 </body></html>

@@ -1,3 +1,4 @@
+import { principalOf, track } from "./telemetry";   // first: it instruments express
 import express from "express";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { DefaultAzureCredential } from "@azure/identity";
@@ -32,15 +33,13 @@ function sessionsUrl(): URL | null {
 /** The signed-in user's display name, from Static Web Apps' auth header; used as the
  *  ratifier when a client accepts a pairing. Never trusted from the request body. */
 function principalName(header: string | undefined): string | null {
-    if (!header) return null;
-    try {
-        const principal = JSON.parse(Buffer.from(header, "base64").toString("utf8"));
-        const name = typeof principal?.userDetails === "string" ? principal.userDetails.trim() : "";
-        return name || null;
-    } catch {
-        return null;
-    }
+    return principalOf(header).user;
 }
+
+// The page the site reports as visited: signed-in pages only (the public page needs no API).
+const visitPages = new Set(["live", "charters"]);
+// The input the live page sends to check a pairing; any other input starts a run.
+const checkInput = "check the pairing";
 
 function requireAuth(request: express.Request, response: express.Response, requestId: string): string | null {
     const principal = request.header("x-ms-client-principal");
@@ -189,6 +188,14 @@ server.use((request, response, next) => {
 });
 server.get("/api/health", (_request, response) => response.json({ status: "ok" }));
 
+server.post("/api/visit", (request, response) => {
+    const requestId = randomUUID();
+    if (!requireAuth(request, response, requestId)) return;
+    const page = typeof request.body?.page === "string" ? request.body.page : "";
+    if (visitPages.has(page)) track("visit", request, { page });
+    response.status(204).end();
+});
+
 server.post("/api/sessions", async (request, response) => {
     const requestId = randomUUID();
     if (!requireAuth(request, response, requestId)) return;
@@ -211,6 +218,7 @@ server.post("/api/sessions", async (request, response) => {
             return;
         }
         console.log("Session created", requestId, body.agent_session_id);
+        track("session_created", request, { sessionId: body.agent_session_id });
         const uploadTicket = issueUploadTicket(body.agent_session_id);
         if (!uploadTicket) {
             response.status(503).json({ error: "Session upload signing is not configured.", requestId });
@@ -277,12 +285,28 @@ server.put("/api/sessions/:id/files", express.raw({ type: () => true, limit: max
             return;
         }
         console.log("Session file uploaded", requestId, { sessionId, path, bytes: body.length });
+        track(path === "intake/accept.json" ? "pairing_accepted" : "file_uploaded", request, {
+            sessionId, path, bytes: body.length, ...uploadFacts(path, body),
+        });
         response.status(201).json({ path, bytes_written: body.length, requestId });
     } catch (error) {
         console.error("Session file upload failed", requestId, error);
         response.status(502).json({ error: "The hosted agent did not accept the file.", requestId });
     }
 });
+
+/** What an intake file says that is safe to record: preset names, iteration and answer
+ *  counts. Never the charter, the data, or the answers themselves. */
+function uploadFacts(path: string, body: Buffer): Record<string, unknown> {
+    if (path !== "intake/request.json" && path !== "intake/accept.json") return {};
+    try {
+        const value = JSON.parse(body.toString("utf8") || "{}");
+        if (path === "intake/request.json") return { charterPreset: value?.charter, dataPreset: value?.data };
+        return { iterations: value?.iterations, answers: Object.keys(value?.answers ?? {}).length };
+    } catch {
+        return {};
+    }
+}
 
 server.post("/api/stream-ticket", (request, response) => {
     const requestId = randomUUID();
@@ -302,6 +326,7 @@ server.post("/api/stream-ticket", (request, response) => {
         response.status(503).json({ error: "Stream ticket signing is not configured.", requestId });
         return;
     }
+    track(run.input === checkInput ? "pairing_checked" : "run_started", request, { sessionId: run.sessionId });
     response.json({ url: `${publicApiOrigin}/api/direct-run?ticket=${encodeURIComponent(ticket)}`, expires_in: streamTicketTtlMs / 1000 });
 });
 

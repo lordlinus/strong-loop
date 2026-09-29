@@ -232,6 +232,14 @@ Bootstrap and configure the production pipeline once:
 ./scripts/setup-azure-auth-for-pipeline.sh <github-owner/repository>
 ```
 
+**Who is using it.** The control API records usage events in Application Insights, with
+the Static Web Apps sign-in name (`api/src/telemetry.ts`): `visit` (a signed-in page
+opened), `session_created`, `file_uploaded` (which intake file and its size, preset names —
+never contents), `pairing_checked`, `pairing_accepted`, `run_started`. `make usage
+[DAYS=7]` prints one row per user and the latest events. The Application Insights resource
+has local auth disabled, so the SDK sends as the API's managed identity (Monitoring Metrics
+Publisher); a connection string alone ingests nothing.
+
 Then pushes to `master` run `.github/workflows/deploy.yml`: tests first, then independent
 agent, API and site deployments behind the `production` GitHub environment. Pull requests
 run tests only. Configure required reviewers on that environment if deployment approval is

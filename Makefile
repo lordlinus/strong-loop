@@ -9,7 +9,7 @@ else
 PYTHON := $(CURDIR)/.venv/bin/python
 endif
 
-.PHONY: help venv test local-ui agent ui-server deploy deploy-check model
+.PHONY: help venv test local-ui agent ui-server deploy deploy-check model usage
 
 help:
 	@echo "make venv          Create .venv (uv, Python 3.13) and install requirements"
@@ -19,6 +19,7 @@ help:
 	@echo "make deploy        Deploy the agent, toolbox and tracing to Azure"
 	@echo "make model MODEL=<name> [TYPESAFE_MODEL=<name>]"
 	@echo "                   Probe a model, set it for production, redeploy, verify"
+	@echo "make usage [DAYS=7] Who has signed in, checked pairings and started runs"
 
 venv: $(PYTHON)
 
@@ -47,6 +48,9 @@ deploy-check:
 # The deployed agent's model is the GitHub `production` environment's LOOP_MODEL, not code.
 model: venv
 	bash scripts/set-model.sh $(MODEL) $(if $(TYPESAFE_MODEL),--typesafe $(TYPESAFE_MODEL))
+
+usage:
+	bash scripts/usage.sh $(or $(DAYS),7) --events
 
 ifeq ($(OS),Windows_NT)
 # cmd has no trap/kill/wait, so each process gets its own console window instead of this
