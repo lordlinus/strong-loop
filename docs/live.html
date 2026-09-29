@@ -71,6 +71,16 @@ details.checks{margin:.6rem 0 0}details.checks>summary{font-family:var(--mono);f
 .ask-head{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--graphite);margin:.4rem 0 0;font-weight:600}
 .ask.soft{background:var(--paper-2);border-color:var(--rule)}
 table.cov{border-collapse:collapse;width:100%;font-size:.9rem;margin:.3rem 0 .9rem}table.cov td{padding:.3rem .5rem;border-bottom:1px solid var(--rule);vertical-align:top}
+/* progress: what the page is waiting on, right where the person pressed the button */
+.progress{border-top:1px solid var(--rule);padding-top:.6rem;font-size:.86rem}
+.progress ol{list-style:none;margin:0;padding:0}.progress li{display:flex;gap:.5rem;align-items:baseline;margin:.2rem 0;color:var(--graphite)}
+.progress li.doing{color:var(--ink);font-weight:600}.progress li.done{color:var(--supported)}.progress li.failed{color:var(--rejected)}
+.progress .mark{flex:0 0 14px;display:inline-flex;justify-content:center}
+.progress .elapsed{font-family:var(--mono);font-size:.72rem;color:var(--graphite);margin-left:auto;font-weight:400}
+.progress .note{margin:.4rem 0 0;color:var(--graphite);font-size:.82rem}.progress .error{margin:.4rem 0 0;color:var(--rejected)}
+.spinner{width:12px;height:12px;border:2px solid var(--rule);border-top-color:var(--code);border-radius:50%;display:inline-block;animation:spin .8s linear infinite;transform:translateY(1px)}
+@keyframes spin{to{transform:translateY(1px) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none;border-top-color:var(--rule);border-right-color:var(--code)}}
 @media (max-width:720px){li.rec{grid-template-columns:1fr}.rail{display:none}.lane.code{border-left:2px solid var(--code);padding-left:.9rem}.intake,.pairing.show{grid-template-columns:1fr}}
 .watch{width:min(1480px,calc(100vw - 48px));margin:1.2rem 0 0 calc(50% - min(740px, 50vw - 24px));border-top:1px solid var(--rule);padding-top:.8rem}
 .watch-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.5rem}
@@ -112,6 +122,7 @@ details.log{margin-top:1.2rem;border-top:1px solid var(--rule);padding-top:.6rem
       <h2><span class="n">3</span>Check the pairing</h2>
       <p class="hint">Fixed code, no model: what the role will pursue on this data, which columns are screened, and whether the evidence gate bites on it. Anything code cannot settle comes back as a question with a closed list of answers.</p>
       <button id="check" type="submit">Check pairing</button>
+      <div class="progress" id="check-progress" hidden aria-live="polite"></div>
       <p class="hint mono" id="session" style="font-size:.72rem"></p>
     </div>
   </form>
@@ -126,6 +137,7 @@ details.log{margin-top:1.2rem;border-top:1px solid var(--rule);padding-top:.6rem
       <textarea id="steer" rows="2">Focus on the highest-priority accountability.</textarea>
       <div id="ratifier-row" hidden><label for="ratifier">ratified by (local only; the site uses your sign-in)</label><input type="text" id="ratifier" placeholder="your name"></div>
       <button id="go" type="submit" disabled>Start a run</button>
+      <div class="progress" id="start-progress" hidden aria-live="polite"></div>
       <button id="again" type="button" class="ghost" hidden>New pairing</button>
     </form>
   </section>
@@ -172,6 +184,43 @@ function onWheelItem(item){
 
 function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function el(html){ const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+
+// ---- progress: every wait says what it is waiting on, and for how long ------------------
+// A check crosses three services (the site's API, a Foundry session, the agent) and any of
+// them may be cold; silence for twenty seconds reads as broken. So each step is named, timed,
+// explains itself when slow, and every request has a deadline.
+const TIMEOUT_MS = {session: 120000, upload: 120000, check: 180000};
+const SLOW_MS = 8000;
+const WAKING = "The first request after a quiet spell can take up to a minute while the service wakes up.";
+function timed(ms){ return typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined; }
+function explain(e){
+  if (e && (e.name === "TimeoutError" || e.name === "AbortError")) return "No answer in time. The service may still be waking up — try again.";
+  if (e && e.name === "TypeError") return "Could not reach the service (network, or your sign-in expired). Reload the page and try again.";
+  return (e && e.message) || String(e);
+}
+function progress(box){
+  let steps = [], stepT0 = 0, timer = null, error = "";
+  const secs = ms => Math.round(ms / 1000);
+  const mark = s => s.state === "doing" ? `<span class="spinner" aria-hidden="true"></span>` : s.state === "done" ? "✓" : s.state === "failed" ? "✕" : "·";
+  const draw = () => {
+    const now = performance.now(), cur = steps.find(s => s.state === "doing");
+    box.innerHTML = `<ol>${steps.map(s => `<li class="${s.state}"><span class="mark">${mark(s)}</span><span>${esc(s.label)}${s.detail ? ` <span class="muted">· ${esc(s.detail)}</span>` : ""}</span>${s.state === "doing" ? `<span class="elapsed">${secs(now - stepT0)}s</span>` : s.took != null ? `<span class="elapsed">${s.took}s</span>` : ""}</li>`).join("")}</ol>`
+      + (cur && cur.slow && now - stepT0 > SLOW_MS ? `<p class="note">${esc(cur.slow)}</p>` : "")
+      + (error ? `<p class="error">${esc(error)}</p>` : "");
+  };
+  const close = (state) => { const now = performance.now(); for (const s of steps) if (s.state === "doing") { s.state = state; s.took = secs(now - stepT0); } };
+  return {
+    start(list){ steps = list.map(s => ({...s, state: "todo", detail: "", took: null})); error = ""; box.hidden = false; clearInterval(timer); timer = setInterval(draw, 500); draw(); },
+    step(i, detail = ""){ close("done"); steps.forEach((s, j) => { if (j < i && s.state === "todo") s.state = "done"; }); steps[i].state = "doing"; steps[i].detail = detail; stepT0 = performance.now(); draw(); },
+    detail(text){ const cur = steps.find(s => s.state === "doing"); if (cur) cur.detail = text; draw(); },
+    done(){ close("done"); clearInterval(timer); draw(); },
+    fail(message){ close("failed"); error = message; clearInterval(timer); draw(); },
+    hide(){ clearInterval(timer); box.hidden = true; box.innerHTML = ""; },
+  };
+}
+const checkProgress = progress($("check-progress")), startProgress = progress($("start-progress"));
+let intakeSeen = false, onFirstItem = null;
+function fmtBytes(n){ return n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : n >= 1024 ? `${Math.round(n / 1024)} KB` : `${n} B`; }
 function add(node){ tl.appendChild(node); node.scrollIntoView({block:"end", behavior:"instant"}); }
 function setLive(stamp){ if (liveStamp) liveStamp.classList.remove("live"); liveStamp = stamp; if (stamp) stamp.classList.add("live"); }
 function refresh(){ $("f-tested").textContent = facts.tested; $("f-sup").textContent = facts.sup; $("f-find").textContent = facts.find; $("f-act").textContent = facts.act; $("f-skill").textContent = facts.skill; }
@@ -307,6 +356,7 @@ function askBox(c){
   return el(`<div class="ask ${c.default != null ? "soft" : ""}"><p><strong>${esc(c.question)}</strong></p><p class="muted" style="font-size:.85rem">${esc(c.why)}</p><select data-id="${esc(c.id)}"${pickFirst ? " required" : ""}>${placeholder}${c.candidates.map(x => `<option value="${esc(x)}"${x === chosen ? " selected" : ""}>${esc(x)}${x === c.default ? " (default)" : ""}</option>`).join("")}</select></div>`);
 }
 function onIntake(out){
+  intakeSeen = true;
   const r = out.report || {}; const status = out.status || "refused";
   if (out.report) lastReport = {...r, source: out.source};
   const box = $("pairing-report"); $("pairing").classList.add("show");
@@ -347,12 +397,12 @@ function onIntake(out){
 
 async function putFile(path, body){
   const url = API.file(sessionId, path) + (uploadTicket ? `&ticket=${encodeURIComponent(uploadTicket)}` : "");
-  const res = await fetch(url, {method:"PUT", headers:{"Content-Type":"application/octet-stream"}, body});
+  const res = await fetch(url, {method:"PUT", headers:{"Content-Type":"application/octet-stream"}, body, signal: timed(TIMEOUT_MS.upload)});
   if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `upload ${path}: HTTP ${res.status}`); }
 }
 
 async function openSession(){
-  const res = await fetch(API.sessions, {method:"POST"});
+  const res = await fetch(API.sessions, {method:"POST", signal: timed(TIMEOUT_MS.session)});
   if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `session: HTTP ${res.status}`); }
   const session = await res.json();
   sessionId = session.agent_session_id; uploadTicket = session.upload_ticket || null; settled = false;
@@ -362,19 +412,31 @@ async function openSession(){
 async function check(ev){
   ev.preventDefault();
   $("check").disabled = true; $("go").disabled = true; $("status").textContent = "uploading";
+  const charterFile = $("charter-file").files[0], dataFile = $("data-file").files[0];
+  const request = {}, uploads = [];   // [path, body, what the person sees]
+  const chosen = $("charter-preset").value;
+  if (charterFile) uploads.push([/\.(md|markdown)$/i.test(charterFile.name) ? "intake/charter.md" : "intake/charter.yaml", charterFile, `${charterFile.name} (${fmtBytes(charterFile.size)})`]);
+  else if (chosen.startsWith("mine:")) { const text = savedCharters()[chosen.slice(5)] ?? ""; uploads.push([/^\s*---/.test(text) ? "intake/charter.md" : "intake/charter.yaml", text, `your charter ${chosen.slice(5)}`]); }
+  else request.charter = chosen;
+  if (dataFile) uploads.push(["intake/data.csv", dataFile, `${dataFile.name} (${fmtBytes(dataFile.size)})`]); else request.data = $("data-preset").value;
+  uploads.push(["intake/request.json", JSON.stringify(request), "the request"]);
+  checkProgress.start([
+    {label: "Opening a session", slow: WAKING},
+    {label: "Uploading into the session", slow: "Large files take longer. They go into this session only."},
+    {label: "Checking the pairing — fixed code, no model", slow: "The session's agent starts before the check runs; this usually takes 10–30 s. " + WAKING},
+  ]);
+  intakeSeen = false;
   try {
+    checkProgress.step(0);
     await openSession();
-    const charterFile = $("charter-file").files[0], dataFile = $("data-file").files[0];
-    const request = {};
-    const chosen = $("charter-preset").value;
-    if (charterFile) await putFile(/\.(md|markdown)$/i.test(charterFile.name) ? "intake/charter.md" : "intake/charter.yaml", charterFile);
-    else if (chosen.startsWith("mine:")) { const text = savedCharters()[chosen.slice(5)] ?? ""; await putFile(/^\s*---/.test(text) ? "intake/charter.md" : "intake/charter.yaml", text); }
-    else request.charter = chosen;
-    if (dataFile) await putFile("intake/data.csv", dataFile); else request.data = $("data-preset").value;
-    await putFile("intake/request.json", JSON.stringify(request));
-    $("status").textContent = "checking";
-    await stream("check the pairing");   // the gate answers with loop.intake and never reaches the model
-  } catch (e) { $("status").textContent = "failed: " + e.message; $("check").disabled = false; }
+    checkProgress.step(1);
+    for (const [path, body, what] of uploads) { checkProgress.detail(what); await putFile(path, body); }
+    checkProgress.detail(`${uploads.length} file(s)`);
+    checkProgress.step(2); $("status").textContent = "checking";
+    await stream("check the pairing", {timeoutMs: TIMEOUT_MS.check});   // the gate answers with loop.intake and never reaches the model
+    if (!intakeSeen) throw new Error("The agent answered without a pairing report. Try again.");
+    checkProgress.done();
+  } catch (e) { $("status").textContent = "failed"; checkProgress.fail(explain(e)); $("check").disabled = false; }
 }
 
 async function start(ev){
@@ -383,8 +445,15 @@ async function start(ev){
   const accept = {answers, iterations: Number($("iterations").value) || 3};
   if (LOCAL && $("ratifier").value.trim()) accept.ratified_by = $("ratifier").value.trim();
   $("go").disabled = true; $("status").textContent = "accepting";
+  startProgress.start([
+    {label: "Saving your answers and signature"},
+    {label: "Starting the run — waiting for the first round", slow: "The agent is loading the data and screens before the model's first move. " + WAKING},
+  ]);
   try {
+    startProgress.step(0);
     if (!settled) await putFile("intake/accept.json", JSON.stringify(accept));
+    startProgress.step(1);
+    onFirstItem = () => startProgress.done();
     tl.innerHTML = ""; calls.clear(); Object.keys(facts).forEach(k => facts[k] = 0); refresh(); $("f-iter").textContent = "—"; endText();
     $("report").hidden = true; $("watch").hidden = false; ensureWheel().reset(); toWheel = Wheel.adapter();
     if (lastReport) wheel.setInput(wheelInput(lastReport));
@@ -392,12 +461,13 @@ async function start(ev){
     requestAnimationFrame(() => { wheel.layout(); $("watch").scrollIntoView({behavior: "smooth", block: "start"}); });
     t0 = performance.now(); window.firstWheelEventMs = null;
     await stream($("steer").value);
+    if (onFirstItem) throw new Error("The run ended before its first round. See the event log.");
     if ($("status").textContent === "complete") settled = true;   // a settled session re-runs the same pairing
-  } catch (e) { $("status").textContent = "failed: " + e.message; }
-  finally { $("go").disabled = false; setLive(null); }
+  } catch (e) { $("status").textContent = "failed"; startProgress.fail(explain(e)); }
+  finally { onFirstItem = null; $("go").disabled = false; setLive(null); }
 }
 
-function reset(){ sessionId = null; uploadTicket = null; settled = false; $("pairing").classList.remove("show"); $("asks").innerHTML = ""; $("go").disabled = true; $("again").hidden = true; $("session").textContent = ""; $("status").textContent = "idle"; }
+function reset(){ sessionId = null; uploadTicket = null; settled = false; $("pairing").classList.remove("show"); $("asks").innerHTML = ""; $("go").disabled = true; $("again").hidden = true; $("session").textContent = ""; $("status").textContent = "idle"; checkProgress.hide(); startProgress.hide(); }
 // The option lists come from what the service actually ships (`python -m loop presets`)
 // plus charters written on /charters.html, which live only in this browser.
 function savedCharters(){ try { return JSON.parse(localStorage.getItem("strong-loop.charters") || "{}"); } catch { return {}; } }
@@ -443,17 +513,19 @@ function onReasoning(text){ if (text && text.trim()) add(el(`<li class="think">$
 function fmtP(p){ if (p == null) return "—"; return p < 0.001 ? p.toExponential(2) : p.toFixed(4); }
 function round(x){ return typeof x === "number" ? x.toFixed(3) : (x ?? "—"); }
 
-async function stream(input){
+let streamError = null;
+async function stream(input, opts = {}){
+  streamError = null;
   let url = API.run, options = {method:"POST", headers:{"Content-Type":"application/json"},
     body: JSON.stringify({model:"strong-loop", input, stream:true, agent_session_id: sessionId})};
   if (!LOCAL) {
-    const ticket = await fetch(API.ticket, options);
+    const ticket = await fetch(API.ticket, {...options, signal: timed(TIMEOUT_MS.session)});
     if (!ticket.ok) throw new Error(`Ticket HTTP ${ticket.status}`);
     const issued = await ticket.json();
     url = issued.url;
     options = {method:"GET"};
   }
-  const res = await fetch(url, options);
+  const res = await fetch(url, {...options, signal: opts.timeoutMs ? timed(opts.timeoutMs) : undefined});
   if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
   const was = $("status").textContent; $("status").textContent = "streaming";
   const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
@@ -463,12 +535,14 @@ async function stream(input){
     let idx; while ((idx = buf.indexOf("\n\n")) >= 0) { handle(buf.slice(0, idx)); buf = buf.slice(idx + 2); }
   }
   if ($("status").textContent === "streaming") $("status").textContent = was === "checking" ? "no answer from the gate" : "stream ended";
+  if (streamError) throw new Error(streamError);
 }
 
 function handle(block){
   let type = null, data = null;
   for (const line of block.split("\n")) { if (line.startsWith("event: ")) type = line.slice(7); else if (line.startsWith("data: ")) data = parseJSON(line.slice(6)); }
   if (!type || !data) return;
+  if (onFirstItem && type === "response.output_item.done") { onFirstItem(); onFirstItem = null; }
   switch (type) {
     case "response.output_item.added": if (data.item.type === "message") endText(); break;
     case "response.output_item.done": {
@@ -482,7 +556,7 @@ function handle(block){
     case "response.output_text.delta": onTextDelta(data.delta); break;
     case "response.reasoning_summary_text.done": onReasoning(data.text); break;
     case "response.completed": if ($("status").textContent === "streaming") $("status").textContent = "complete"; break;
-    case "error": $("status").textContent = "error"; add(el(`<li class="empty">${esc(JSON.stringify(data))}</li>`)); break;
+    case "error": $("status").textContent = "error"; streamError = (typeof data.error === "string" && data.error) || data.message || (data.error && data.error.message) || JSON.stringify(data); add(el(`<li class="empty">${esc(JSON.stringify(data))}</li>`)); break;
   }
 }
 $("intake").addEventListener("submit", check);
