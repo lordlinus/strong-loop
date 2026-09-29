@@ -15,65 +15,65 @@ Ten use cases, ten builds.
 00:00:14.074 --> 00:00:16.837
 And none of them trusted to act alone.
 
-00:00:17.337 --> 00:00:19.784
+00:00:17.337 --> 00:00:19.186
 Here, the loop is built once.
 
-00:00:19.784 --> 00:00:27.715
-A use case is a charter: what the role owns, may do, must never use, and what counts as proof.
+00:00:19.186 --> 00:00:28.370
+Each new use case is defined in a charter: what the role is responsible for, what it may do, what it must never touch, and what counts as proof.
 
-00:00:27.715 --> 00:00:31.175
-Four roles, one engine, no code per role.
+00:00:28.370 --> 00:00:32.962
+These four run on the same engine, with no code written for any of them.
 
-00:00:31.675 --> 00:00:33.461
+00:00:33.462 --> 00:00:35.248
 Autonomy has three parts.
 
-00:00:33.461 --> 00:00:38.249
+00:00:35.248 --> 00:00:40.036
 The model explores freely, round after round, with nobody watching.
 
-00:00:38.249 --> 00:00:40.535
+00:00:40.036 --> 00:00:42.322
 Fixed code decides what is true.
 
-00:00:40.535 --> 00:00:51.325
+00:00:42.322 --> 00:00:53.112
 And each action runs only at the level its charter grants: recommend, or act reversibly inside a cap, with a named person signing off where it matters.
 
-00:00:51.825 --> 00:00:55.265
+00:00:53.612 --> 00:00:57.052
 Before a run, it asks only what code cannot settle.
 
-00:00:55.265 --> 00:01:01.200
+00:00:57.052 --> 00:01:02.987
 Then the agent gets its brief: its goals, its permitted actions, and the proof it needs.
 
-00:01:01.700 --> 00:01:06.115
+00:01:03.487 --> 00:01:07.902
 Here is a real run: the claims analyst over 7,000 claims.
 
-00:01:06.115 --> 00:01:09.214
+00:01:07.902 --> 00:01:11.001
 Each round starts from an empty context.
 
-00:01:09.214 --> 00:01:12.700
+00:01:11.001 --> 00:01:14.487
 Its only memory is a ledger, written by code.
 
-00:01:13.200 --> 00:01:16.127
+00:01:14.987 --> 00:01:17.914
 It commits to each claim before seeing a result.
 
-00:01:16.127 --> 00:01:20.762
+00:01:17.914 --> 00:01:22.549
 Code tests it against the rows, and applies the charter's standard of proof.
 
-00:01:21.262 --> 00:01:22.599
+00:01:23.049 --> 00:01:24.386
 A pass isn't enough.
 
-00:01:22.599 --> 00:01:28.949
+00:01:24.386 --> 00:01:30.736
 The same group is re-tested with a likely confound held constant, before a finding is recorded.
 
-00:01:29.450 --> 00:01:35.900
+00:01:31.237 --> 00:01:37.687
 An action needs a right the charter grants, evidence that clears its bar, and a size inside the cap.
 
-00:01:36.400 --> 00:01:40.753
+00:01:38.187 --> 00:01:42.540
 It stops when the ledger says so, not when the model says it's done.
 
-00:01:40.753 --> 00:01:45.362
+00:01:42.540 --> 00:01:47.150
 Then every p-value is corrected together, and lucky results are demoted.
 
-00:01:45.863 --> 00:01:49.400
+00:01:47.650 --> 00:01:51.187
 A new use case is a new charter, not a new agent.
 
-00:01:49.400 --> 00:01:52.288
+00:01:51.187 --> 00:01:54.075
 Write one for your own role, and run it.

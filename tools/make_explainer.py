@@ -50,11 +50,11 @@ CARD_CSS = """
 #xp .split{display:grid;grid-template-columns:1fr 460px;gap:70px;align-items:center}
 #xp .ring{width:460px;height:460px;border:5px solid var(--code);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px}
 #xp .ring p{font-size:30px;margin:14px 0 0}
-#xp .foot{font:600 22px var(--mono);color:var(--code);margin-top:40px;letter-spacing:.04em}
+#xp .foot{font:600 22px var(--mono);color:var(--code);margin-top:40px;letter-spacing:.04em;max-width:none}
 #xp .tiles{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:8px 0 0}
 #xp .tile{background:var(--paper-2);border:2px solid var(--rule);border-radius:8px;padding:22px 26px}
-#xp .tile h3{font:700 30px var(--mono);margin:0 0 8px;color:var(--ink)} #xp .tile p{font-size:24px;margin:0 0 8px;line-height:1.35}
-#xp .tile .m{font:500 19px var(--mono);color:var(--code);margin:0}
+#xp .tile h3{font:800 34px var(--display);letter-spacing:-.01em;margin:0 0 8px;color:var(--ink)} #xp .tile p{font-size:24px;margin:0 0 8px;line-height:1.35}
+#xp .tile .m{font:500 20px var(--mono);color:var(--code);margin:0}
 #xp .dials{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:10px}
 #xp .dial{border-top:5px solid var(--rule);padding-top:18px} #xp .dial.m{border-color:var(--model)} #xp .dial.c{border-color:var(--code)} #xp .dial.h{border-color:var(--human)}
 #xp .dial h3{font:800 38px/1.1 var(--display);margin:10px 0 12px} #xp .dial p{font-size:25px;line-height:1.35;margin:0 0 10px}
@@ -86,9 +86,20 @@ def repo_facts(run: dict) -> dict:
 def cards(run: dict, facts: dict) -> dict[str, str]:
     def first_sentence(text: str) -> str:
         return re.split(r"(?<=\.)\s|:\s", " ".join(text.split()), maxsplit=1)[0].rstrip(".") + "."
+    def plain(name: str, role: bool = False) -> str:
+        """`hr_analyst` -> "HR analyst", `is_js_error` -> "JS error": the charter's own names,
+        read aloud rather than shown as identifiers."""
+        from loop.gates import column_words
+        words = column_words(name)
+        if not role:
+            words = words[1:] if len(words) > 1 and words[0] in ("is", "has") else words
+            words = words[:-1] if len(words) > 1 and words[-1] == "flag" else words
+        small = {"to", "of", "in", "on", "at", "by", "or", "an", "is", "as", "if", "no", "up"}
+        text = " ".join(w.upper() if len(w) <= 2 and w not in small else w for w in words)
+        return text[:1].upper() + text[1:] if role else text
     tiles = "".join(
-        f"""<div class="tile"><h3>{escape(c['name'])}</h3><p>{escape(first_sentence(c['description']))}</p>
-            <p class="m">{escape(' · '.join(c['metrics']))}</p></div>""" for c in facts["charters"][:4])
+        f"""<div class="tile"><h3>{escape(plain(c['name'], role=True))}</h3><p>{escape(first_sentence(c['description']))}</p>
+            <p class="m">Accountable for: {escape(' · '.join(plain(m) for m in c['metrics']))}</p></div>""" for c in facts["charters"][:4])
     plays = "".join(
         f"<li><code>{escape(p['action_type'])}</code>{escape(p['who_acts'])}"
         + (f" · <b>{escape(p['signs_off'])}</b> signs off" if p["signs_off"] else "") + f" · {escape(p['cap'].replace(' per run', ''))}</li>"
@@ -104,9 +115,9 @@ def cards(run: dict, facts: dict) -> dict[str, str]:
         "problem": """<p class="k">the problem</p><h2>One use case, one build.</h2>
             <p>Every new use case becomes its own agent — its own prompts, tools and guardrails.</p>
             <p><b>Ten use cases, ten builds.</b> And none of them trusted to act alone.</p>""",
-        "once": f"""<p class="k">the idea</p><h2>A use case is a charter.</h2>
+        "once": f"""<p class="k">the idea</p><h2>Each use case is defined,<br><span class="c">not built.</span></h2>
             <div class="tiles">{tiles}</div>
-            <p class="foot">one loop · one gate · one ledger · no code per role</p>""",
+            <p class="foot">Four jobs, one engine. None of them needed new code.</p>""",
         "autonomy": f"""<p class="k">how autonomy works</p><div class="dials">
             <div class="dial m"><span class="who who-model">model</span><h3>Explores freely</h3>
               <p>Picks the questions and the claims, round after round, with nobody watching.</p></div>
@@ -143,7 +154,7 @@ def scenes(run: dict, events: list[dict]) -> list[dict]:
     return [
         {"card": "title", "say": "This is strong-loop. Build the loop once, and run every role through it."},
         {"card": "problem", "say": "Today, each analytics use case is its own agent project, with its own prompts, tools and guardrails. Ten use cases, ten builds. And none of them trusted to act alone."},
-        {"card": "once", "say": "Here, the loop is built once. A use case is a charter: what the role owns, may do, must never use, and what counts as proof. Four roles, one engine, no code per role."},
+        {"card": "once", "say": "Here, the loop is built once. Each new use case is defined in a charter: what the role is responsible for, what it may do, what it must never touch, and what counts as proof. These four run on the same engine, with no code written for any of them."},
         {"card": "autonomy", "say": "Autonomy has three parts. The model explores freely, round after round, with nobody watching. Fixed code decides what is true. And each action runs only at the level its charter grants: recommend, or act reversibly inside a cap, with a named person signing off where it matters."},
         {"card": "brief", "say": "Before a run, it asks only what code cannot settle. Then the agent gets its brief: its goals, its permitted actions, and the proof it needs."},
         {"wheel": [0, 3, first_test - 1], "say": f"Here is a real run: the {role} over {rows} claims. Each round starts from an empty context. Its only memory is a ledger, written by code."},
